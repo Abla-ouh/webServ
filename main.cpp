@@ -10,12 +10,28 @@
 /*                                                                            */
 /* ************************************************************************** */
 
+#include "utils/configParse/configFile.hpp"
 #include "HTTPServer.hpp"
 #include<stdio.h>
 
-int main() {
-    //perror("hello");
-    HTTPServer server;
-    server.start();
-    return 0;
+
+int main(int ac, char const *av[])
+{
+	if (ac == 2)
+	{
+		try {
+			configFile config((string(av[1])));
+            HTTPServer server;
+			config.print();
+            server.start();
+		}
+		catch (std::exception& err)
+		{
+			std::cerr << RED "Error: " << err.what();
+		}
+	}
+	else
+		cout << RED "using: ./webserv <config file> \"./webserve message.conf\"\n";
+	return 0;
 }
+
