@@ -6,16 +6,17 @@
 /*   By: abouhaga <abouhaga@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/02 17:55:47 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/08/14 12:56:11 by abouhaga         ###   ########.fr       */
+/*   Updated: 2023/08/14 20:00:37 by abouhaga         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef HTTP_SERVER_HPP
 #define HTTP_SERVER_HPP
 
-#include "Server.hpp"
+#include "./utils/configParse/serverClass.hpp"
 #include "Client.hpp"
 #include "Request.hpp"
+#include "./utils/configParse/configFile.hpp"
 #include <string>
 #include <vector>
 #include <sstream>
@@ -28,11 +29,11 @@
 
 class HTTPServer {
     public:
-        HTTPServer();
+        HTTPServer(configFile &obj);
         ~HTTPServer();
         void createConnections();
         void start();
-        std::vector<Server> servers;
+        std::vector<server> servers;
         std::vector<Client> clients;
 
     private:

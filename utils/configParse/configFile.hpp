@@ -19,6 +19,7 @@ class configFile {
 	public:
 		configFile(const string file);
 		~configFile(){};
+		vector<server>&	getServers(){return (_server);};
 		void	getServerContext(ifstream &in, string &line);
 		void	check_braces(string file);
 		void	print();

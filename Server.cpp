@@ -6,24 +6,15 @@
 /*   By: abouhaga <abouhaga@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/02 19:01:01 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/08/14 12:45:38 by abouhaga         ###   ########.fr       */
+/*   Updated: 2023/08/14 19:31:42 by abouhaga         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "Server.hpp"
+#include "utils/configParse/serverClass.hpp"
 
-Server::Server(std::string serv, std::string _port)
-{
-    serverName = serv;
-    port = _port;
-}
 
-Server::~Server()
-{
-    
-}
 
-void Server::CreateSocket()
+void server::CreateSocket()
 {
     memset(&hint, 0, sizeof(hint));
     

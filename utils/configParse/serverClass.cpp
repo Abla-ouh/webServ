@@ -108,3 +108,69 @@ void server::print()
 		cout << _locations[i].getUploadPath() << "\n";
 	}
 }
+
+
+void server::CreateSocket(server servers)
+{
+    memset(&hint, 0, sizeof(hint));
+    
+    hint.ai_family = AF_INET;
+    hint.ai_socktype = SOCK_STREAM;
+    int yes = 1;
+    cout << servers.getServerName().c_str() << "++++++\n";
+    cout << servers.getPort().c_str() << "++++++\n";
+
+    if (getaddrinfo(servers.getServerName().c_str(), servers.getPort().c_str(), &hint, &res) != 0)
+    {
+		//cout << getaddrinfo(servers.getServerName().c_str(), servers.getPort().c_str(), &hint, &res) << std::endl;
+		//throw runtime_error("ERROR : Can't resolve hostname");
+		//exit(1);
+        std::cerr << "getaddrinfo() failed" << std::endl;
+        //freeaddrinfo(res);
+        return;
+    }
+
+    server_socket = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
+    if (server_socket == -1) {
+        perror("socket");
+        freeaddrinfo(res);
+        return;
+    }
+
+    // if ((server_socket = socket(res->ai_family, res->ai_socktype, res->ai_protocol)) == -1)
+    // {
+    //     std::cerr << "socket() failed" << std::endl;
+    //     exit(1);
+    // }
+    if (fcntl(server_socket, F_SETFL, O_NONBLOCK) == -1)
+    {
+        std::cerr << "Failed to set socket to non-blocking mode" << std::endl;
+        close(server_socket);
+        freeaddrinfo(res);
+        return;
+    }
+
+    if (setsockopt(server_socket, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof yes) == -1)
+    {
+        std::cout << "setsocket failed" << std::endl;
+        close(server_socket);
+        freeaddrinfo(res);
+        return;
+    }
+    
+    if (bind(server_socket, res->ai_addr, res->ai_addrlen) == -1)
+    {
+        perror("bind");
+        close(server_socket);
+        freeaddrinfo(res);
+        return;
+    }
+    freeaddrinfo(res);
+    
+    if (listen(server_socket, 400) == -1)
+    {
+        std::cerr << "listen() failed" << std::endl;
+        close(server_socket);
+        return;
+    }
+}

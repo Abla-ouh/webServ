@@ -6,7 +6,7 @@
 /*   By: abouhaga <abouhaga@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/02 18:20:47 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/08/14 15:00:48 by abouhaga         ###   ########.fr       */
+/*   Updated: 2023/08/14 20:07:30 by abouhaga         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,10 +14,10 @@
 #include "HTTPServer.hpp"
 
 
-HTTPServer::HTTPServer() {
-    
-    servers.push_back(Server("localhost", "9090"));
-   // servers.push_back(Server("localhost", "9090"));
+HTTPServer::HTTPServer(configFile& obj) {
+    std::vector<server> vec = obj.getServers();
+    for (size_t i = 0; i < vec.size(); i++)
+        servers.push_back(vec[i]);
 }
 
 HTTPServer::~HTTPServer()
@@ -29,9 +29,7 @@ void HTTPServer::createConnections()
 {
     //  initializing the socket for each server
     for (size_t i = 0; i < servers.size(); i++)
-    {
-        servers[i].CreateSocket();
-    }
+        servers[i].CreateSocket(servers[i]);
 }
 
 std::string intToString(int number)
@@ -217,16 +215,16 @@ void HTTPServer::sendResponse(int clientSocket)
     close(clientSocket);
 }
 
-void acceptNewClient(std::vector<Server>& servers, std::vector<Client>& clients, fd_set& rd)
+void acceptNewClient(std::vector<server>& servers, std::vector<Client>& clients, fd_set& rd)
 {
-    std::vector<Server>::iterator it = servers.begin();
+    std::vector<server>::iterator it = servers.begin();
     int serverIndex = 0; 
     while (it != servers.end())
     {
-        if (FD_ISSET((*it).server_socket, &rd))
+        if (FD_ISSET((*it).getServerSocket(), &rd))
         {
             Client newClient;
-            newClient.client_socket = accept((*it).server_socket, NULL, NULL);
+            newClient.client_socket = accept((*it).getServerSocket(), NULL, NULL);
             if (newClient.client_socket == -1)
             {
                 std::cerr << "Failed to accept client connection" << std::endl;
@@ -259,13 +257,13 @@ void HTTPServer::start()
         FD_ZERO(&writeSet);
         maxSocket = -1;
 
-        std::vector<Server>::iterator it = servers.begin();
+        std::vector<server>::iterator it = servers.begin();
         while (it != servers.end())
         {
             //write ??
-            FD_SET((*it).server_socket, &readSet);
-            if ((*it).server_socket > maxSocket)
-                maxSocket = (*it).server_socket;
+            FD_SET((*it).getServerSocket(), &readSet);
+            if ((*it).getServerSocket() > maxSocket)
+                maxSocket = (*it).getServerSocket();
             it++;
         }
 
