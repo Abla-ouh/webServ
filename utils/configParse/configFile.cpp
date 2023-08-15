@@ -16,21 +16,41 @@ void	configFile::getServerContext(ifstream &in, string &line)
 		else if (returnValue == 2)
 			break;
 		if (line.find_first_of("{}") < line.length() && key != "location")
-			throw(unvalidDirective());
+			throw (unvalidDirective());
 		if (key == "listen")
 			serv.setPort(count_argument(value, 1) && check_number(value) && check_range(value, 0, 65536) ? value : "");
 		else if (key == "host")
 			serv.setHost(count_argument(value, 1) && check_host(value) ? value : "");
 		else if (key == "server_name")
-			get_multiple_args(value, serv.getServerName());
+			serv.setServerName(count_argument(value, 1) ? value : "");
 		else if (key == "allow_methods")
-			get_allow_methodes(value, serv.getAllowMethodes());
+		{
+			count_argument(value, -1);
+			for (size_t i = 0; i < value.length(); i++)
+			{
+				value.erase(0, value.find_first_not_of(" 	"));
+				serv.setAllowMethodes(value.substr(0, value.find_first_of(" 	")));
+				string method = serv.getAllowMethodes().back();
+				method == "GET" || method == "POST" || method == "DELETE" ? "" : throw(unvalidDirective());
+				value.erase(0, value.find_first_of(" 	"));
+				i = 0;
+			}
+		}
 		else if (key == "client_max_body_size")
 			serv.setclient_max_body_size(count_argument(value, 1) && check_number(value) ? value : "");
 		else if (key == "root")
 			serv.setRoot(count_argument(value, 1) ? value : "");
 		else if (key == "index")
-			get_multiple_args(value, serv.getIndex());
+		{
+			count_argument(value, -1);
+			for (size_t i = 0; i < value.length(); i++)
+			{
+				value.erase(0, value.find_first_not_of(" 	"));
+				serv.setIndex(value.substr(0, value.find_first_of(" 	")));
+				value.erase(0, value.find_first_of(" 	"));
+				i = 0;
+			}
+		}
 		else if (key == "error_page")
 		{
 			count_argument(value, 2);
@@ -44,10 +64,11 @@ void	configFile::getServerContext(ifstream &in, string &line)
 		else if (key == "autoindex")
 			serv.setAutoIndex(count_argument(value, 1) && (value == "on" || value == "off") ? value : throw(unvalidDirective()));
 		else if (key == "location" && value.find_first_of("{") < value.length())
-			serv.getLocationContext(in, value.find_first_not_of(" 	{") < value.length() ? line : throw (unvalidDirective()));
+			serv.getLocationContext(in, line);
 		else
 			throw (unvalidDirective());
 	}
+	serv.checkHostPort();
 	_server.push_back(serv);
 }
 
@@ -55,7 +76,7 @@ void	configFile::getServerContext(ifstream &in, string &line)
 // TODO : check host range => fixed √
 // TODO : check curly braces => fixed for now √
 // TODO : location => get data done √
-// TODO : remove semi colon in end of line
+// TODO :
 
 configFile::configFile(const string file) : _full_file("")
 {
@@ -84,10 +105,8 @@ void	configFile::print()
 	for (size_t i = 0; i < _server.size(); i++)
 	{
 		cout << YELLOW "Server " << i + 1 << " -----------------------" WHITE << "\n";
-		cout << GREEN "Port's: \n" WHITE;
-		vector<string> &vec = this->_server[i].getPort();
-		for (size_t i = 0; i < vec.size(); i++)
-			cout << "|" << vec[i] << "|" << "\n";
+		cout << GREEN "Port: \n" WHITE;
+			cout << "|" << _server[i].getPort() << "|" << "\n";
 
 		cout << GREEN "Host's: \n" WHITE;
 		cout << this->_server[i].getHost() << "\n";
@@ -103,10 +122,8 @@ void	configFile::print()
 		for (size_t i = 0; i < vec2.size(); i++)
 			cout << "|" << vec2[i] << "|" << "\n";
 
-		cout << GREEN "Server Name's: \n" WHITE;
-		vector<string> &vec3 = this->_server[i].getServerName();
-		for (size_t i = 0; i < vec3.size(); i++)
-			cout << "|" << vec3[i] << "|" << "\n";
+		cout << GREEN "Server Name: \n" WHITE;
+			cout << "|" << _server[i].getServerName() << "|" << "\n";
 
 		cout << GREEN "Allowed Methods: \n" WHITE;
 		vector<string> &vec4 = this->_server[i].getAllowMethodes();

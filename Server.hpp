@@ -6,7 +6,7 @@
 /*   By: abouhaga <abouhaga@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/02 19:01:08 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/08/13 15:22:25 by abouhaga         ###   ########.fr       */
+/*   Updated: 2023/08/14 19:22:27 by abouhaga         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,15 +29,15 @@
 class Server{
     
     public :
-        std::string     serverName;
-        std::string     port;
-        int             server_socket;
-        struct addrinfo hint;
-        struct addrinfo *res;
+        std::string     serverName; // to replace
+        //std::string     port;
+        // int             server_socket; // to add 
+        // struct addrinfo hint;
+        // struct addrinfo *res; // added
 
-        Server(std::string serv, std::string port);
-        ~Server();
-        void    CreateSocket();
+        //Server(std::string serv, std::string port); //depricated
+        //~Server(); 
+        //void    CreateSocket(); // added
 };
 
 #endif

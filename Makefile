@@ -1,14 +1,14 @@
 #SRCS		= multiClients/main.cpp multiClients/Client.cpp multiClients/HTTPServer.cpp multiClients/Server.cpp
 CONFIG_PARSE = ./utils/configParse/
 
-SRCS = main.cpp Client.cpp HTTPServer.cpp Server.cpp Request.cpp\
+SRCS = main.cpp Client.cpp HTTPServer.cpp Request.cpp\
 		$(CONFIG_PARSE)configFile.cpp\
 		$(CONFIG_PARSE)serverClass.cpp\
 		$(CONFIG_PARSE)configFile_utils.cpp
 
 NAME		= webserv
 CC	= clang++
-CXX	= clang++
+CXX = clang++
 
 CPPFLAGS = -Wall -Wextra -Werror -std=c++98
 
@@ -19,10 +19,6 @@ all:		$(NAME)
 $(NAME)	: $(OBJS)
 		$(CC) $(CFLAGS) $(SRCS) -o $(NAME)
 
-run:
-	make re
-	clear
-	$(NAME) message.conf
 clean:
 		rm -rf $(OBJS)
 

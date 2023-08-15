@@ -2,7 +2,7 @@
 
 server::server()
 {
-	//_port = "";
+	_port = "8080";
 	_host = "127.0.0.1";
 	//_client_max_body_size;
 	//_root;
@@ -129,4 +129,82 @@ void server::print()
 		cout << GREEN "CGI extension: \n" WHITE;
 		cout << _locations[i].getCgiExt() << "\n";
 	}
+}
+
+void	server::checkHostPort()
+{
+	memset(&hint, 0, sizeof(hint));
+    
+    hint.ai_family = AF_INET;
+    hint.ai_socktype = SOCK_STREAM;
+
+    if (getaddrinfo(this->getServerName().c_str(), this->getPort().c_str(), &hint, &res))
+    {
+        // freeaddrinfo(res); // sigfault when free res
+		throw runtime_error("ERROR : Can't resolve hostname\n");
+    }
+	freeaddrinfo(res);
+}
+
+void server::CreateSocket(server servers)
+{
+    memset(&hint, 0, sizeof(hint));
+    
+    hint.ai_family = AF_INET;
+    hint.ai_socktype = SOCK_STREAM;
+    int yes = 1;
+
+    if (getaddrinfo(servers.getServerName().c_str(), servers.getPort().c_str(), &hint, &res))
+    {
+		//cout << getaddrinfo(servers.getServerName().c_str(), servers.getPort().c_str(), &hint, &res) << std::endl;
+		//throw runtime_error("ERROR : Can't resolve hostname");
+		//exit(1);
+        std::cerr << "getaddrinfo() failed" << std::endl;
+        //freeaddrinfo(res);
+        return;
+    }
+
+    server_socket = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
+    if (server_socket == -1) {
+        perror("socket");
+        freeaddrinfo(res);
+        return;
+    }
+
+    // if ((server_socket = socket(res->ai_family, res->ai_socktype, res->ai_protocol)) == -1)
+    // {
+    //     std::cerr << "socket() failed" << std::endl;
+    //     exit(1);
+    // }
+    if (fcntl(server_socket, F_SETFL, O_NONBLOCK) == -1)
+    {
+        std::cerr << "Failed to set socket to non-blocking mode" << std::endl;
+        close(server_socket);
+        freeaddrinfo(res);
+        return;
+    }
+
+    if (setsockopt(server_socket, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof yes) == -1)
+    {
+        std::cout << "setsocket failed" << std::endl;
+        close(server_socket);
+        freeaddrinfo(res);
+        return;
+    }
+    
+    if (bind(server_socket, res->ai_addr, res->ai_addrlen) == -1)
+    {
+        perror("bind");
+        close(server_socket);
+        freeaddrinfo(res);
+        return;
+    }
+    freeaddrinfo(res);
+    
+    if (listen(server_socket, 400) == -1)
+    {
+        std::cerr << "listen() failed" << std::endl;
+        close(server_socket);
+        return;
+    }
 }

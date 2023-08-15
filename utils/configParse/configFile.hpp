@@ -4,8 +4,8 @@
 #include "map"
 #include <fstream>
 #include <string>
+#include <algorithm>
 #include "iterator"
-#include "algorithm"
 #include "serverClass.hpp"
 
 using namespace std;
@@ -19,9 +19,11 @@ class configFile {
 	public:
 		configFile(const string file);
 		~configFile(){};
+		vector<server>&	getServers(){return (_server);};
 		void	getServerContext(ifstream &in, string &line);
 		void	check_braces(string file);
 		void	print();
+		void	last_check();
 };
 
 int		count_argument(string value, int count);

@@ -6,7 +6,7 @@
 /*   By: abouhaga <abouhaga@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/03 18:48:07 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/08/13 15:58:44 by abouhaga         ###   ########.fr       */
+/*   Updated: 2023/08/14 20:06:43 by abouhaga         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,9 +21,9 @@ int main(int ac, char const *av[])
 	{
 		try {
 			configFile config((string(av[1])));
-            // HTTPServer server;
-			config.print();
-            // server.start();
+            HTTPServer server(config);
+			// config.print();
+            server.start();
 		}
 		catch (std::exception& err)
 		{
@@ -31,7 +31,7 @@ int main(int ac, char const *av[])
 		}
 	}
 	else
-		cout << RED "using: ./webserv <config file> \"./webserve message.conf\"\n" << WHITE;
+		cout << RED "using: ./webserv <config file> \"./webserve message.conf\"\n";
 	return 0;
 }
 

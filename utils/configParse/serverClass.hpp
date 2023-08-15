@@ -3,7 +3,18 @@
 #include "locationClass.hpp"
 #include "cstring"
 #include "exceptions.hpp"
-
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netdb.h>
+#include <vector>
+#include <iostream>
+#include <string>
+#include <cstdlib>
+#include <string.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <signal.h>
+#include <stdio.h>
 
 #define GREEN "\033[0;32m"
 #define RED "\033[0;31m"
@@ -17,26 +28,29 @@ using namespace std;
 
 class server {
 	private:
-		vector<string>		_port;
+		string				_port;
 		string				_host;
-		vector<string>		_server_name;
+		string				_server_name;
 		string				_client_max_body_size;
 		string				_root;
 		vector<string>		_index;
 		map<string, string>	_error_pages;
 		vector<location>	_locations;
 		string				_autoindex;
-		vector<string>	_allow_methodes;
+		vector<string>		_allow_methodes;
+		struct addrinfo 	hint;
+        struct addrinfo 	*res;
+		int             	server_socket;
 	public:
 		server();
 		~server(){};
 		//?
 		// ? seter's
 		//?
-		void			setPort(string port){_port.push_back(port);};
+		void			setPort(string port){_port = port;};
 		void			setAllowMethodes(string allow_methodes){_allow_methodes.push_back(allow_methodes);};
 		void			setHost(string host){_host = host;};
-		void			setServerName(string serverName){_server_name.push_back(serverName);};
+		void			setServerName(string serverName){_server_name = serverName;};
 		void			setclient_max_body_size(string client_max){_client_max_body_size = client_max;};
 		void			setRoot(string root){_root = root;};
 		void			setErrorPage(string key, string value){
@@ -51,17 +65,21 @@ class server {
 		//?
 		// ? geter's
 		//?
-		vector<string>&			getPort(){return (_port);};
+		string					getPort(){return (_port);};
 		string&					getHost(){return (_host);};
 		string&					getclient_max_body_size(){return (_client_max_body_size);};
 		string&					getRoot(){return (_root);};
-		vector<string>&			getServerName(){return (_server_name);};
+		string					getServerName(){return (_server_name);};
 		vector<string>&			getAllowMethodes(){return (_allow_methodes);};
 		string&					getAutoIndex(){return (_autoindex);};
 		map<string, string>&	getErrorPage(){return (_error_pages);};
 		vector<string>&			getIndex(){return (_index);};
 		void					getLocationContext(ifstream &in, string line);
+		int						getServerSocket() { return server_socket;};
 		void					print();
+        void    				CreateSocket(server servers);
+
+		void					checkHostPort();
 };
 
 

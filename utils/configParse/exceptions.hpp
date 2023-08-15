@@ -31,7 +31,7 @@ class unvalidDigit : public exception
 class unvalidRange : public exception
 {
 	public:
-		const char* what() const throw(){return ("Too how or too high PortNumber\n");};
+		const char* what() const throw(){return ("Too Low Or Too High Number\n");};
 };
 
 class curlyBracesError : public exception
