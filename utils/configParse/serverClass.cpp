@@ -116,6 +116,7 @@ void server::CreateSocket(server servers)
     
     hint.ai_family = AF_INET;
     hint.ai_socktype = SOCK_STREAM;
+
     int yes = 1;
     cout << servers.getServerName().c_str() << "++++++\n";
     cout << servers.getPort().c_str() << "++++++\n";
@@ -126,10 +127,11 @@ void server::CreateSocket(server servers)
 		//throw runtime_error("ERROR : Can't resolve hostname");
 		//exit(1);
         std::cerr << "getaddrinfo() failed" << std::endl;
-        //freeaddrinfo(res);
+        freeaddrinfo(res);
         return;
     }
 
+	//cout<< "test" << endl;
     server_socket = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
     if (server_socket == -1) {
         perror("socket");

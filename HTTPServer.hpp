@@ -6,7 +6,7 @@
 /*   By: abouhaga <abouhaga@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/02 17:55:47 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/08/14 20:00:37 by abouhaga         ###   ########.fr       */
+/*   Updated: 2023/08/15 19:23:57 by abouhaga         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,8 +24,8 @@
 #include <stdio.h>
 #include <fstream>
 #include <signal.h>
-
-
+#include <sys/stat.h>
+#include <dirent.h>
 
 class HTTPServer {
     public:
@@ -41,10 +41,12 @@ class HTTPServer {
         void readFromFile(std::string file, std::string &str);
         void addClient(int clientSocket);
         void removeClient(int clientSocket);
-        void handleRequest(int clientSocket);
+        void handleRequest(int clientSocket, server servers);
         void sendResponse(int clientSocket);
         void sendErrorResponse(int clientSocket, const std::string& statusLine);
         std::string get_resource_type(const std::string& uri);
+        void handleDeleteRequest(int clientSocket, const std::string& uri, server servers);
+
 };
 
 #endif

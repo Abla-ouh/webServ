@@ -12,3 +12,8 @@ Server Limits: walou
 file paths 
 
 Socket Settings: fixed
+
+
+
+
+config file : each server with its unique endpoint (IPaddr:port)
