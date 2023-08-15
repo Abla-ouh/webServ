@@ -4,8 +4,8 @@
 #include "map"
 #include <fstream>
 #include <string>
-#include <algorithm>
 #include "iterator"
+#include "algorithm"
 #include "serverClass.hpp"
 
 using namespace std;
@@ -30,3 +30,6 @@ int		check_number(string num);
 int		clean_line(string &line, string& key, string& value);
 void	check_file(const string file, string method);
 int		check_host(string value);
+void	get_allow_methodes(string& value, vector<string>& vec);
+void	get_multiple_args(string& value, vector<string>& vec);
+int		get_return(string& keystring, string& value, string& final, ifstream& in, string& line, string& red);

@@ -16,50 +16,21 @@ void	configFile::getServerContext(ifstream &in, string &line)
 		else if (returnValue == 2)
 			break;
 		if (line.find_first_of("{}") < line.length() && key != "location")
-			throw (unvalidDirective());
+			throw(unvalidDirective());
 		if (key == "listen")
 			serv.setPort(count_argument(value, 1) && check_number(value) && check_range(value, 0, 65536) ? value : "");
 		else if (key == "host")
 			serv.setHost(count_argument(value, 1) && check_host(value) ? value : "");
 		else if (key == "server_name")
-		{
-			count_argument(value, -1);
-			for (size_t i = 0; i < value.length(); i++)
-			{
-				value.erase(0, value.find_first_not_of(" 	"));
-				serv.setServerName(value.substr(0, value.find_first_of(" 	")));
-				value.erase(0, value.find_first_of(" 	"));
-				i = 0;
-			}
-		}
+			get_multiple_args(value, serv.getServerName());
 		else if (key == "allow_methods")
-		{
-			count_argument(value, -1);
-			for (size_t i = 0; i < value.length(); i++)
-			{
-				value.erase(0, value.find_first_not_of(" 	"));
-				serv.setAllowMethodes(value.substr(0, value.find_first_of(" 	")));
-				string method = serv.getAllowMethodes().back();
-				method == "GET" || method == "POST" || method == "DELETE" ? "" : throw(unvalidDirective());
-				value.erase(0, value.find_first_of(" 	"));
-				i = 0;
-			}
-		}
+			get_allow_methodes(value, serv.getAllowMethodes());
 		else if (key == "client_max_body_size")
 			serv.setclient_max_body_size(count_argument(value, 1) && check_number(value) ? value : "");
 		else if (key == "root")
 			serv.setRoot(count_argument(value, 1) ? value : "");
 		else if (key == "index")
-		{
-			count_argument(value, -1);
-			for (size_t i = 0; i < value.length(); i++)
-			{
-				value.erase(0, value.find_first_not_of(" 	"));
-				serv.setIndex(value.substr(0, value.find_first_of(" 	")));
-				value.erase(0, value.find_first_of(" 	"));
-				i = 0;
-			}
-		}
+			get_multiple_args(value, serv.getIndex());
 		else if (key == "error_page")
 		{
 			count_argument(value, 2);
@@ -73,7 +44,7 @@ void	configFile::getServerContext(ifstream &in, string &line)
 		else if (key == "autoindex")
 			serv.setAutoIndex(count_argument(value, 1) && (value == "on" || value == "off") ? value : throw(unvalidDirective()));
 		else if (key == "location" && value.find_first_of("{") < value.length())
-			serv.getLocationContext(in, line);
+			serv.getLocationContext(in, value.find_first_not_of(" 	{") < value.length() ? line : throw (unvalidDirective()));
 		else
 			throw (unvalidDirective());
 	}
@@ -84,7 +55,7 @@ void	configFile::getServerContext(ifstream &in, string &line)
 // TODO : check host range => fixed √
 // TODO : check curly braces => fixed for now √
 // TODO : location => get data done √
-// TODO :
+// TODO : remove semi colon in end of line
 
 configFile::configFile(const string file) : _full_file("")
 {

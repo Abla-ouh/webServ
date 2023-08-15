@@ -21,9 +21,9 @@ int main(int ac, char const *av[])
 	{
 		try {
 			configFile config((string(av[1])));
-            HTTPServer server;
+            // HTTPServer server;
 			config.print();
-            server.start();
+            // server.start();
 		}
 		catch (std::exception& err)
 		{
@@ -31,7 +31,7 @@ int main(int ac, char const *av[])
 		}
 	}
 	else
-		cout << RED "using: ./webserv <config file> \"./webserve message.conf\"\n";
+		cout << RED "using: ./webserv <config file> \"./webserve message.conf\"\n" << WHITE;
 	return 0;
 }
 

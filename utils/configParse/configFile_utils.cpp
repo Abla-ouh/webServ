@@ -9,7 +9,7 @@ int	count_argument(string value, int count)
 		if (value.substr(0, value.find_first_of(" 	")).length() > 0)
 			c++;
 		value.erase(0, value.find_first_of(" 	"));
-		i = value.find_first_not_of(" 	") - 1;
+		i = 0;
 	}
 	if (count == -1 && c == 0)
 		throw (unvalidArgument());
@@ -90,5 +90,53 @@ int	check_host(string value)
 	}
 	if (countOctect != 4)
 		throw(unvalidHost());
+	return (1);
+}
+
+void	get_allow_methodes(string& value, vector<string>& vec)
+{
+	count_argument(value, -1);
+	for (size_t i = 0; i < value.length(); i++)
+	{
+		value.erase(0, value.find_first_not_of(" 	"));
+		vec.push_back(value.substr(0, value.find_first_of(" 	")));
+		string method = vec.back();
+		method == "GET" || method == "POST" || method == "DELETE" ? "" : throw(unvalidDirective());
+		value.erase(0, value.find_first_of(" 	"));
+		i = 0;
+	}
+}
+
+void	get_multiple_args(string& value, vector<string>& vec)
+{
+	count_argument(value, -1);
+	for (size_t i = 0; i < value.length(); i++)
+	{
+		value.erase(0, value.find_first_not_of(" 	"));
+		vec.push_back(value.substr(0, value.find_first_of(" 	")));
+		value.erase(0, value.find_first_of(" 	"));
+		i = 0;
+	}
+}
+
+int	get_return(string& key, string& value, string& final, ifstream& in, string& line, string& _redirection)
+{
+	if (value.substr(0, 7).compare("http://") && value[0] != '/')
+	{
+		cout << "return " << value << "\n";
+		throw(unvalidDirective());
+	}
+	_redirection = "url";
+	if (value[0] == '/')
+		_redirection = "location";
+	final = value;
+	while (getline(in, line))
+	{
+		int	returnValue = clean_line(line, key, value);
+		if (returnValue == 1)
+			continue;
+		else if (returnValue == 2)
+			break;
+	}
 	return (1);
 }
