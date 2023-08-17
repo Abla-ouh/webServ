@@ -12,7 +12,7 @@
 
 #include "utils/configParse/configFile.hpp"
 #include "HTTPServer.hpp"
-#include <stdio.h>
+
 
 int main(int ac, char const *av[])
 {
@@ -20,10 +20,10 @@ int main(int ac, char const *av[])
 	{
 		try {
 			configFile config((string(av[1])));
-			Post(config, config.getServers()[0].getLocation()[0]);
-            // HTTPServer server(config);
+			// Post(config, config.getServers()[0].getLocation()[0]);
+            HTTPServer server(config);
 			// config.print();
-            // server.start();
+            server.start();
 		}
 		catch (std::exception& err)
 		{

@@ -29,6 +29,7 @@ using namespace std;
 class server {
 	private:
 		string				_port;
+		string				_root;
 		string				_host;
 		string				_server_name;
 		string				_client_max_body_size;
@@ -43,6 +44,7 @@ class server {
 		//?
 		// ? seter's
 		//?
+		void			setRoot(string root){_root = root;};
 		void			setPort(string port){_port = port;};
 		void			setHost(string host){_host = host;};
 		void			setServerName(string serverName){_server_name = serverName;};
@@ -57,6 +59,7 @@ class server {
 		//?
 		// ? geter's
 		//?
+		string					getRoot(){return (_root);};
 		string					getPort(){return (_port);};
 		string&					getHost(){return (_host);};
 		string&					getclient_max_body_size(){return (_client_max_body_size);};

@@ -17,7 +17,9 @@ void	configFile::getServerContext(ifstream &in, string &line)
 			break;
 		if (line.find_first_of("{}") < line.length() && key != "location")
 			throw (unvalidDirective());
-		if (key == "listen")
+		if (key == "root")
+			serv.setRoot(count_argument(value, 1) ? value : "");
+		else if (key == "listen")
 			serv.setPort(count_argument(value, 1) && check_number(value) && check_range(value, 0, 65536) ? value : "");
 		else if (key == "host")
 			serv.setHost(count_argument(value, 1) && check_host(value) ? value : "");
