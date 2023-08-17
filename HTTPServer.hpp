@@ -6,7 +6,7 @@
 /*   By: abouhaga <abouhaga@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/02 17:55:47 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/08/17 01:14:35 by abouhaga         ###   ########.fr       */
+/*   Updated: 2023/08/17 19:54:56 by abouhaga         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,20 +14,105 @@
 #define HTTP_SERVER_HPP
 
 #include "./utils/configParse/serverClass.hpp"
-#include "Client.hpp"
-#include "Request.hpp"
+//#include "Client.hpp"
+//#include "Request.hpp"
 #include "./utils/configParse/configFile.hpp"
+//#include "./Response/response.hpp"
 #include <string>
 #include <vector>
 #include <sstream>
 #include <errno.h>
 #include <stdio.h>
 #include <fstream>
+#include <iostream>
 #include <signal.h>
 #include <sys/stat.h>
 #include <dirent.h>
 
+class Response
+{
+    std::string body;
+    std::string location;
+    std::string redirection_url;
+    std::map<int, std::string>  status_code;
+
+    public:
+        Response();
+
+        std::string &getBody();
+        std::string getStatusLine(int status_code);
+        std::string getDate();
+        std::string getServer();
+        std::string getContentType();
+        std::string getContentLength();
+        std::string getLocation() { return location; };
+        std::string getLocationUrl() { return redirection_url; };
+
+        void        setLocation(std::string other) {location = other;};
+        void        setBody(std::string body) { this->body = body;};
+        void        setLocationUrl(std::string other) { this->redirection_url = other; };
+};
+
+class Request
+{
+    private:
+
+    std::string method;
+    std::string uri;
+    std::string query;
+    std::string version;
+
+    std::map<std::string, std::string> headers;
+    void parseHeaders(const std::string& headersBlock);
+    
+    public:
+        Request();
+        Request(const std::string& httpRequest);
+
+        const std::string& getMethod() const;
+        const std::string& getURI() const;
+        const std::string& getQuery() const;
+        const std::string& getVersion() const;
+        const std::string& getHeader(const std::string& key) const;
+    
+};
+
+class Client
+{
+    std::vector<location>   locations;
+    Request                 request;
+    Response                response;
+    location                _location;
+    int                     status;
+    int                     client_socket;
+    server                  _server;
+
+    public:
+
+        Client();
+        Client(int socket, const std::string& httpRequest);
+        ~Client();
+
+        char                    data[8000];
+        Request&                getRequest() { return request;};
+        Response&               getResponse() { return response;};
+        int                     getStatus() { return status;};
+        location&               getlocation() { return _location; };
+        std::vector<location>&  getlocations() { return locations; };
+        int                     getClientSocket() { return client_socket;};
+        server                  getServer() { return _server;};
+
+        void    setRequest(Request other) { this->request = other; };
+        void    setStatus(int other) { this->status = other; };
+        void    setlocation(location other) { this->_location = other;};
+        void    setlocations(std::vector<location> other) { this->locations = other; };
+        void    setClientSocket(int other) { this->client_socket = other;};
+        void    setServer(server other) { this->_server = other;};
+};
+
+
 class HTTPServer {
+    
     public:
         HTTPServer(configFile &obj);
         ~HTTPServer();
@@ -36,17 +121,21 @@ class HTTPServer {
         std::vector<server> servers;
         std::vector<Client> clients;
 
-    private:
+    //private:
     
         void readFromFile(std::string file, std::string &str);
         void addClient(int clientSocket);
         void removeClient(int clientSocket);
-        void handleRequest(int clientSocket, std::vector<server>& servers);
+        void handleRequest(int clientSocket);
         void sendResponse(int clientSocket);
         void sendErrorResponse(int clientSocket, const std::string& statusLine);
         std::string get_resource_type(const std::string& uri);
-        void handleDeleteRequest(int clientSocket, const std::string& uri, std::vector<server>& servers);
+        //void handleDeleteRequest(int clientSocket, const std::string& uri, std::vector<server>& servers);
 
 };
+
+
+void        handleDeleteRequest(Client &client, std::string src);
+void        locationMatching(std::vector<location> locations, std::string url, Client &client);
 
 #endif

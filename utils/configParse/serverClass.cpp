@@ -117,7 +117,7 @@ void server::CreateSocket(server servers)
     hint.ai_family = AF_INET;
     hint.ai_socktype = SOCK_STREAM;
 
-    int yes = 1;
+    //int yes = 1;
     cout << servers.getServerName().c_str() << "++++++\n";
     cout << servers.getPort().c_str() << "++++++\n";
 
