@@ -26,7 +26,7 @@ class location {
 		string			_cgi_path;
 		string			_cgi_ext;
 	public:
-		location() : _equal("false"), _redirection(""){};
+		location() : _equal("false"), _redirection(""), _root(""){};
 		~location(){};
 		//?
 		// ? seter's

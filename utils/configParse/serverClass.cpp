@@ -5,13 +5,11 @@ server::server()
 	_port = "8080";
 	_host = "127.0.0.1";
 	//_client_max_body_size;
-	//_root;
 	//_index_page;
 	//_server_name;
 	//_virtual_servers;
 	//_err;
 	//_locations;
-	_autoindex = "off";
 	//_error_pages;
 	//_index;
 }
@@ -133,17 +131,17 @@ void server::print()
 
 void	server::checkHostPort()
 {
-	memset(&hint, 0, sizeof(hint));
+	// memset(&hint, 0, sizeof(hint));
     
-    hint.ai_family = AF_INET;
-    hint.ai_socktype = SOCK_STREAM;
+    // hint.ai_family = AF_INET;
+    // hint.ai_socktype = SOCK_STREAM;
 
-    if (getaddrinfo(this->getServerName().c_str(), this->getPort().c_str(), &hint, &res))
-    {
-        // freeaddrinfo(res); // sigfault when free res
-		throw runtime_error("ERROR : Can't resolve hostname\n");
-    }
-	freeaddrinfo(res);
+    // if (getaddrinfo(this->getServerName().c_str(), this->getPort().c_str(), &hint, &res))
+    // {
+    //     // freeaddrinfo(res); // sigfault when free res
+	// 	throw runtime_error("ERROR : Can't resolve hostname\n");
+    // }
+	// freeaddrinfo(res);
 }
 
 void server::CreateSocket(server servers)

@@ -4,7 +4,8 @@ CONFIG_PARSE = ./utils/configParse/
 SRCS = main.cpp Client.cpp HTTPServer.cpp Request.cpp\
 		$(CONFIG_PARSE)configFile.cpp\
 		$(CONFIG_PARSE)serverClass.cpp\
-		$(CONFIG_PARSE)configFile_utils.cpp
+		$(CONFIG_PARSE)configFile_utils.cpp\
+		$(CONFIG_PARSE)../postMethode/Post.cpp
 
 NAME		= webserv
 CC	= clang++

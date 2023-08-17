@@ -28,23 +28,24 @@
 
 
 class HTTPServer {
-    public:
-        HTTPServer(configFile &obj);
-        ~HTTPServer();
-        void createConnections();
-        void start();
-        std::vector<server> servers;
-        std::vector<Client> clients;
+	public:
+		HTTPServer(configFile &obj);
+		~HTTPServer();
+		void createConnections();
+		void start();
+		std::vector<server> servers;
+		std::vector<Client> clients;
 
-    private:
-    
-        void readFromFile(std::string file, std::string &str);
-        void addClient(int clientSocket);
-        void removeClient(int clientSocket);
-        void handleRequest(int clientSocket);
-        void sendResponse(int clientSocket);
-        void sendErrorResponse(int clientSocket, const std::string& statusLine);
-        std::string get_resource_type(const std::string& uri);
+	private:
+		void		readFromFile(std::string file, std::string &str);
+		void		addClient(int clientSocket);
+		void		removeClient(int clientSocket);
+		void		handleRequest(int clientSocket);
+		void		sendResponse(int clientSocket);
+		void		sendErrorResponse(int clientSocket, const std::string& statusLine);
+		std::string get_resource_type(const std::string& uri);
 };
+
+void    Post(configFile conf, location loc);
 
 #endif

@@ -76,9 +76,9 @@ void HTTPServer::removeClient(int clientSocket)
 bool isValid_URI_Char(char c) {
     // List of allowed characters in a URI (add more as needed)
     const std::string allowedCharacters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-                                          "abcdefghijklmnopqrstuvwxyz"
-                                          "0123456789"
-                                          "-._~:/?#[]@!$&'()*+,;=%";
+                                            "abcdefghijklmnopqrstuvwxyz"
+                                            "0123456789"
+                                            "-._~:/?#[]@!$&'()*+,;=%";
 
     // Check if the character is in the list of allowed characters
     return allowedCharacters.find(c) != std::string::npos;
@@ -166,7 +166,8 @@ void HTTPServer::handleRequest(int clientSocket)
         // }
 
         if (method == "GET"){ std::cout << "GET"<< std::endl;}
-        else if (method == "POST"){ std::cout << "POST"<< std::endl;}
+        else if (method == "POST");
+            // Post(request, this.);
         else if (method == "DELETE"){ std::cout << "DELETE"<< std::endl;}
         else
         {
