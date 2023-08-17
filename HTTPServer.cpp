@@ -6,7 +6,7 @@
 /*   By: abouhaga <abouhaga@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/02 18:20:47 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/08/15 20:21:35 by abouhaga         ###   ########.fr       */
+/*   Updated: 2023/08/17 01:15:31 by abouhaga         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,9 +33,6 @@ void HTTPServer::createConnections()
         servers[i].CreateSocket(servers[i]);
         
     }
-
-	// std::cout<< "test" << std::endl;
-    // exit(1);
 }
 
 std::string intToString(int number)
@@ -154,7 +151,7 @@ int delete_directory_contents(const std::string& dir_path)
 }
 
 
-void HTTPServer::handleDeleteRequest(int clientSocket, const std::string& uri, server servers)
+void HTTPServer::handleDeleteRequest(int clientSocket, const std::string& uri, std::vector<server>& servers)
 {
     std::string full_path = servers.getRoot() + uri;
     
@@ -186,7 +183,7 @@ void HTTPServer::handleDeleteRequest(int clientSocket, const std::string& uri, s
         sendErrorResponse(clientSocket, "400 Bad Request");
 }
 
-void HTTPServer::handleRequest(int clientSocket, server servers)
+void HTTPServer::handleRequest(int clientSocket,std::vector<server>& servers)
 {
     char data[1024];
     int rd = read(clientSocket, data, sizeof(data));

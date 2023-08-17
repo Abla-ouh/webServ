@@ -151,14 +151,6 @@ void server::CreateSocket(server servers)
         freeaddrinfo(res);
         return;
     }
-
-    if (setsockopt(server_socket, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof yes) == -1)
-    {
-        std::cout << "setsocket failed" << std::endl;
-        close(server_socket);
-        freeaddrinfo(res);
-        return;
-    }
     
     if (bind(server_socket, res->ai_addr, res->ai_addrlen) == -1)
     {
