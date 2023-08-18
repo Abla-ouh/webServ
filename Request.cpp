@@ -6,11 +6,12 @@
 /*   By: abouhaga <abouhaga@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/08 16:57:48 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/08/08 19:46:49 by abouhaga         ###   ########.fr       */
+/*   Updated: 2023/08/17 19:31:12 by abouhaga         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Request.hpp"
+#include "HTTPServer.hpp"
 
 
 std::string getQuerySting(std::string &URI)
@@ -24,6 +25,11 @@ std::string getQuerySting(std::string &URI)
     }
     //if not found ?
     return "";
+}
+
+Request::Request()
+{
+    
 }
 
 Request::Request(const std::string& httpRequest)

@@ -22,6 +22,7 @@ class location {
 		string			_autoindex;
 		string			_upload_path;
 		string			_return;
+		bool			_hasCgi;
 		vector<cgi>		_cgi_pass;
 		string			_cgi_path;
 		string			_cgi_ext;
@@ -44,6 +45,7 @@ class location {
 		void				setCgiPath(string cgi_path){_cgi_path = cgi_path;};
 		void				setCgiExt(string cgi_ext){_cgi_ext = cgi_ext;};
 		void				setRedirection(string red){_redirection = red;};
+		void				setHasCgi(bool cgi){_hasCgi = cgi;};
 		//?
 		// ? geter's
 		//?
@@ -60,4 +62,5 @@ class location {
 		string				getCgiPath(){return (_cgi_path);};
 		string				getCgiExt(){return (_cgi_ext);};
 		string&				getRedirection(){return (_redirection);};
+		bool				isCgi(){return (_hasCgi);};
 };

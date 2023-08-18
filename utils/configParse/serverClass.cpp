@@ -63,6 +63,7 @@ void	server::getLocationContext(ifstream &in, string line)
 			value.erase(remove(value.begin(), value.end(), '	'), value.end());
 			obj.path = value;
 			loc.setCgiPass(obj);
+			loc.setHasCgi(true);
 		}
 		else if (key == "cgi_path")
 			loc.setCgiPath(count_argument(value, 1) ? value : "");
@@ -150,7 +151,7 @@ void server::CreateSocket(server servers)
     
     hint.ai_family = AF_INET;
     hint.ai_socktype = SOCK_STREAM;
-    int yes = 1;
+    // int yes = 1;
 
     if (getaddrinfo(servers.getServerName().c_str(), servers.getPort().c_str(), &hint, &res))
     {
@@ -158,10 +159,11 @@ void server::CreateSocket(server servers)
 		//throw runtime_error("ERROR : Can't resolve hostname");
 		//exit(1);
         std::cerr << "getaddrinfo() failed" << std::endl;
-        //freeaddrinfo(res);
+        freeaddrinfo(res);
         return;
     }
 
+	//cout<< "test" << endl;
     server_socket = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
     if (server_socket == -1) {
         perror("socket");
@@ -177,14 +179,6 @@ void server::CreateSocket(server servers)
     if (fcntl(server_socket, F_SETFL, O_NONBLOCK) == -1)
     {
         std::cerr << "Failed to set socket to non-blocking mode" << std::endl;
-        close(server_socket);
-        freeaddrinfo(res);
-        return;
-    }
-
-    if (setsockopt(server_socket, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof yes) == -1)
-    {
-        std::cout << "setsocket failed" << std::endl;
         close(server_socket);
         freeaddrinfo(res);
         return;

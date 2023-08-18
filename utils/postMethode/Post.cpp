@@ -2,7 +2,6 @@
 #include "../../HTTPServer.hpp"
 #include <sys/types.h>
 #include <dirent.h>
-
 string	generateName()
 {
 	string final = "";
@@ -12,9 +11,8 @@ string	generateName()
 	return (final);
 }
 
-void    Post(configFile conf, location loc)
+void Post(Request req, location loc)
 {
-	(void)conf;
 	(void)loc;
 	string body = "body";
 	if (loc.getUploadPath()[0] == '/')
@@ -36,5 +34,21 @@ void    Post(configFile conf, location loc)
 		}
 		file.write(body.c_str(), body.length());
 	}
-	
+	else
+	{
+		if (get_resource_type(req.getURI()) == "FILE") // * is file
+		{
+			if (loc.isCgi())
+				; // contain cgi
+			else
+				sendErrorResponse(clientSocket, "403 Forbidden"); // * is dir
+		}
+		else if (get_resource_type(req.getURI()) == "DIRE")
+		{
+			if (req.getURI()[req.getURI().length()] != '/')
+				;
+		}
+		else
+			throw (unknownError());
+	}
 }
