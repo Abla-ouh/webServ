@@ -3,14 +3,15 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: abouhaga <abouhaga@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ebelkhei <ebelkhei@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/08 16:57:48 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/08/08 19:46:49 by abouhaga         ###   ########.fr       */
+/*   Updated: 2023/08/18 16:21:43 by ebelkhei         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Request.hpp"
+#include "HTTPServer.hpp"
 
 
 std::string getQuerySting(std::string &URI)
@@ -26,7 +27,12 @@ std::string getQuerySting(std::string &URI)
     return "";
 }
 
-Request::Request(const std::string& httpRequest)
+Request::Request()
+{
+    
+}
+
+void Request::initRequest(const std::string& httpRequest)
 {
     size_t pos = httpRequest.find(" ");
     method = httpRequest.substr(0, pos);

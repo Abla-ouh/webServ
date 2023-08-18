@@ -1,12 +1,12 @@
-#include "webserv.hpp"
+#include "../HTTPServer.hpp"
 
-Location searchLocation(std::vector<Location> locations, std::string location)
+location searchlocation(std::vector<location> locations, std::string _location)
 {
-    Location def;
+    location def;
 
     for (size_t i = 0; i < locations.size(); i++)
     {
-        if (locations[i].getPath() == location)
+        if (locations[i].getPath() == _location)
             return locations[i];
         if (locations[i].getPath() == "/")
             def = locations[i];
@@ -52,12 +52,14 @@ void getDir(Client &client, std::string src)
 {
     std::vector<std::string>	indexes;
     std::string                 file;
+    std::string                 tmp;
     int                         fd;
 
-    indexes = client.getLocation().getIndex();
-    if (client.getRequest().getUri().back() != '/')
+    tmp = client.getRequest().getURI();
+    indexes = client.getlocation().getIndex();
+    if (tmp[tmp.length() - 1] != '/')
     {
-        client.getResponse().setLocation(client.getRequest().getUri() + "/");
+        client.getResponse().setLocation(client.getRequest().getURI() + "/");
         client.setStatus(301);
         return;
     }
@@ -73,30 +75,19 @@ void getDir(Client &client, std::string src)
             }
         }
     }
-    if (client.getLocation().getAutoIndex() == "off")
+    if (client.getlocation().getAutoIndex() == "off")
         client.setStatus(403);
     // else return autoindex
 
 }
 
 
-void get(Client &client)
+void get(Client &client, std::string src)
 {
-    std::string src;
-    std::string tmp;
     bool        isDir = false;
     int         fd = 0;
 
-    tmp = client.getRequest().getUri();
-    if (tmp.front() == '/' && client.getLocation().getRoot().back() == '/' && tmp.length() > 1)
-        tmp.erase(0, 1);
-
-    src = "." + client.getLocation().getRoot() + tmp;
-    std::cout << "Src: " << src << std::endl;
     checkResourceExistence(src.c_str(), fd, isDir, client);
-
-    // std::cout << "Fd: " << fd << std::endl;
-    // std::cout << "Dir: " << isDir << std::endl;
     if (fd > 0)
         getFile(client, fd);
     else if (isDir)
@@ -111,8 +102,8 @@ void buildResponse(Client &client, std::string &response)
     // response += "Date: " + client.getResponse().getDate() + crlf;
     response += "Server: " + client.getResponse().getServer() + crlf;
     if (client.getResponse().getLocationUrl().length())
-        response += "Location: " + client.getResponse().getLocationUrl() + crlf;
-    response += "Content-Type: " + client.getResponse().getContentType() + crlf;
+        response += "location: " + client.getResponse().getLocationUrl() + crlf;
+    //response += "Content-Type: " + client.getResponse().getContentType() + crlf;
     response += "Content-Length: " + client.getResponse().getContentLength() + crlf;
     response += crlf;
     response += client.getResponse().getBody();
@@ -120,82 +111,150 @@ void buildResponse(Client &client, std::string &response)
 
 void check_redirections(Client &client)
 {
-    Location &location = client.getLocation();
+    location &_location = client.getlocation();
 
-    if (location.getReturn().length())
+    if (_location.getReturn().length())
     {
-        if (location.getRedirection() == "location")
+        if (_location.getRedirection() == "location")
         {
-            client.setLocation(searchLocation(client.getLocations(), client.getLocation().getReturn()));
-            if (!client.getLocation().getPath().length())
+            client.setlocation(searchlocation(client.getlocations(), client.getlocation().getReturn()));
+            if (!client.getlocation().getPath().length())
                 client.setStatus(404);
         }
         else
         {
-            client.getResponse().setLocationUrl(location.getReturn());
+            client.getResponse().setLocationUrl(_location.getReturn());
             client.setStatus(301);
         }
     }
 }
 
+std::string get_resource_type(const char *res, Client client)
+{
+    DIR *dir;
+
+    if (!access(res, F_OK))
+    {
+        if (!access(res, W_OK))
+        {
+            if (!(dir = opendir(res)))
+                return "FILE";
+            else
+            {
+                closedir(dir);
+                return "DIRE";
+            }
+        }
+        else
+            client.setStatus(403);
+    }
+    else
+        client.setStatus(404);
+    return "INVALID";
+}
+
+
+int delete_directory_contents(const std::string& dir_path)
+{
+    DIR* dir = opendir(dir_path.c_str());
+    dirent* entry;
+
+    if (!dir)
+    {
+        std::cerr << "Error opening directory " << dir_path << std::endl;
+        return 1;
+    }
+    
+    while ((entry = readdir(dir)) != NULL)
+    {
+        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0)
+            continue;
+
+        std::string entry_path = dir_path + "/" + entry->d_name;
+        if (entry->d_type == DT_DIR)
+        {
+            delete_directory_contents(entry_path);
+            rmdir(entry_path.c_str());
+        }
+        else
+            unlink(entry_path.c_str());
+    }
+    closedir(dir);
+    return 0;
+}
+
+
+void handleDeleteRequest(Client &client, std::string src)
+{
+    std::string full_path = src;
+    std::string rcs_type = get_resource_type(full_path.c_str(), client);
+
+    if (client.getStatus())
+        return;
+    if (rcs_type == "FILE")
+    {
+        // Handle file deletion
+        if (unlink(full_path.c_str()) == 0)
+            // Successfully deleted the file
+            client.setStatus(204);
+            // sendResponse(client.getClientSocket());
+        else
+            // Error while deleting the file
+            client.setStatus(500);
+            // sendErrorResponse(client.getClientSocket(), "500 Internal Server Error");
+    }
+    else if (rcs_type == "DIRE")
+    {
+        // Handle directory deletion
+        if (delete_directory_contents(full_path) == 0 && rmdir(full_path.c_str()) == 0)
+            // Successfully deleted the directory
+            client.setStatus(204);
+        else
+            // Error while deleting the directory
+            client.setStatus(500);
+    }
+    // else
+    //     // Handle invalid resource type
+    //     client.setStatus(400);
+}
+
 void response(Client &client)
 {
+    std::string tmp;
+    std::string src;
+    std::string root;
     std::string response;
 
-    locationMatching(client.getLocations(), client.getRequest().getUri(), client);
+    locationMatching(client.getRequest().getURI(), client);
+    root = client.getlocation().getRoot();
 
+    tmp = client.getRequest().getURI();
+    if (tmp[0] == '/' && root[root.length() - 1] == '/' && tmp.length() > 1)
+        tmp.erase(0, 1);
+
+    // std::cout << "Root: " << root << std::endl;
+    // std::cout << "Uri: " << client.getRequest().getURI() << std::endl;
+    // std::cout << "Root: " << root << std::endl;
+    src = "." + root + tmp;
+    
+    std::cout << src << std::endl;
     if (!client.getStatus())
         check_redirections(client);
 
     if (!client.getStatus())
     {
         if (client.getRequest().getMethod() == "GET")
-            get(client);
+            get(client, src);
         // else if (client.getRequest().getMethod() == "POST")
         //     post(client);
         // else if (client.getRequest().getMethod() == "DELETE")
-        //     delete(client);
+        //     handleDeleteRequest(client, src);
     }
     buildResponse(client, response);
+    int a = send(client.getClientSocket(), response.c_str(), response.length(), 0);
     std::cout << response << std::endl;
+    std::cout << "send bytes: " << a << std::endl;
+    std::cout << "len: " << response.length() << std::endl;
+    close(client.getClientSocket());
+    // std::cout << response << std::endl;
 }
-
-
-// int main()
-// {
-//     Client client;
-//     Location location;
-//     std::vector<Location> locs;
-//     Location loc1;
-
-//     loc1.setPath("/test");
-//     // loc2.setPath("/test/lol/");
-//     // loc3.setPath("/testt/lol2");
-
-//     // loc1.setReturn("/test/lol/");
-//     // loc1.setRedirection("location");
-
-//     loc1.setRoot("/");
-//     // loc2.setRoot("/test/");
-//     // loc3.setRoot("/test/lol2");
-
-//     loc1.getIndex().push_back("index.html");
-//     loc1.getIndex().push_back("indexd.html");
-//     // loc1.setAutoIndex("off");
-//     // loc2.setAutoIndex("off");
-
-    
-//     locs.push_back(loc1);
-//     // locs.push_back(loc2);
-//     // locs.push_back(loc3);
-
-
-//     location.getAllowMethodes().push_back("GET");
-//     client.getRequest().setMethod("GET");
-    
-//     client.getRequest().setUri("/test/img.jpg");
-//     client.setLocations(locs);
-
-
-//     response(client);
-// }

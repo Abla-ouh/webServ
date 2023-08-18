@@ -3,19 +3,35 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: abouhaga <abouhaga@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ebelkhei <ebelkhei@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/03 18:48:07 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/08/13 15:58:44 by abouhaga         ###   ########.fr       */
+/*   Updated: 2023/08/18 16:45:27 by ebelkhei         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
+#include "utils/configParse/configFile.hpp"
 #include "HTTPServer.hpp"
 #include<stdio.h>
 
-int main() {
-    //perror("hello");
-    HTTPServer server;
-    server.start();
-    return 0;
+
+int main(int ac, char const *av[])
+{
+	if (ac == 2)
+	{
+		try {
+			configFile config((string(av[1])));
+            HTTPServer server(config);
+			// config.print();
+            server.start();
+		}
+		catch (std::exception& err)
+		{
+			std::cerr << RED "Error: " << err.what();
+		}
+	}
+	else
+		cout << RED "using: ./webserv <config file> \"./webserve message.conf\"\n";
+	return 0;
 }
+

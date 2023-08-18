@@ -1,10 +1,20 @@
-NAME		= wwebserv
 #SRCS		= multiClients/main.cpp multiClients/Client.cpp multiClients/HTTPServer.cpp multiClients/Server.cpp
-SRCS		= main.cpp Client.cpp HTTPServer.cpp Server.cpp Request.cpp
+CONFIG_PARSE = ./utils/configParse/
+RESPONSE = ./Response/
 
-CC	= c++
+SRCS = main.cpp Client.cpp HTTPServer.cpp Request.cpp\
+		$(CONFIG_PARSE)configFile.cpp\
+		$(CONFIG_PARSE)serverClass.cpp\
+		$(CONFIG_PARSE)configFile_utils.cpp\
+		$(RESPONSE)locationMatching.cpp\
+		$(RESPONSE)response.cpp\
+		$(RESPONSE)utils.cpp
 
-CFLAGS = -Wall -Wextra -Werror -std=c++98
+NAME		= webserv
+CC	= g++
+CXX = g++
+
+CPPFLAGS = -Wall -Wextra -Werror -std=c++98
 
 OBJS		= $(SRCS:.cpp=.o)
 
