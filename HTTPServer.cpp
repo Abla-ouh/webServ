@@ -6,7 +6,7 @@
 /*   By: ebelkhei <ebelkhei@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/02 18:20:47 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/08/19 12:15:33 by ebelkhei         ###   ########.fr       */
+/*   Updated: 2023/08/19 15:50:52 by ebelkhei         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -326,6 +326,7 @@ void acceptNewClient(std::vector<server>& servers, std::vector<Client>& clients,
 
             newClient.setServer(*it);
             clients.push_back(newClient); // New client will be destoyed but its client_socket will keep the return from accept
+            std::cout << "New Client request !" << std::endl;
         }
         it++;
         serverIndex++;
@@ -379,7 +380,6 @@ void HTTPServer::start()
             {
                 if (FD_ISSET((*it).getClientSocket(), &readSet))
                 {
-                    //std::cout<< "TESTTTTT\n";
                     fcntl((*it).getClientSocket(), F_SETFL, O_NONBLOCK);
                     handleRequest(*it, writeSet);
                 }

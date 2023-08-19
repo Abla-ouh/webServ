@@ -237,7 +237,7 @@ void response(Client &client)
         tmp.erase(0, 1);
 
     // std::cout << tmp << std::endl;
-    src = "." + root + tmp;
+    src = root + tmp;
     
     // std::cout << "Location: " << client.getlocation().getPath() << std::endl;
     // std::cout << "|" << src << "|" << std::endl;
