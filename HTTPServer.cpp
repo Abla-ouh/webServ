@@ -6,7 +6,7 @@
 /*   By: abouhaga <abouhaga@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/02 18:20:47 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/08/17 19:30:27 by abouhaga         ###   ########.fr       */
+/*   Updated: 2023/08/19 14:34:53 by abouhaga         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -183,7 +183,7 @@ void HTTPServer::sendErrorResponse(int clientSocket, const std::string& statusLi
 //         sendErrorResponse(clientSocket, "400 Bad Request");
 // }
 
-void HTTPServer::handleRequest(int clientSocket)
+void HTTPServer::handleRequest(Client &client, fd_set &writeSet)
 {
 
     // if (flag == "H" )
@@ -193,8 +193,9 @@ void HTTPServer::handleRequest(int clientSocket)
     // else if (flag == "B")
     // {
     //     body_reading() -> yt9ra w ydar f file 
+    Request &request = client.getRequest();
     char data[1024];
-    int rd = read(clientSocket, data, sizeof(data));
+    int rd = read(client.getClientSocket(), data, sizeof(data));
     
     if (rd < 0) {
         std::cerr << "An error has occurred during reading request from a client" << std::endl;
@@ -202,12 +203,12 @@ void HTTPServer::handleRequest(int clientSocket)
         // Client has closed the connection
         std::cout << "Client has closed the connection" << std::endl;
         // Remove the client from the list
-        removeClient(clientSocket);
+        removeClient(client.getClientSocket());
     } else {
         // Process the request normally
         // std::cout << "Received data from client: " << data << std::endl;
         std::string httpRequest(data, rd);
-        Request request(httpRequest);
+        request.initRequest(httpRequest);
         
         std::string method = request.getMethod();
         std::string uri = request.getURI();
@@ -221,26 +222,31 @@ void HTTPServer::handleRequest(int clientSocket)
 
         if (!transferEncoding.empty() && transferEncoding != "chunked")
         {
-            sendErrorResponse(clientSocket, "501 Not Implemented");
+            client.setStatus(501);
+            //sendErrorResponse(client.getClientSocket(), "501 Not Implemented");
             return;
         }
 
         if (method == "POST" && contentLengthStr.empty() && transferEncoding.empty()) {
-            sendErrorResponse(clientSocket, "400 Bad Request");
+            client.setStatus(400);
+            //sendErrorResponse(client.getClientSocket(), "400 Bad Request");
             return;
         }
     
         for (size_t i = 0; i < uri.length(); i++) {
             if (!isValid_URI_Char(uri[i])) {
-                sendErrorResponse(clientSocket, "400 Bad Request");
+                client.setStatus(400);
+                //sendErrorResponse(client.getClientSocket(), "400 Bad Request");
                 return;
             }
         }
         if (uri.length() > 2048) {
-            sendErrorResponse(clientSocket, "414 Request-URI Too Long");
+            client.setStatus(414);
+            //sendErrorResponse(client.getClientSocket(), "414 Request-URI Too Long");
             return;
         }
         
+        FD_SET(client.getClientSocket(), &writeSet);
         //Until i get the body size from config file 
         // if (!contentLengthStr.empty()) {
         //     size_t contentLength = atoi(contentLengthStr.c_str());
@@ -262,23 +268,23 @@ void HTTPServer::handleRequest(int clientSocket)
         //     //close(clientSocket);  
         // }
         /************************ PRINT****************************/
-        std::cout << "Method: " << request.getMethod() << std::endl;
-        std::cout << "URI: " << request.getURI() << std::endl;
-        std::cout << "Version: " << request.getVersion() << std::endl;
-        std::cout << "Query: " << request.getQuery() << std::endl;
+        // std::cout << "Method: " << request.getMethod() << std::endl;
+        // std::cout << "URI: " << request.getURI() << std::endl;
+        // std::cout << "Version: " << request.getVersion() << std::endl;
+        // std::cout << "Query: " << request.getQuery() << std::endl;
 
-        // Log the headers
-        std::cout << "Headers:" << std::endl;
-        const std::string headersToLog[] = {
-            "User-Agent", "Content-Type", "Transfer-Encoding", "Content-Length" // Add other headers you're interested in
-        };
-        for (size_t i = 0; i < sizeof(headersToLog) / sizeof(headersToLog[0]); ++i) {
-            const std::string& headerValue = request.getHeader(headersToLog[i]);
-            if (!headerValue.empty()) {
-                std::cout << headersToLog[i] << ": " << headerValue << std::endl;
-            }
-        }
-        std::cout << "-------------------------------------------\n";
+        // // Log the headers
+        // std::cout << "Headers:" << std::endl;
+        // const std::string headersToLog[] = {
+        //     "User-Agent", "Content-Type", "Transfer-Encoding", "Content-Length" // Add other headers you're interested in
+        // };
+        // for (size_t i = 0; i < sizeof(headersToLog) / sizeof(headersToLog[0]); ++i) {
+        //     const std::string& headerValue = request.getHeader(headersToLog[i]);
+        //     if (!headerValue.empty()) {
+        //         std::cout << headersToLog[i] << ": " << headerValue << std::endl;
+        //     }
+        // }
+        // std::cout << "-------------------------------------------\n";
         /************************ PRINT****************************/   
     }
 }
@@ -360,7 +366,6 @@ void HTTPServer::start()
         while (it1 != clients.end())
         {
             FD_SET((*it1).getClientSocket(), &readSet); // ghi tread tansali l9raya w ndir write fd
-            //FD_SET((*it1).getClientSocket(), &writeSet);
             if ((*it1).getClientSocket() > maxSocket)
                 maxSocket = (*it1).getClientSocket();
             it1++;
@@ -380,12 +385,13 @@ void HTTPServer::start()
                 {
                     //std::cout<< "TESTTTTT\n";
                     fcntl((*it).getClientSocket(), F_SETFL, O_NONBLOCK);
-                    handleRequest((*it).getClientSocket());
+                    handleRequest(*it, writeSet);
                 }
 
                 if (FD_ISSET((*it).getClientSocket(), &writeSet))
                 {
-                    sendResponse((*it).getClientSocket());
+                    response(*it);
+                    // sendResponse((*it).getClientSocket());
                     it = clients.erase(it);
                     continue;
                     // (*it1).getClientSocket() = -1;

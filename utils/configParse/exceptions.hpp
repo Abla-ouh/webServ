@@ -51,3 +51,9 @@ class unvalidHost : public exception
 	public:
 		const char* what() const throw(){return ("Unvalid host\n");};
 };
+
+class unknownError : public exception
+{
+	public:
+		const char* what() const throw(){return ("unknown Error\n");};
+};

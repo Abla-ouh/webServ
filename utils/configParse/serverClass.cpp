@@ -2,16 +2,15 @@
 
 server::server()
 {
-	//_port = "";
+	_port = "8080";
 	_host = "127.0.0.1";
 	//_client_max_body_size;
-	//_root;
+	_root = "./";
 	//_index_page;
 	//_server_name;
 	//_virtual_servers;
 	//_err;
 	//_locations;
-	_autoindex = "off";
 	//_error_pages;
 	//_index;
 }
@@ -37,39 +36,44 @@ void	server::getLocationContext(ifstream &in, string line)
 		else if (returnValue == 2)
 			break;
 		if (key == "allow_methods")
+			get_allow_methodes(value, loc.getAllowMethodes());
+		else if (key == "return" && count_argument(value, 1))
 		{
-			count_argument(value, -1);
-			for (size_t i = 0; i < value.length(); i++)
-			{
-				value.erase(0, value.find_first_not_of(" 	"));
-				loc.setAllowMethodes(value.substr(0, value.find_first_of(" 	")));
-				string method = loc.getAllowMethodes().back();
-				method == "GET" || method == "POST" || method == "DELETE" ? "" : throw(unvalidDirective());
-				value.erase(0, value.find_first_of(" 	"));
-				i = 0;
-			}
+			if (get_return(key, value, loc.getReturn(), in, line, loc.getRedirection()))
+				break;
 		}
 		else if (key == "client_max_body_size")
 			loc.setClient_max_body_size(count_argument(value, 1) && check_number(value) ? value : "");
 		else if (key == "root")
 			loc.setRoot(count_argument(value, 1) ? value : "");
 		else if (key == "index")
-		{
-			count_argument(value, -1);
-			for (size_t i = 0; i < value.length(); i++)
-			{
-				value.erase(0, value.find_first_not_of(" 	"));
-				loc.setIndex(value.substr(0, value.find_first_of(" 	")));
-				value.erase(0, value.find_first_of(" 	"));
-				i = 0;
-			}
-		}
+			get_multiple_args(value, loc.getIndex());
 		else if (key == "autoindex")
-			loc.setAutoIndex(count_argument(value, 1) && (value == "off" || value == "on")? value : "");
+			loc.setAutoIndex(count_argument(value, 1) && (value == "off" || value == "on")? value : throw (unvalidDirective()));
 		else if (key == "upload_pass")
 			loc.setUploadsPath(count_argument(value, 1) ? value : "");
+		else if (key == "cgi_pass")
+		{
+			count_argument(value, 2);
+			cgi obj;
+
+			obj.lang = value.substr(0, value.find_first_of("	 "));
+			value.erase(0, value.find_first_of("	 "));
+			value.erase(remove(value.begin(), value.end(), ' '), value.end());
+			value.erase(remove(value.begin(), value.end(), '	'), value.end());
+			obj.path = value;
+			loc.setCgiPass(obj);
+			loc.setHasCgi(true);
+		}
+		else if (key == "cgi_path")
+			loc.setCgiPath(count_argument(value, 1) ? value : "");
+		else if (key == "cgi_ext")
+			loc.setCgiExt(count_argument(value, 1) ? value : "");
 		else
+		{
+			cout << line << "\n";
 			throw (unvalidDirective());
+		}
 	}
 	this->_locations.push_back(loc);
 }
@@ -79,8 +83,12 @@ void server::print()
 	for (size_t i = 0; i < _locations.size(); i++)
 	{
 		cout << RED "Location " << i + 1 << " -----------------------" WHITE << "\n";
+
 		cout << GREEN "Path: \n" WHITE;
 		cout << _locations[i].getPath() << "\n";
+
+		cout << GREEN "redirection: \n" WHITE;
+		cout << _locations[i].getRedirection() << "\n";
 
 		cout << GREEN "Equal occurence: \n" WHITE;
 		cout << _locations[i].getEqual() << "\n";
@@ -106,9 +114,36 @@ void server::print()
 
 		cout << GREEN "upload path: \n" WHITE;
 		cout << _locations[i].getUploadPath() << "\n";
+
+		cout << GREEN "return: \n" WHITE;
+		cout << _locations[i].getReturn() << "\n";
+
+		cout << GREEN "CGI Pass: \n" WHITE;
+		vector<cgi>	obj = _locations[i].getCgiPass();
+		for (size_t i = 0; i < obj.size(); i++)
+			cout << "|lang = " << obj[i].lang << "|Path = " << obj[i].path << "\n";
+
+		cout << GREEN "CGI Path: \n" WHITE;
+		cout << _locations[i].getCgiPath() << "\n";
+
+		cout << GREEN "CGI extension: \n" WHITE;
+		cout << _locations[i].getCgiExt() << "\n";
 	}
 }
 
+void	server::checkHostPort()
+{
+	memset(&hint, 0, sizeof(hint));
+    
+    hint.ai_family = AF_INET;
+    hint.ai_socktype = SOCK_STREAM;
+    if (getaddrinfo(this->getServerName().c_str(), this->getPort().c_str(), &hint, &res))
+    {
+        // freeaddrinfo(res); // sigfault when free res
+		throw runtime_error("ERROR : Can't resolve hostname\n");
+    }
+	freeaddrinfo(res);
+}
 
 void server::CreateSocket(server servers)
 {
@@ -116,12 +151,9 @@ void server::CreateSocket(server servers)
     
     hint.ai_family = AF_INET;
     hint.ai_socktype = SOCK_STREAM;
+    int yes = 1;
 
-    //int yes = 1;
-    cout << servers.getServerName().c_str() << "++++++\n";
-    cout << servers.getPort().c_str() << "++++++\n";
-
-    if (getaddrinfo(servers.getServerName().c_str(), servers.getPort().c_str(), &hint, &res) != 0)
+    if (getaddrinfo(servers.getServerName().c_str(), servers.getPort().c_str(), &hint, &res))
     {
 		//cout << getaddrinfo(servers.getServerName().c_str(), servers.getPort().c_str(), &hint, &res) << std::endl;
 		//throw runtime_error("ERROR : Can't resolve hostname");
@@ -151,7 +183,15 @@ void server::CreateSocket(server servers)
         freeaddrinfo(res);
         return;
     }
-    
+
+	if (setsockopt(server_socket, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof yes) == -1)
+    {
+        std::cout << "setsocket failed" << std::endl;
+        close(server_socket);
+        freeaddrinfo(res);
+        return;
+    }
+
     if (bind(server_socket, res->ai_addr, res->ai_addrlen) == -1)
     {
         perror("bind");
