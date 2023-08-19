@@ -6,7 +6,7 @@
 /*   By: ebelkhei <ebelkhei@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/02 18:20:47 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/08/18 16:24:29 by ebelkhei         ###   ########.fr       */
+/*   Updated: 2023/08/19 12:15:33 by ebelkhei         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -183,7 +183,7 @@ void HTTPServer::sendErrorResponse(int clientSocket, const std::string& statusLi
 //         sendErrorResponse(clientSocket, "400 Bad Request");
 // }
 
-void HTTPServer::handleRequest(Client &client)
+void HTTPServer::handleRequest(Client &client, fd_set &writeSet)
 {
 
     // if (flag == "H" )
@@ -242,6 +242,7 @@ void HTTPServer::handleRequest(Client &client)
             return;
         }
         
+        FD_SET(client.getClientSocket(), &writeSet);
         //Until i get the body size from config file 
         // if (!contentLengthStr.empty()) {
         //     size_t contentLength = atoi(contentLengthStr.c_str());
@@ -361,7 +362,6 @@ void HTTPServer::start()
         while (it1 != clients.end())
         {
             FD_SET((*it1).getClientSocket(), &readSet); // ghi tread tansali l9raya w ndir write fd
-            FD_SET((*it1).getClientSocket(), &writeSet);
             if ((*it1).getClientSocket() > maxSocket)
                 maxSocket = (*it1).getClientSocket();
             it1++;
@@ -381,7 +381,7 @@ void HTTPServer::start()
                 {
                     //std::cout<< "TESTTTTT\n";
                     fcntl((*it).getClientSocket(), F_SETFL, O_NONBLOCK);
-                    handleRequest(*it);
+                    handleRequest(*it, writeSet);
                 }
 
                 if (FD_ISSET((*it).getClientSocket(), &writeSet))

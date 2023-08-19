@@ -6,7 +6,7 @@
 /*   By: ebelkhei <ebelkhei@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/02 17:55:47 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/08/18 16:59:42 by ebelkhei         ###   ########.fr       */
+/*   Updated: 2023/08/19 12:15:07 by ebelkhei         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -125,7 +125,7 @@ class HTTPServer {
         void readFromFile(std::string file, std::string &str);
         void addClient(int clientSocket);
         void removeClient(int clientSocket);
-        void handleRequest(Client &client);
+        void handleRequest(Client &client, fd_set &writeSet);
         void sendResponse(int clientSocket);
         void sendErrorResponse(int clientSocket, const std::string& statusLine);
         std::string get_resource_type(const std::string& uri);
