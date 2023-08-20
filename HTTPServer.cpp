@@ -6,7 +6,7 @@
 /*   By: abouhaga <abouhaga@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/02 18:20:47 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/08/19 14:34:53 by abouhaga         ###   ########.fr       */
+/*   Updated: 2023/08/20 12:38:11 by abouhaga         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,12 +56,6 @@ void HTTPServer::readFromFile(std::string file, std::string &str)
     inputFile.close();
 }
 
-// void HTTPServer::addClient(int clientSocket)
-// {
-//     clients.push_back(Client(clientSocket));
-//     std::cout << " Accepted new client connection." << std::endl;
-// }
-
 void HTTPServer::removeClient(int clientSocket)
 {
     for (std::vector<Client>::iterator it = clients.begin(); it != clients.end(); it++)
@@ -107,185 +101,80 @@ void HTTPServer::sendErrorResponse(int clientSocket, const std::string& statusLi
     close(clientSocket);
 }
 
-// std::string HTTPServer::get_resource_type(const std::string& uri)
-// {
-//     struct stat buf;
-
-//     if (stat(uri.c_str(), &buf) == 0)
-//     {
-//         if (S_ISREG(buf.st_mode) && access(res, W_OK))
-//             return "FILE";
-//         else if (S_ISDIR(buf.st_mode))
-//             return "DIRE";
-//     }
-//     return ("INVALID");
-// }
-
-// int delete_directory_contents(const std::string& dir_path)
-// {
-//     DIR* dir = opendir(dir_path.c_str());
-//     dirent* entry;
-
-//     if (!dir)
-//     {
-//         std::cerr << "Error opening directory " << dir_path << std::endl;
-//         return 1;
-//     }
-    
-//     while ((entry = readdir(dir)) != NULL)
-//     {
-//         if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0)
-//             continue;
-
-//         std::string entry_path = dir_path + "/" + entry->d_name;
-//         if (entry->d_type == DT_DIR)
-//         {
-//             delete_directory_contents(entry_path);
-//             rmdir(entry_path.c_str());
-//         }
-//         else
-//             unlink(entry_path.c_str());
-//     }
-//     closedir(dir);
-//     return 0;
-// }
-
-
-// void HTTPServer::handleDeleteRequest(Client &client, std::vector<server>& servers)
-// {
-//     std::string full_path = servers.getRoot() + uri;
-    
-//     std::string rcs_type = get_resource_type(uri);
-
-//     if (rcs_type == "FILE")
-//     {
-//         // Handle file deletion
-//         if (unlink(full_path.c_str()) == 0)
-//             // Successfully deleted the file
-//             sendResponse(clientSocket);
-//         else
-//             // Error while deleting the file
-//             sendErrorResponse(clientSocket, "500 Internal Server Error");
-//     }
-//     else if (rcs_type == "DIRE")
-//     {
-        
-//         // Handle directory deletion
-//         if (delete_directory_contents(full_path) == 0 && rmdir(full_path.c_str()) == 0)
-//             // Successfully deleted the directory
-//             sendResponse(clientSocket);
-//         else
-//             // Error while deleting the directory
-//             sendErrorResponse(clientSocket, "500 Internal Server Error");
-//     }
-//     else
-//         // Handle invalid resource type
-//         sendErrorResponse(clientSocket, "400 Bad Request");
-// }
-
 void HTTPServer::handleRequest(Client &client, fd_set &writeSet)
 {
-
-    // if (flag == "H" )
-    // {
-    //     header_reading()
-    // }
-    // else if (flag == "B")
-    // {
-    //     body_reading() -> yt9ra w ydar f file 
     Request &request = client.getRequest();
-    char data[1024];
-    int rd = read(client.getClientSocket(), data, sizeof(data));
-    
-    if (rd < 0) {
-        std::cerr << "An error has occurred during reading request from a client" << std::endl;
-    } else if (rd == 0) {
-        // Client has closed the connection
-        std::cout << "Client has closed the connection" << std::endl;
-        // Remove the client from the list
-        removeClient(client.getClientSocket());
-    } else {
-        // Process the request normally
-        // std::cout << "Received data from client: " << data << std::endl;
-        std::string httpRequest(data, rd);
-        request.initRequest(httpRequest);
+    if (client.getCurrentState() == RequestState::HEADER_READING)
+    {
+        char data[1024];
+        int rd = read(client.getClientSocket(), data, sizeof(data));
         
-        std::string method = request.getMethod();
-        std::string uri = request.getURI();
-        std::string version = request.getVersion();
-        std::string query = request.getQuery();
-
-        std::string userAgent = request.getHeader("User-Agent");
-        std::string contentType = request.getHeader("Content-Type");
-        std::string transferEncoding = request.getHeader("Transfer-Encoding");
-        std::string contentLengthStr = request.getHeader("Content-Length");
-
-        if (!transferEncoding.empty() && transferEncoding != "chunked")
+        if (rd < 0)
+            std::cerr << "An error has occurred during reading request from a client" << std::endl;
+        else if (rd == 0)
         {
-            client.setStatus(501);
-            //sendErrorResponse(client.getClientSocket(), "501 Not Implemented");
-            return;
+            // Client has closed the connection
+            std::cout << "Client has closed the connection" << std::endl;
+            // Remove the client from the list
+            removeClient(client.getClientSocket());
         }
+        else
+        {
+            // Process the request normally
+            // std::cout << "Received data from client: " << data << std::endl;
+            std::string httpRequest(data, rd);
+            request.initRequest(httpRequest);
+            
+            std::string method = request.getMethod();
+            std::string uri = request.getURI();
+            std::string version = request.getVersion();
+            std::string query = request.getQuery();
 
-        if (method == "POST" && contentLengthStr.empty() && transferEncoding.empty()) {
-            client.setStatus(400);
-            //sendErrorResponse(client.getClientSocket(), "400 Bad Request");
-            return;
-        }
-    
-        for (size_t i = 0; i < uri.length(); i++) {
-            if (!isValid_URI_Char(uri[i])) {
+            std::string userAgent = request.getHeader("User-Agent");
+            std::string contentType = request.getHeader("Content-Type");
+            std::string transferEncoding = request.getHeader("Transfer-Encoding");
+            std::string contentLengthStr = request.getHeader("Content-Length");
+
+            if (!transferEncoding.empty() && transferEncoding != "chunked")
+            {
+                client.setStatus(501);
+                //sendErrorResponse(client.getClientSocket(), "501 Not Implemented");
+                return;
+            }
+
+            if (method == "POST" && contentLengthStr.empty() && transferEncoding.empty()) {
                 client.setStatus(400);
                 //sendErrorResponse(client.getClientSocket(), "400 Bad Request");
                 return;
             }
-        }
-        if (uri.length() > 2048) {
-            client.setStatus(414);
-            //sendErrorResponse(client.getClientSocket(), "414 Request-URI Too Long");
-            return;
-        }
         
+            for (size_t i = 0; i < uri.length(); i++)
+            {
+                if (!isValid_URI_Char(uri[i]))
+                {
+                    client.setStatus(400);
+                    //sendErrorResponse(client.getClientSocket(), "400 Bad Request");
+                    return;
+                }
+            }
+            if (uri.length() > 2048)
+            {
+                client.setStatus(414);
+                //sendErrorResponse(client.getClientSocket(), "414 Request-URI Too Long");
+                return;
+            }
+            //Until i get the body size from config file 
+            // if (!contentLengthStr.empty()) {
+            //     size_t contentLength = atoi(contentLengthStr.c_str());
+            //     size_t maxBodySize = getConfiguredMaxBodySize();
+            //     if (contentLength > maxBodySize) {
+            //         sendErrorResponse(clientSocket, "413 Request Entity Too Large");
+            //         return;
+            //     }
+            // }
+        }
+        client.setCurrentState(RequestState::BODY_READING);
         FD_SET(client.getClientSocket(), &writeSet);
-        //Until i get the body size from config file 
-        // if (!contentLengthStr.empty()) {
-        //     size_t contentLength = atoi(contentLengthStr.c_str());
-        //     size_t maxBodySize = getConfiguredMaxBodySize();
-        //     if (contentLength > maxBodySize) {
-        //         sendErrorResponse(clientSocket, "413 Request Entity Too Large");
-        //         return;
-        //     }
-        // }
-
-        // if (method == "GET"){ std::cout << "GET"<< std::endl;}
-        // else if (method == "POST"){ std::cout << "POST"<< std::endl;}
-        // else if (method == "DELETE")
-        //     handleDeleteRequest(clientSocket, uri, servers);
-        // else
-        // {
-        //     perror("error");
-        //     std::cerr << "Unsupported HTTP method: " << method << std::endl;
-        //     //close(clientSocket);  
-        // }
-        /************************ PRINT****************************/
-        // std::cout << "Method: " << request.getMethod() << std::endl;
-        // std::cout << "URI: " << request.getURI() << std::endl;
-        // std::cout << "Version: " << request.getVersion() << std::endl;
-        // std::cout << "Query: " << request.getQuery() << std::endl;
-
-        // // Log the headers
-        // std::cout << "Headers:" << std::endl;
-        // const std::string headersToLog[] = {
-        //     "User-Agent", "Content-Type", "Transfer-Encoding", "Content-Length" // Add other headers you're interested in
-        // };
-        // for (size_t i = 0; i < sizeof(headersToLog) / sizeof(headersToLog[0]); ++i) {
-        //     const std::string& headerValue = request.getHeader(headersToLog[i]);
-        //     if (!headerValue.empty()) {
-        //         std::cout << headersToLog[i] << ": " << headerValue << std::endl;
-        //     }
-        // }
-        // std::cout << "-------------------------------------------\n";
-        /************************ PRINT****************************/   
     }
 }
 

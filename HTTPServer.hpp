@@ -6,7 +6,7 @@
 /*   By: abouhaga <abouhaga@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/02 17:55:47 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/08/19 14:35:26 by abouhaga         ###   ########.fr       */
+/*   Updated: 2023/08/20 12:38:19 by abouhaga         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,6 +28,14 @@
 #include <signal.h>
 #include <sys/stat.h>
 #include <dirent.h>
+
+enum class RequestState {
+    HEADER_READING,
+    BODY_READING,
+    PROCESSING,
+    RESPONSE_SENDING,
+    COMPLETED
+};
 
 class Response
 {
@@ -86,6 +94,7 @@ class Client
     int                     status;
     int                     client_socket;
     server                  _server;
+    RequestState currentState = RequestState::HEADER_READING;
 
     public:
 
@@ -101,12 +110,15 @@ class Client
         int                     getClientSocket() { return client_socket;};
         server                  getServer() { return _server;};
 
-        void    setRequest(Request other) { this->request = other; };
-        void    setStatus(int other) { this->status = other; };
-        void    setlocation(location other) { this->_location = other;};
-        void    setlocations(std::vector<location> other) { this->locations = other; };
-        void    setClientSocket(int other) { this->client_socket = other;};
-        void    setServer(server other) { this->_server = other;};
+        void            setRequest(Request other) { this->request = other; };
+        void            setStatus(int other) { this->status = other; };
+        void            setlocation(location other) { this->_location = other;};
+        void            setlocations(std::vector<location> other) { this->locations = other; };
+        void            setClientSocket(int other) { this->client_socket = other;};
+        void            setServer(server other) { this->_server = other;};
+        void            setCurrentState(RequestState state) {currentState = state;}
+        RequestState    getCurrentState() const { return currentState;}
+    
 };
 
 
@@ -123,7 +135,6 @@ class HTTPServer {
     //private:
     
         void readFromFile(std::string file, std::string &str);
-        void addClient(int clientSocket);
         void removeClient(int clientSocket);
         void handleRequest(Client &client, fd_set &writeSet);
         void sendResponse(int clientSocket);
