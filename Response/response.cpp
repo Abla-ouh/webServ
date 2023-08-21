@@ -236,17 +236,12 @@ void response(Client &client)
     if (tmp[0] == '/' && root[root.length() - 1] == '/' && tmp.length() > 1)
         tmp.erase(0, 1);
 
-    // std::cout << tmp << std::endl;
     src = root + tmp;
-    
-    // std::cout << "Location: " << client.getlocation().getPath() << std::endl;
-    // std::cout << "|" << src << "|" << std::endl;
     if (!client.getStatus())
         check_redirections(client);
 
     if (!client.getStatus())
     {
-        // std::cout << "Method: " << client.getRequest().getMethod() << std::endl;
         if (client.getRequest().getMethod() == "GET")
             get(client, src);
         // else if (client.getRequest().getMethod() == "POST")
@@ -257,7 +252,5 @@ void response(Client &client)
     buildResponse(client, response);
     std::cout << "Size sent: " << send(client.getClientSocket(), response.c_str(), response.size(), 0) << std::endl;
     std::cout << response << std::endl;
-    // std::cout << "Origin size: " << response.size() << std::endl;
     close(client.getClientSocket());
-    // std::cout << response << std::endl;
 }
