@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HTTPServer.hpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ybel-hac <ybel-hac@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ebelkhei <ebelkhei@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/02 17:55:47 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/08/20 17:40:01 by ybel-hac         ###   ########.fr       */
+/*   Updated: 2023/08/19 12:15:07 by ebelkhei         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -133,9 +133,9 @@ class HTTPServer {
 
 };
 
-void        response(Client &client);
-void        handleDeleteRequest(Client &client, std::string src);
-void        locationMatching(std::string url, Client &client);
-std::string get_resource_type(const char *res, Client client);
+void		response(Client &client);
+void		handleDeleteRequest(Client &client, std::string src);
+void		locationMatching(std::string url, Client &client);
+std::string	get_resource_type(const char *res, Client client);
 void		Post(Request req, location loc, Client &client);
 #endif

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HTTPServer.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ybel-hac <ybel-hac@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ebelkhei <ebelkhei@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/02 18:20:47 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/08/20 22:04:51 by ybel-hac         ###   ########.fr       */
+/*   Updated: 2023/08/19 15:50:52 by ebelkhei         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -254,8 +254,7 @@ void HTTPServer::handleRequest(Client &client, fd_set &writeSet)
         // }
 
         // if (method == "GET"){ std::cout << "GET"<< std::endl;}
-        // else if (method == "POST")
-		// 	Post(request, client.getlocation(), client); // ! i need here location
+        // else if (method == "POST"){ std::cout << "POST"<< std::endl;}
         // else if (method == "DELETE")
         //     handleDeleteRequest(clientSocket, uri, servers);
         // else
