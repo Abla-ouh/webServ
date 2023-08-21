@@ -59,15 +59,17 @@ void getDir(Client &client, std::string src)
     indexes = client.getlocation().getIndex();
     if (tmp[tmp.length() - 1] != '/')
     {
-        client.getResponse().setLocation(client.getRequest().getURI() + "/");
+        client.getResponse().setLocationUrl(client.getRequest().getURI() + "/");
         client.setStatus(301);
         return;
     }
     else if (!indexes.empty())
     {
+        // std::cout << "indexes" << std::endl;
         for (size_t i = 0; i < indexes.size(); i++)
         {
             file = src + indexes[i];
+            std::cout << "FILE: " << file << std::endl;
             if ((fd = open(file.c_str(), O_RDONLY)) > 0)
             {
                 getFile(client, fd);
@@ -77,8 +79,7 @@ void getDir(Client &client, std::string src)
     }
     if (client.getlocation().getAutoIndex() == "off")
         client.setStatus(403);
-    // else return autoindex
-
+    // else return autoindex;
 }
 
 
@@ -96,15 +97,17 @@ void get(Client &client, std::string src)
 
 void buildResponse(Client &client, std::string &response)
 {
+    std::stringstream ss;
     std::string crlf = "\r\n";
 
+    ss << client.getResponse().getBody().length();
     response = client.getResponse().getStatusLine(client.getStatus()) + crlf;
     // response += "Date: " + client.getResponse().getDate() + crlf;
     response += "Server: " + client.getResponse().getServer() + crlf;
     if (client.getResponse().getLocationUrl().length())
-        response += "location: " + client.getResponse().getLocationUrl() + crlf;
-    response += "Content-Type: " + client.getResponse().getContentType() + crlf;
-    response += "Content-Length: " + client.getResponse().getContentLength() + crlf;
+        response += "Location: " + client.getResponse().getLocationUrl() + crlf;
+    // response += "Content-Type: text/html" + crlf;
+    response += "Content-Length: " + ss.str() + crlf;
     response += crlf;
     response += client.getResponse().getBody();
 }
@@ -225,27 +228,35 @@ void response(Client &client)
     std::string root;
     std::string response;
 
-    locationMatching(client.getlocations(), client.getRequest().getURI(), client);
+    locationMatching(client.getRequest().getURI(), client);
     root = client.getlocation().getRoot();
-
     tmp = client.getRequest().getURI();
+        
     if (tmp[0] == '/' && root[root.length() - 1] == '/' && tmp.length() > 1)
         tmp.erase(0, 1);
 
-    src = "." + root + tmp;
+    // std::cout << tmp << std::endl;
+    src = root + tmp;
     
+    // std::cout << "Location: " << client.getlocation().getPath() << std::endl;
+    // std::cout << "|" << src << "|" << std::endl;
     if (!client.getStatus())
         check_redirections(client);
 
     if (!client.getStatus())
     {
+        // std::cout << "Method: " << client.getRequest().getMethod() << std::endl;
         if (client.getRequest().getMethod() == "GET")
             get(client, src);
-        // else if (client.getRequest().getMethod() == "POST")
-        //     post(client);
-        else if (client.getRequest().getMethod() == "DELETE")
-            handleDeleteRequest(client, src);
+        else if (client.getRequest().getMethod() == "POST")
+			Post(client.getRequest(), client.getlocation(), client); // ! i need here location
+        // else if (client.getRequest().getMethod() == "DELETE")
+        //     handleDeleteRequest(client, src);
     }
     buildResponse(client, response);
+    std::cout << "Size sent: " << send(client.getClientSocket(), response.c_str(), response.size(), 0) << std::endl;
     std::cout << response << std::endl;
+    // std::cout << "Origin size: " << response.size() << std::endl;
+    close(client.getClientSocket());
+    // std::cout << response << std::endl;
 }

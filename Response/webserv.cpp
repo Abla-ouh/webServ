@@ -1,4 +1,4 @@
-#include "../HTTPServer.hpp"
+#include "webserv.hpp"
 
 Response::Response()
 {

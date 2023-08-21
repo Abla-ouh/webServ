@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HTTPServer.hpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: abouhaga <abouhaga@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ybel-hac <ybel-hac@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/02 17:55:47 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/08/17 19:54:56 by abouhaga         ###   ########.fr       */
+/*   Updated: 2023/08/20 17:40:01 by ybel-hac         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,7 +67,7 @@ class Request
     
     public:
         Request();
-        Request(const std::string& httpRequest);
+        void initRequest(const std::string& httpRequest);
 
         const std::string& getMethod() const;
         const std::string& getURI() const;
@@ -90,7 +90,6 @@ class Client
     public:
 
         Client();
-        Client(int socket, const std::string& httpRequest);
         ~Client();
 
         char                    data[8000];
@@ -126,7 +125,7 @@ class HTTPServer {
         void readFromFile(std::string file, std::string &str);
         void addClient(int clientSocket);
         void removeClient(int clientSocket);
-        void handleRequest(int clientSocket);
+        void handleRequest(Client &client, fd_set &writeSet);
         void sendResponse(int clientSocket);
         void sendErrorResponse(int clientSocket, const std::string& statusLine);
         std::string get_resource_type(const std::string& uri);
@@ -134,8 +133,9 @@ class HTTPServer {
 
 };
 
-
+void        response(Client &client);
 void        handleDeleteRequest(Client &client, std::string src);
-void        locationMatching(std::vector<location> locations, std::string url, Client &client);
-
+void        locationMatching(std::string url, Client &client);
+std::string get_resource_type(const char *res, Client client);
+void		Post(Request req, location loc, Client &client);
 #endif

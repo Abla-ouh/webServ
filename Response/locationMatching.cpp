@@ -17,9 +17,22 @@ void subUrl(std::string &url)
         url = url.substr(0, pos);
 }
 
-
-void locationMatching(std::vector<location> locations, std::string url, Client &client)
+bool setDefaultLocation(std::vector<location> locations, Client &client)
 {
+    for (size_t i = 0; i < locations.size(); i++)
+    {                
+        if (locations[i].getPath() == "/")
+        {
+            client.setlocation(locations[i]);
+            return 1;
+        }
+    }
+    return 0;
+}
+
+void locationMatching(std::string url, Client &client)
+{
+    std::vector<location> locations = client.getServer().getLocation();
     sort(locations.begin(), locations.end(), locSort);
 
     while (url.length())
@@ -34,19 +47,12 @@ void locationMatching(std::vector<location> locations, std::string url, Client &
         }
         if (url.length() == 1)
         {
-            for (size_t i = 0; i < locations.size(); i++)
+            if (!setDefaultLocation(locations, client))
             {
-                // std::cout << "location: " << locations[i]._path << std::endl;
-                // std::cout << "Uri: " << url << std::endl << std::endl;
-                if (locations[i].getPath() == "/")
-                {
-                    // std::cout << "location found: " << locations[i]._path << std::endl;
-                    client.setlocation(locations[i]);
-                    break;
-                }
+                std::cout << "No default location found" << std::endl;
+                client.setStatus(404);
+                return;
             }
-            client.setStatus(404);
-            return;
         }
         subUrl(url);
     }

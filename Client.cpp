@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Client.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: abouhaga <abouhaga@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ebelkhei <ebelkhei@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/02 18:35:35 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/08/17 19:27:59 by abouhaga         ###   ########.fr       */
+/*   Updated: 2023/08/18 16:47:56 by ebelkhei         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,15 +15,9 @@
 
 Client::Client()
 {
-}
-
-
-Client::Client(int socket, const std::string& httpRequest): request(httpRequest)
-{
-    //server_id = 0;
+    this->locations = _server.getLocation();
     this->status = 0; 
     memset(data, 0, 8000);
-    client_socket = socket;
 }
 
 Client::~Client()

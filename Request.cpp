@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: abouhaga <abouhaga@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ebelkhei <ebelkhei@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/08 16:57:48 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/08/17 19:31:12 by abouhaga         ###   ########.fr       */
+/*   Updated: 2023/08/18 16:21:43 by ebelkhei         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,7 +32,7 @@ Request::Request()
     
 }
 
-Request::Request(const std::string& httpRequest)
+void Request::initRequest(const std::string& httpRequest)
 {
     size_t pos = httpRequest.find(" ");
     method = httpRequest.substr(0, pos);

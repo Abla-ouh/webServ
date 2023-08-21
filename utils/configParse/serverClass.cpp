@@ -22,12 +22,17 @@ void	server::getLocationContext(ifstream &in, string line)
 	string		key = "", value = "";
 	line.erase(0, line.find_first_not_of("	 "));
 	line.erase(line.find_first_not_of(" 	"), line.find_first_of("	 "));
-	loc.setPath(line.substr(line.find_first_not_of(" 	"), line.find_first_of("{") - 1));
+	line.erase(remove(line.begin(), line.end(), '{'), line.end());
+	count_argument(line, 1);
+	line.erase(remove(line.begin(), line.end(), ' '), line.end());
+	line.erase(remove(line.begin(), line.end(), '	'), line.end());
+	loc.setPath(line);
 	if (loc.getPath()[0] == '=')
 	{
 		loc.setEqual("true");
 		loc.getPath().erase(0, 1);
 	}
+	loc.setRoot(_root);
 	while (getline(in, line))
 	{
 		int	returnValue = clean_line(line, key, value);
@@ -85,7 +90,7 @@ void server::print()
 		cout << RED "Location " << i + 1 << " -----------------------" WHITE << "\n";
 
 		cout << GREEN "Path: \n" WHITE;
-		cout << _locations[i].getPath() << "\n";
+		cout << "|" + _locations[i].getPath() + "|" << "\n";
 
 		cout << GREEN "redirection: \n" WHITE;
 		cout << _locations[i].getRedirection() << "\n";
@@ -151,7 +156,7 @@ void server::CreateSocket(server servers)
     
     hint.ai_family = AF_INET;
     hint.ai_socktype = SOCK_STREAM;
-    // int yes = 1;
+    int yes = 1;
 
     if (getaddrinfo(servers.getServerName().c_str(), servers.getPort().c_str(), &hint, &res))
     {
@@ -183,7 +188,15 @@ void server::CreateSocket(server servers)
         freeaddrinfo(res);
         return;
     }
-    
+
+	if (setsockopt(server_socket, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof yes) == -1)
+    {
+        std::cout << "setsocket failed" << std::endl;
+        close(server_socket);
+        freeaddrinfo(res);
+        return;
+    }
+
     if (bind(server_socket, res->ai_addr, res->ai_addrlen) == -1)
     {
         perror("bind");
