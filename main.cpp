@@ -6,7 +6,7 @@
 /*   By: abouhaga <abouhaga@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/03 18:48:07 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/08/19 14:35:46 by abouhaga         ###   ########.fr       */
+/*   Updated: 2023/08/22 17:39:40 by abouhaga         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,20 @@
 #include "HTTPServer.hpp"
 #include<stdio.h>
 
+void printSavedBodyContent(const std::string &filename) {
+    std::ifstream bodyFile(filename.c_str(), std::ios::in | std::ios::binary);
+    if (!bodyFile.is_open()) {
+        std::cerr << "Error opening request body file" << std::endl;
+        return;
+    }
+
+    char c;
+    while (bodyFile.get(c)) {
+        std::cout << c;
+    }
+
+    bodyFile.close();
+}
 
 int main(int ac, char const *av[])
 {
@@ -24,6 +38,8 @@ int main(int ac, char const *av[])
             HTTPServer server(config);
 			// config.print();
             server.start();
+			std::string filename = "request_body.txt"; // Change this to your actual filename
+    		printSavedBodyContent(filename);
 		}
 		catch (std::exception& err)
 		{

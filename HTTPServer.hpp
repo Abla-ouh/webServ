@@ -6,7 +6,7 @@
 /*   By: abouhaga <abouhaga@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/02 17:55:47 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/08/20 12:38:19 by abouhaga         ###   ########.fr       */
+/*   Updated: 2023/08/22 17:39:13 by abouhaga         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,7 +29,7 @@
 #include <sys/stat.h>
 #include <dirent.h>
 
-enum class RequestState {
+enum RequestState {
     HEADER_READING,
     BODY_READING,
     PROCESSING,
@@ -71,11 +71,11 @@ class Request
     std::string version;
 
     std::map<std::string, std::string> headers;
-    void parseHeaders(const std::string& headersBlock);
     
     public:
         Request();
         void initRequest(const std::string& httpRequest);
+        void parseHeaders(const std::string& headersBlock);
 
         const std::string& getMethod() const;
         const std::string& getURI() const;
@@ -87,6 +87,7 @@ class Request
 
 class Client
 {
+
     std::vector<location>   locations;
     Request                 request;
     Response                response;
@@ -94,13 +95,15 @@ class Client
     int                     status;
     int                     client_socket;
     server                  _server;
-    RequestState currentState = RequestState::HEADER_READING;
+    bool                    isBodyReady;
+    std::string parsedRequestBodyFilename;
 
     public:
 
         Client();
         ~Client();
 
+        RequestState            currentState;
         char                    data[8000];
         Request&                getRequest() { return request;};
         Response&               getResponse() { return response;};
@@ -109,6 +112,7 @@ class Client
         std::vector<location>&  getlocations() { return locations; };
         int                     getClientSocket() { return client_socket;};
         server                  getServer() { return _server;};
+        const std::string       &getParsedRequestBodyFilename() const { return parsedRequestBodyFilename;}
 
         void            setRequest(Request other) { this->request = other; };
         void            setStatus(int other) { this->status = other; };
@@ -117,10 +121,10 @@ class Client
         void            setClientSocket(int other) { this->client_socket = other;};
         void            setServer(server other) { this->_server = other;};
         void            setCurrentState(RequestState state) {currentState = state;}
+        void            setParsedRequestBodyFilename(const std::string &filename) { parsedRequestBodyFilename = filename;}
+        void            setBodyReady(bool ready) { isBodyReady = ready;}
         RequestState    getCurrentState() const { return currentState;}
-    
 };
-
 
 class HTTPServer {
     
@@ -133,7 +137,6 @@ class HTTPServer {
         std::vector<Client> clients;
 
     //private:
-    
         void readFromFile(std::string file, std::string &str);
         void removeClient(int clientSocket);
         void handleRequest(Client &client, fd_set &writeSet);

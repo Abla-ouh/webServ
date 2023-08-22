@@ -6,7 +6,7 @@
 /*   By: abouhaga <abouhaga@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/02 18:20:47 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/08/20 12:38:11 by abouhaga         ###   ########.fr       */
+/*   Updated: 2023/08/22 18:36:08 by abouhaga         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -101,10 +101,92 @@ void HTTPServer::sendErrorResponse(int clientSocket, const std::string& statusLi
     close(clientSocket);
 }
 
+
+void parseRequestBody(Client &client/*, fd_set &writeSet*/)
+{
+    Request &request = client.getRequest();
+    std::string transferEncoding = request.getHeader("Transfer-Encoding");
+    std::string contentLengthStr = request.getHeader("Content-Length");
+    ssize_t bytesRead;
+
+    if (!transferEncoding.empty() && !contentLengthStr.empty())
+    {
+        client.setStatus(400); // Bad Request
+        return;
+    }
+    // open the file in both "write" mode and "binary" mode simultaneously
+    std::ofstream bodyFile("request_body", std::ios::out | std::ios::binary);
+    if (!bodyFile.is_open())
+    {
+        client.setStatus(500);
+        return;
+    }
+    
+    if (!transferEncoding.empty() && transferEncoding == "chunked")
+    {
+        while (true)
+        {
+            std::string chunkSizeStr;
+            char c;
+            // Read the chunk size as a hexadecimal string
+            while (read(client.getClientSocket(), &c, 1) == 1)
+            {
+                if (c == '\r')
+                    continue;
+                if (c == '\n')
+                    break;
+                chunkSizeStr += c;
+            }
+            // Exit the loop if no more chunks or invalid chunk size
+            if (chunkSizeStr.empty())
+                break;
+            //to int
+            size_t chunkSize = strtoul(chunkSizeStr.c_str(), NULL, 16);
+            if (chunkSize == 0)
+                break;
+            //Allocate mem for chunk
+            char *chunkData = new char[chunkSize];
+            bytesRead = read(client.getClientSocket(), chunkData, chunkSize);
+            if (bytesRead == static_cast<ssize_t>(chunkSize))
+            {
+                bodyFile.write(chunkData, chunkSize);
+                delete[] chunkData;
+
+                // Read at the end of the chunk
+                char crlf[2];
+                if (read(client.getClientSocket(), crlf, 2) != 2)
+                    break;
+            }
+            else
+            {
+                //clean up
+                delete[] chunkData;
+                std::cerr << "Error reading request body" << std::endl;
+                break;
+            }
+        }
+        client.setBodyReady(true); // Mark body as ready 
+        client.setParsedRequestBodyFilename("request_body");
+    }
+
+    else if (!contentLengthStr.empty())
+    {
+        // later
+    }
+
+    else
+    {
+        // Read char by char
+        
+    }
+    bodyFile.close();
+    //FD_SET(client.getClientSocket(), &writeSet);
+}
+
 void HTTPServer::handleRequest(Client &client, fd_set &writeSet)
 {
     Request &request = client.getRequest();
-    if (client.getCurrentState() == RequestState::HEADER_READING)
+    if (client.currentState == HEADER_READING)
     {
         char data[1024];
         int rd = read(client.getClientSocket(), data, sizeof(data));
@@ -173,9 +255,13 @@ void HTTPServer::handleRequest(Client &client, fd_set &writeSet)
             //     }
             // }
         }
-        client.setCurrentState(RequestState::BODY_READING);
-        FD_SET(client.getClientSocket(), &writeSet);
+        //if (request.getMethod() == "GET" ||  request.getMethod() == "DELETE")
+        client.currentState = BODY_READING;
+        return;
     }
+    if (client.getCurrentState() == BODY_READING && request.getMethod() == "POST")
+        parseRequestBody(client);
+    FD_SET(client.getClientSocket(), &writeSet);
 }
 
 void HTTPServer::sendResponse(int clientSocket)
