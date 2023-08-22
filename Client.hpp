@@ -6,7 +6,7 @@
 /*   By: abouhaga <abouhaga@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/02 18:32:03 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/08/19 14:34:29 by abouhaga         ###   ########.fr       */
+/*   Updated: 2023/08/22 19:16:22 by abouhaga         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,19 +23,6 @@
 #include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include "HTTPServer.hpp"
-
-// class Client
-// {
-//     std::vector<location>   locations;
-//     Request                 request;
-//     Response                response;
-//     location                _location;
-//     int                     status;
-//     int                     client_socket;
-//     server                  _server;
-
-//     public:
 
 //         Client();
 //         Client(int socket, const std::string& httpRequest);

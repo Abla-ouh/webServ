@@ -6,7 +6,7 @@
 /*   By: abouhaga <abouhaga@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/02 17:55:47 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/08/22 17:39:13 by abouhaga         ###   ########.fr       */
+/*   Updated: 2023/08/22 21:51:15 by abouhaga         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,9 +14,9 @@
 #define HTTP_SERVER_HPP
 
 #include "./utils/configParse/serverClass.hpp"
+#include "./utils/configParse/configFile.hpp"
 //#include "Client.hpp"
 //#include "Request.hpp"
-#include "./utils/configParse/configFile.hpp"
 //#include "./Response/response.hpp"
 #include <string>
 #include <vector>
@@ -28,6 +28,17 @@
 #include <signal.h>
 #include <sys/stat.h>
 #include <dirent.h>
+#include <sys/stat.h>
+#include <dirent.h>
+#include <algorithm>
+
+enum STATE
+{
+    BUILDING,
+    SENDING,
+    WAITING_CGI,
+    DONE
+};
 
 enum RequestState {
     HEADER_READING,
@@ -35,30 +46,6 @@ enum RequestState {
     PROCESSING,
     RESPONSE_SENDING,
     COMPLETED
-};
-
-class Response
-{
-    std::string body;
-    std::string location;
-    std::string redirection_url;
-    std::map<int, std::string>  status_code;
-
-    public:
-        Response();
-
-        std::string &getBody();
-        std::string getStatusLine(int status_code);
-        std::string getDate();
-        std::string getServer();
-        std::string getContentType();
-        std::string getContentLength();
-        std::string getLocation() { return location; };
-        std::string getLocationUrl() { return redirection_url; };
-
-        void        setLocation(std::string other) {location = other;};
-        void        setBody(std::string body) { this->body = body;};
-        void        setLocationUrl(std::string other) { this->redirection_url = other; };
 };
 
 class Request
@@ -85,6 +72,32 @@ class Request
     
 };
 
+class Response
+{
+    std::string body;
+    std::string location;
+    std::string redirection_url;
+    std::string response;
+    std::map<int, std::string>  status_code;
+
+    public:
+        Response();
+
+        std::string &getBody();
+        std::string getStatusLine(int status_code);
+        std::string getDate();
+        std::string getServer();
+        std::string getContentType();
+        std::string getContentLength();
+        std::string &getResponse() { return response;};
+        std::string getLocation() { return location; };
+        std::string getLocationUrl() { return redirection_url; };
+
+        void        setLocation(std::string other) {location = other;};
+        void        setBody(std::string body) { this->body = body;};
+        void        setResponse(std::string response) { this->response = response; };
+        void        setLocationUrl(std::string other) { this->redirection_url = other; };
+};
 class Client
 {
 
@@ -96,7 +109,8 @@ class Client
     int                     client_socket;
     server                  _server;
     bool                    isBodyReady;
-    std::string parsedRequestBodyFilename;
+    std::string             BodyFilename;
+    STATE                   state;
 
     public:
 
@@ -112,7 +126,8 @@ class Client
         std::vector<location>&  getlocations() { return locations; };
         int                     getClientSocket() { return client_socket;};
         server                  getServer() { return _server;};
-        const std::string       &getParsedRequestBodyFilename() const { return parsedRequestBodyFilename;}
+        const std::string       &getParsedRequestBodyFilename() const { return BodyFilename;}
+        STATE                   getState() { return state; };
 
         void            setRequest(Request other) { this->request = other; };
         void            setStatus(int other) { this->status = other; };
@@ -121,10 +136,12 @@ class Client
         void            setClientSocket(int other) { this->client_socket = other;};
         void            setServer(server other) { this->_server = other;};
         void            setCurrentState(RequestState state) {currentState = state;}
-        void            setParsedRequestBodyFilename(const std::string &filename) { parsedRequestBodyFilename = filename;}
+        void            setParsedRequestBodyFilename(const std::string &filename) { BodyFilename = filename;}
         void            setBodyReady(bool ready) { isBodyReady = ready;}
+        void            setState(STATE other) { this->state = other; };
         RequestState    getCurrentState() const { return currentState;}
 };
+
 
 class HTTPServer {
     
@@ -139,7 +156,7 @@ class HTTPServer {
     //private:
         void readFromFile(std::string file, std::string &str);
         void removeClient(int clientSocket);
-        void handleRequest(Client &client, fd_set &writeSet);
+        void handleRequest(Client &client, fd_set &writeSet, fd_set &readSet);
         void sendResponse(int clientSocket);
         void sendErrorResponse(int clientSocket, const std::string& statusLine);
         std::string get_resource_type(const std::string& uri);
@@ -151,4 +168,9 @@ void        response(Client &client);
 void        handleDeleteRequest(Client &client, std::string src);
 void        locationMatching(std::string url, Client &client);
 
+void        response(Client &client);
+void        handleDeleteRequest(Client &client, std::string src);
+void        locationMatching(std::string url, Client &client);
+std::string get_resource_type(const char *res, Client client);
+void		Post(Request req, location loc, Client &client);
 #endif

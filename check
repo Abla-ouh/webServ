@@ -1,0 +1,19 @@
+Max Body Size: -> ilyas
+ 
+Server Configuration: Server IP Address and Port fixed
+Number of Servers: size of servers vec
+
+Headers not in config file
+
+
+Response Body Content: -> ilyas
+
+Server Limits: walou
+file paths 
+
+Socket Settings: fixed
+
+
+
+
+config file : each server with its unique endpoint (IPaddr:port)

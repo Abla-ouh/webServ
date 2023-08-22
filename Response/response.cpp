@@ -59,7 +59,7 @@ void getDir(Client &client, std::string src)
     indexes = client.getlocation().getIndex();
     if (tmp[tmp.length() - 1] != '/')
     {
-        client.getResponse().setLocation(client.getRequest().getURI() + "/");
+        client.getResponse().setLocationUrl(client.getRequest().getURI() + "/");
         client.setStatus(301);
         return;
     }
@@ -79,8 +79,7 @@ void getDir(Client &client, std::string src)
     }
     if (client.getlocation().getAutoIndex() == "off")
         client.setStatus(403);
-    // else return autoindex
-
+    // else return autoindex;
 }
 
 
@@ -91,15 +90,9 @@ void get(Client &client, std::string src)
 
     checkResourceExistence(src.c_str(), fd, isDir, client);
     if (fd > 0)
-    {
-        std::cout << "isFile" << std::endl;
         getFile(client, fd);
-    }
     else if (isDir)
-    {
-        std::cout << "isDir" << std::endl;
         getDir(client, src);
-    }
 }
 
 void buildResponse(Client &client, std::string &response)
@@ -107,16 +100,16 @@ void buildResponse(Client &client, std::string &response)
     std::stringstream ss;
     std::string crlf = "\r\n";
 
-    ss << client.getResponse().getBody().size();
+    ss << client.getResponse().getBody().length();
     response = client.getResponse().getStatusLine(client.getStatus()) + crlf;
     // response += "Date: " + client.getResponse().getDate() + crlf;
     response += "Server: " + client.getResponse().getServer() + crlf;
     if (client.getResponse().getLocationUrl().length())
-        response += "location: " + client.getResponse().getLocationUrl() + crlf;
-    response += "Content-Type: text/html" + crlf;
+        response += "Location: " + client.getResponse().getLocationUrl() + crlf;
+    // response += "Content-Type: text/html" + crlf;
     response += "Content-Length: " + ss.str() + crlf;
     response += crlf;
-    response += client.getResponse().getBody();
+    // response += client.getResponse().getBody();
 }
 
 void check_redirections(Client &client)
@@ -139,7 +132,7 @@ void check_redirections(Client &client)
     }
 }
 
-std::string get_resource_type(const char *res, Client &client)
+std::string get_resource_type(const char *res, Client client)
 {
     DIR *dir;
 
@@ -228,40 +221,115 @@ void handleDeleteRequest(Client &client, std::string src)
     //     client.setStatus(400);
 }
 
+// void response(Client &client)
+// {
+//     std::string tmp;
+//     std::string src;
+//     std::string root;
+//     std::string response;
+
+//     locationMatching(client.getRequest().getURI(), client);
+//     root = client.getlocation().getRoot();
+//     tmp = client.getRequest().getURI();
+        
+//     if (tmp[0] == '/' && root[root.length() - 1] == '/' && tmp.length() > 1)
+//         tmp.erase(0, 1);
+
+//     src = root + tmp;
+//     if (!client.getStatus())
+//         check_redirections(client);
+
+//     if (!client.getStatus())
+//     {
+//         if (client.getRequest().getMethod() == "GET")
+//             get(client, src);
+//         else if (client.getRequest().getMethod() == "POST")
+// 			Post(client.getRequest(), client.getlocation(), client);
+//         // else if (client.getRequest().getMethod() == "DELETE")
+//         //     handleDeleteRequest(client, src);
+//     }
+//     buildResponse(client, response);
+//     std::cout << "Size sent: " << send(client.getClientSocket(), response.c_str(), response.size(), 0) << std::endl;
+//     std::cout << response << std::endl;
+//     close(client.getClientSocket());
+// }
+
+void sendResponse(Client &client);
+
 void response(Client &client)
 {
     std::string tmp;
     std::string src;
     std::string root;
+    std::string &response = client.getResponse().getResponse();
+
+    std::cout << "State: " << client.getState() << std::endl;
+    if (client.getState() == BUILDING)
+    {
+        locationMatching(client.getRequest().getURI(), client);
+        root = client.getlocation().getRoot();
+        tmp = client.getRequest().getURI();
+            
+        if (tmp[0] == '/' && root[root.length() - 1] == '/' && tmp.length() > 1)
+            tmp.erase(0, 1);
+
+        src = root + tmp;
+        
+        if (!client.getStatus())
+            check_redirections(client);
+
+        if (!client.getStatus())
+        {
+            if (client.getRequest().getMethod() == "GET")
+                get(client, src);
+            else if (client.getRequest().getMethod() == "POST")
+                Post(client.getRequest(), client.getlocation(), client);
+            // else if (client.getRequest().getMethod() == "DELETE")
+            //     handleDeleteRequest(client, src);
+        }
+        buildResponse(client, response);
+        if (client.getState() != WAITING_CGI)
+            client.setState(SENDING);
+    }
+    else if (client.getState() == WAITING_CGI)
+    {
+        // Check if CGI timed out
+        // if CGI has done, set state to SENDING. Else, close connection and set the appropriate status.
+    }
+    else if (client.getState() == SENDING)
+    {
+        sendResponse(client);
+
+        std::cout << "Response: " << response << std::endl;
+        std::cout << "Body: " << client.getResponse().getBody() << std::endl;
+        if (!client.getResponse().getBody().length() && !response.length())
+            client.setState(DONE);
+        //     std::cout << "Error sending response" << std::endl;
+        // else
+        //     std::cout << "Response sent" << std::endl;
+    }
+    if (client.getState() == DONE)
+        close(client.getClientSocket());
+}
+
+void sendResponse(Client &client)
+{
+    size_t      size = 400;
+    size_t      tmp;
     std::string response;
 
-    locationMatching(client.getRequest().getURI(), client);
-    root = client.getlocation().getRoot();
-    tmp = client.getRequest().getURI();
-        
-    if (tmp[0] == '/' && root[root.length() - 1] == '/' && tmp.length() > 1)
-        tmp.erase(0, 1);
-
-    std::cout << tmp << std::endl;
-    src = "." + root + tmp;
-    
-    std::cout << "Location: " << client.getlocation().getPath() << std::endl;
-    std::cout << "|" << src << "|" << std::endl;
-    if (!client.getStatus())
-        check_redirections(client);
-
-    if (!client.getStatus())
+    if (client.getResponse().getResponse().length())
     {
-        // std::cout << "Method: " << client.getRequest().getMethod() << std::endl;
-        if (client.getRequest().getMethod() == "GET")
-            get(client, src);
-        // else if (client.getRequest().getMethod() == "POST")
-        //     post(client);
-        else if (client.getRequest().getMethod() == "DELETE")
-            handleDeleteRequest(client, src);
+        response += client.getResponse().getResponse();
+        client.getResponse().setResponse("");
     }
-    buildResponse(client, response);
-    std::cout << response << std::endl;
-    close(client.getClientSocket());
-    // std::cout << response << std::endl;
+
+    tmp = response.length();
+    if (client.getResponse().getBody().length())
+    {
+        response += client.getResponse().getBody().substr(0, size - tmp);
+        client.getResponse().getBody().erase(0, size - tmp);
+    }
+    std::cout << "Response: " << response << std::endl;
+    std::cout << "Size sent: " << send(client.getClientSocket(), response.c_str(), response.size(), 0) << std::endl;
 }

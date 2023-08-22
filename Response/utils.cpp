@@ -24,7 +24,7 @@ std::string Response::getStatusLine(int code)
     std::stringstream ss;
 
     ss << code;
-    status_line = "HTTP/1.1 " + ss.str() + ' ' + status_code[code] + "\r\n";
+    status_line = "HTTP/1.1 " + ss.str() + ' ' + status_code[code];
     return (status_line);
 }
 
