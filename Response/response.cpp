@@ -51,7 +51,7 @@ void getFile(Client &client, int fd)
     //     client.getResponse().getBody() += c;
     client.setStatus(200);
     client.getResponse().setFileFd(fd);
-    std::cout << "Size: " << client.getResponse().getBodySize() << std::endl;
+    // std::cout << "Size: " << client.getResponse().getBodySize() << std::endl;
 }
 
 void getDir(Client &client, std::string src)
@@ -82,6 +82,7 @@ void getDir(Client &client, std::string src)
                 return ;
             }
         }
+        client.setStatus(404);
     }
     if (client.getlocation().getAutoIndex() == "off")
         client.setStatus(403);
@@ -243,11 +244,12 @@ void response(Client &client)
         root = client.getlocation().getRoot();
         tmp = client.getRequest().getURI();
             
-        if (tmp[0] == '/' && root[root.length() - 1] == '/' && tmp.length() > 1)
-            tmp.erase(0, 1);
+        // if (tmp[0] == '/' && root[root.length() - 1] == '/' && tmp.length() > 1)
+        //     tmp.erase(0, 1);
 
         src = root + tmp;
-        
+        std::cout << "SRC: " << src << std::endl;
+
         if (!client.getStatus())
             check_redirections(client);
 

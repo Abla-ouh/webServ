@@ -6,7 +6,7 @@
 /*   By: ebelkhei <ebelkhei@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/02 17:55:47 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/08/23 12:20:53 by ebelkhei         ###   ########.fr       */
+/*   Updated: 2023/08/23 17:06:12 by ebelkhei         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -88,7 +88,7 @@ class Request
         void initRequest(const std::string& httpRequest);
 
         const std::string& getMethod() const;
-        const std::string& getURI() const;
+        std::string& getURI();
         const std::string& getQuery() const;
         const std::string& getVersion() const;
         const std::string& getHeader(const std::string& key) const;

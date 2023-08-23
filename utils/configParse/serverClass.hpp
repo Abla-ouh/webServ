@@ -26,6 +26,12 @@
 
 using namespace std;
 
+typedef struct error_page
+{
+	string		error_page_path;
+	string		error_page_info;
+}				error_page;
+
 class server {
 	private:
 		string				_port;
