@@ -6,7 +6,7 @@
 /*   By: ebelkhei <ebelkhei@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/02 18:20:47 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/08/22 12:45:48 by ebelkhei         ###   ########.fr       */
+/*   Updated: 2023/08/23 13:59:30 by ebelkhei         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -204,6 +204,8 @@ void HTTPServer::handleRequest(Client &client, fd_set &writeSet, fd_set &readSet
         std::cout << "Client has closed the connection" << std::endl;
         // Remove the client from the list
         removeClient(client.getClientSocket());
+        FD_CLR(client.getClientSocket(), &readSet);
+        return;
     } else {
         // Process the request normally
         // std::cout << "Received data from client: " << data << std::endl;
@@ -242,8 +244,6 @@ void HTTPServer::handleRequest(Client &client, fd_set &writeSet, fd_set &readSet
             return;
         }
         
-        FD_CLR(client.getClientSocket(), &readSet);
-        FD_SET(client.getClientSocket(), &writeSet);
         //Until i get the body size from config file 
         // if (!contentLengthStr.empty()) {
         //     size_t contentLength = atoi(contentLengthStr.c_str());
@@ -285,6 +285,8 @@ void HTTPServer::handleRequest(Client &client, fd_set &writeSet, fd_set &readSet
         // std::cout << "-------------------------------------------\n";
         /************************ PRINT****************************/   
     }
+    FD_CLR(client.getClientSocket(), &readSet);
+    FD_SET(client.getClientSocket(), &writeSet);
 }
 
 void HTTPServer::sendResponse(int clientSocket)
@@ -370,7 +372,6 @@ void HTTPServer::start()
             client_it = clients.begin();
             while (this->clients.size() && client_it != clients.end())
             {
-                // std::cout << "Clients size: " << clients.size() << std::endl;
                 if (FD_ISSET((*client_it).getClientSocket(), &tmp_readSet))
                     handleRequest(*client_it, writeSet, readSet);
 
@@ -379,14 +380,14 @@ void HTTPServer::start()
                     response(*client_it);
                     if (client_it->getState() == DONE)
                     {
-                        client_it = clients.erase(client_it);
+                        if (client_it->getClientSocket() == maxSocket)
+                            maxSocket--;
+                        close((*client_it).getClientSocket());
                         FD_CLR((*client_it).getClientSocket(), &writeSet);
+                        FD_CLR((*client_it).getClientSocket(), &readSet);
+                        client_it = clients.erase(client_it);
+                        continue;
                     }
-                    // continue;
-                    // (*it1).getClientSocket() = -1;
-                    // if (it1 != clients.end()) {
-                    //     clients.erase(it1);
-                    //     it1--;
                 }
                 ++client_it;
             }

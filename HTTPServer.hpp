@@ -6,7 +6,7 @@
 /*   By: ebelkhei <ebelkhei@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/02 17:55:47 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/08/22 15:28:53 by ebelkhei         ###   ########.fr       */
+/*   Updated: 2023/08/23 12:20:53 by ebelkhei         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,6 +44,8 @@ class Response
     std::string location;
     std::string redirection_url;
     std::string response;
+    int         file_fd;
+    size_t      body_size;
     std::map<int, std::string>  status_code;
 
     public:
@@ -58,11 +60,15 @@ class Response
         std::string &getResponse() { return response;};
         std::string getLocation() { return location; };
         std::string getLocationUrl() { return redirection_url; };
+        int         getFileFd() { return file_fd; };
+        size_t      &getBodySize() { return body_size; };
 
         void        setLocation(std::string other) {location = other;};
         void        setBody(std::string body) { this->body = body;};
         void        setResponse(std::string response) { this->response = response; };
         void        setLocationUrl(std::string other) { this->redirection_url = other; };
+        void        setFileFd(int other) { this->file_fd = other; };
+        void        setBodySize(size_t other) { this->body_size = other; };
 };
 
 class Request

@@ -43,9 +43,15 @@ void getFile(Client &client, int fd)
     // check if location has CGI.
     // Else
     while ((read(fd, &c, 1)) > 0)
-        client.getResponse().getBody() += c;
+        client.getResponse().getBodySize()++;
+
+    lseek(fd, 0, SEEK_SET);
+    
+    // while ((read(fd, &c, 1)) > 0)
+    //     client.getResponse().getBody() += c;
     client.setStatus(200);
-    close(fd);
+    client.getResponse().setFileFd(fd);
+    std::cout << "Size: " << client.getResponse().getBodySize() << std::endl;
 }
 
 void getDir(Client &client, std::string src)
@@ -100,7 +106,7 @@ void buildResponse(Client &client, std::string &response)
     std::stringstream ss;
     std::string crlf = "\r\n";
 
-    ss << client.getResponse().getBody().length();
+    ss << client.getResponse().getBodySize();
     response = client.getResponse().getStatusLine(client.getStatus()) + crlf;
     // response += "Date: " + client.getResponse().getDate() + crlf;
     response += "Server: " + client.getResponse().getServer() + crlf;
@@ -221,38 +227,6 @@ void handleDeleteRequest(Client &client, std::string src)
     //     client.setStatus(400);
 }
 
-// void response(Client &client)
-// {
-//     std::string tmp;
-//     std::string src;
-//     std::string root;
-//     std::string response;
-
-//     locationMatching(client.getRequest().getURI(), client);
-//     root = client.getlocation().getRoot();
-//     tmp = client.getRequest().getURI();
-        
-//     if (tmp[0] == '/' && root[root.length() - 1] == '/' && tmp.length() > 1)
-//         tmp.erase(0, 1);
-
-//     src = root + tmp;
-//     if (!client.getStatus())
-//         check_redirections(client);
-
-//     if (!client.getStatus())
-//     {
-//         if (client.getRequest().getMethod() == "GET")
-//             get(client, src);
-//         else if (client.getRequest().getMethod() == "POST")
-// 			Post(client.getRequest(), client.getlocation(), client);
-//         // else if (client.getRequest().getMethod() == "DELETE")
-//         //     handleDeleteRequest(client, src);
-//     }
-//     buildResponse(client, response);
-//     std::cout << "Size sent: " << send(client.getClientSocket(), response.c_str(), response.size(), 0) << std::endl;
-//     std::cout << response << std::endl;
-//     close(client.getClientSocket());
-// }
 
 void sendResponse(Client &client);
 
@@ -263,7 +237,6 @@ void response(Client &client)
     std::string root;
     std::string &response = client.getResponse().getResponse();
 
-    std::cout << "State: " << client.getState() << std::endl;
     if (client.getState() == BUILDING)
     {
         locationMatching(client.getRequest().getURI(), client);
@@ -302,21 +275,19 @@ void response(Client &client)
 
         std::cout << "Response: " << response << std::endl;
         std::cout << "Body: " << client.getResponse().getBody() << std::endl;
-        if (!client.getResponse().getBody().length() && !response.length())
+        if (!client.getResponse().getBodySize() && !response.length())
+        {
+            close(client.getResponse().getFileFd());
             client.setState(DONE);
-        //     std::cout << "Error sending response" << std::endl;
-        // else
-        //     std::cout << "Response sent" << std::endl;
+        }
     }
-    if (client.getState() == DONE)
-        close(client.getClientSocket());
 }
 
 void sendResponse(Client &client)
 {
-    size_t      size = 400;
-    size_t      tmp;
+    size_t      size = 1024;
     std::string response;
+    char        c;
 
     if (client.getResponse().getResponse().length())
     {
@@ -324,11 +295,15 @@ void sendResponse(Client &client)
         client.getResponse().setResponse("");
     }
 
-    tmp = response.length();
-    if (client.getResponse().getBody().length())
+    if (client.getResponse().getBodySize())
     {
-        response += client.getResponse().getBody().substr(0, size - tmp);
-        client.getResponse().getBody().erase(0, size - tmp);
+        while (response.length() < size)
+        {
+            if (read(client.getResponse().getFileFd(), &c, 1) <= 0)
+                break;
+            response += c;
+            client.getResponse().getBodySize()--;
+        }
     }
     std::cout << "Response: " << response << std::endl;
     std::cout << "Size sent: " << send(client.getClientSocket(), response.c_str(), response.size(), 0) << std::endl;
