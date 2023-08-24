@@ -18,8 +18,9 @@ class configFile {
 	private:
 		vector<server>	_server;
 		string			_full_file;
+		char**			_env;
 	public:
-		configFile(const string file);
+		configFile(const string file, char **env);
 		~configFile(){};
 		vector<server>&	getServers(){return (_server);};
 		void	getServerContext(ifstream &in, string &line);

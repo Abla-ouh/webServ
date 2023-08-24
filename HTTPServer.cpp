@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HTTPServer.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ebelkhei <ebelkhei@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ybel-hac <ybel-hac@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/02 18:20:47 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/08/23 13:59:30 by ebelkhei         ###   ########.fr       */
+/*   Updated: 2023/08/24 10:35:31 by ybel-hac         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -197,6 +197,7 @@ void HTTPServer::handleRequest(Client &client, fd_set &writeSet, fd_set &readSet
     char data[1024];
     int rd = read(client.getClientSocket(), data, sizeof(data));
     
+	// write(1, data, rd);
     if (rd < 0) {
         std::cerr << "An error has occurred during reading request from a client" << std::endl;
     } else if (rd == 0) {

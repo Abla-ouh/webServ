@@ -2,6 +2,19 @@
 
 server::server()
 {
+	this->setErrorPage("200", "error_pages/200.html");
+	this->setErrorPage("201", "error_pages/201.html");
+	this->setErrorPage("501", "error_pages/501.html");
+	this->setErrorPage("400", "error_pages/400.html");
+	this->setErrorPage("403", "error_pages/403.html");
+	this->setErrorPage("404", "error_pages/404.html");
+	this->setErrorPage("405", "error_pages/405.html");
+	this->setErrorPage("413", "error_pages/413.html");
+	this->setErrorPage("414", "error_pages/414.html");
+	this->setErrorPage("301", "error_pages/301.html");
+	this->setErrorPage("500", "error_pages/500.html");
+	this->setErrorPage("505", "error_pages/505.html");
+	this->setErrorPage("204", "error_pages/204.html");
 	_port = "8080";
 	_host = "127.0.0.1";
 	//_client_max_body_size;
@@ -68,16 +81,7 @@ void	server::getLocationContext(ifstream &in, string line)
 			value.erase(remove(value.begin(), value.end(), '	'), value.end());
 			obj.path = value;
 			loc.setCgiPass(obj);
-			loc.setHasCgi(true);
-		}
-		else if (key == "cgi_path")
-			loc.setCgiPath(count_argument(value, 1) ? value : "");
-		else if (key == "cgi_ext")
-			loc.setCgiExt(count_argument(value, 1) ? value : "");
-		else
-		{
-			cout << line << "\n";
-			throw (unvalidDirective());
+			loc.setHasCgi(1);
 		}
 	}
 	this->_locations.push_back(loc);
@@ -127,12 +131,6 @@ void server::print()
 		vector<cgi>	obj = _locations[i].getCgiPass();
 		for (size_t i = 0; i < obj.size(); i++)
 			cout << "|lang = " << obj[i].lang << "|Path = " << obj[i].path << "\n";
-
-		cout << GREEN "CGI Path: \n" WHITE;
-		cout << _locations[i].getCgiPath() << "\n";
-
-		cout << GREEN "CGI extension: \n" WHITE;
-		cout << _locations[i].getCgiExt() << "\n";
 	}
 }
 

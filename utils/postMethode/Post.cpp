@@ -73,6 +73,7 @@ void Post(Request req, location loc, Client &client)
 	if (loc.getUploadPath()[0] == '/')
 		loc.getUploadPath().erase(0, 1);
 	//? location support upload
+	cout << req.getURI() << "+++\n";
 	if (loc.getUploadPath().length() > 0)
 	{
 		string	uploadDir = loc.getRoot() + '/' + loc.getUploadPath();
@@ -108,7 +109,6 @@ void Post(Request req, location loc, Client &client)
 			if (req.getURI()[req.getURI().length() - 1] != '/')
 			{
 				cout << "Moved Permanetely\n";
-				createAutoindexPage(loc.getRoot() + '/' + req.getURI() + '/');
 				client.setStatus(301); // ? 301 Moved Permanetely
 			}
 			else

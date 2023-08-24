@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ebelkhei <ebelkhei@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ybel-hac <ybel-hac@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/03 18:48:07 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/08/18 16:45:27 by ebelkhei         ###   ########.fr       */
+/*   Updated: 2023/08/24 10:35:59 by ybel-hac         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,12 +15,12 @@
 #include<stdio.h>
 
 
-int main(int ac, char const *av[])
+int main(int ac, char const *av[], char **env)
 {
 	if (ac == 2)
 	{
 		try {
-			configFile config((string(av[1])));
+			configFile config((string(av[1])), env);
             HTTPServer server(config);
 			// config.print();
             server.start();

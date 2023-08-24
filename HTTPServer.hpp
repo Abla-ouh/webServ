@@ -6,7 +6,7 @@
 /*   By: ebelkhei <ebelkhei@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/02 17:55:47 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/08/23 17:06:12 by ebelkhei         ###   ########.fr       */
+/*   Updated: 2023/08/24 15:39:57 by ebelkhei         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,6 +28,9 @@
 #include <signal.h>
 #include <sys/stat.h>
 #include <dirent.h>
+#include <sys/types.h> 
+#include <sys/wait.h> 
+#include <unistd.h>
 #include <algorithm>
 
 enum STATE
@@ -44,6 +47,7 @@ class Response
     std::string location;
     std::string redirection_url;
     std::string response;
+    std::string old_url;
     int         file_fd;
     size_t      body_size;
     std::map<int, std::string>  status_code;
@@ -62,6 +66,7 @@ class Response
         std::string getLocationUrl() { return redirection_url; };
         int         getFileFd() { return file_fd; };
         size_t      &getBodySize() { return body_size; };
+        std::string &getOldUrl() { return old_url;};
 
         void        setLocation(std::string other) {location = other;};
         void        setBody(std::string body) { this->body = body;};
@@ -69,6 +74,8 @@ class Response
         void        setLocationUrl(std::string other) { this->redirection_url = other; };
         void        setFileFd(int other) { this->file_fd = other; };
         void        setBodySize(size_t other) { this->body_size = other; };
+        void        setOldUrl(std::string other) { this->old_url = other; };
+
 };
 
 class Request
