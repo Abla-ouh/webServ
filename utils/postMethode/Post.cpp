@@ -108,7 +108,6 @@ void Post(Request req, location loc, Client &client)
 			if (req.getURI()[req.getURI().length() - 1] != '/')
 			{
 				cout << "Moved Permanetely\n";
-				createAutoindexPage(loc.getRoot() + '/' + req.getURI() + '/');
 				client.setStatus(301); // ? 301 Moved Permanetely
 			}
 			else

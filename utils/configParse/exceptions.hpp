@@ -57,3 +57,9 @@ class unknownError : public exception
 	public:
 		const char* what() const throw(){return ("unknown Error\n");};
 };
+
+class unvalidConfigFile : public exception
+{
+	public:
+		const char* what() const throw(){return ("unvalid Config File\n");};
+};

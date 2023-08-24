@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HTTPServer.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ebelkhei <ebelkhei@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ybel-hac <ybel-hac@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/02 18:20:47 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/08/19 15:50:52 by ebelkhei         ###   ########.fr       */
+/*   Updated: 2023/08/24 10:35:31 by ybel-hac         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -183,7 +183,7 @@ void HTTPServer::sendErrorResponse(int clientSocket, const std::string& statusLi
 //         sendErrorResponse(clientSocket, "400 Bad Request");
 // }
 
-void HTTPServer::handleRequest(Client &client, fd_set &writeSet)
+void HTTPServer::handleRequest(Client &client, fd_set &writeSet, fd_set &readSet)
 {
 
     // if (flag == "H" )
@@ -197,6 +197,7 @@ void HTTPServer::handleRequest(Client &client, fd_set &writeSet)
     char data[1024];
     int rd = read(client.getClientSocket(), data, sizeof(data));
     
+	// write(1, data, rd);
     if (rd < 0) {
         std::cerr << "An error has occurred during reading request from a client" << std::endl;
     } else if (rd == 0) {
@@ -204,6 +205,8 @@ void HTTPServer::handleRequest(Client &client, fd_set &writeSet)
         std::cout << "Client has closed the connection" << std::endl;
         // Remove the client from the list
         removeClient(client.getClientSocket());
+        FD_CLR(client.getClientSocket(), &readSet);
+        return;
     } else {
         // Process the request normally
         // std::cout << "Received data from client: " << data << std::endl;
@@ -242,7 +245,6 @@ void HTTPServer::handleRequest(Client &client, fd_set &writeSet)
             return;
         }
         
-        FD_SET(client.getClientSocket(), &writeSet);
         //Until i get the body size from config file 
         // if (!contentLengthStr.empty()) {
         //     size_t contentLength = atoi(contentLengthStr.c_str());
@@ -254,7 +256,8 @@ void HTTPServer::handleRequest(Client &client, fd_set &writeSet)
         // }
 
         // if (method == "GET"){ std::cout << "GET"<< std::endl;}
-        // else if (method == "POST"){ std::cout << "POST"<< std::endl;}
+        // else if (method == "POST")
+		// 	Post(request, client.getlocation(), client); // ! i need here location
         // else if (method == "DELETE")
         //     handleDeleteRequest(clientSocket, uri, servers);
         // else
@@ -283,6 +286,8 @@ void HTTPServer::handleRequest(Client &client, fd_set &writeSet)
         // std::cout << "-------------------------------------------\n";
         /************************ PRINT****************************/   
     }
+    FD_CLR(client.getClientSocket(), &readSet);
+    FD_SET(client.getClientSocket(), &writeSet);
 }
 
 void HTTPServer::sendResponse(int clientSocket)
@@ -304,15 +309,14 @@ void HTTPServer::sendResponse(int clientSocket)
     close(clientSocket);
 }
 
-void acceptNewClient(std::vector<server>& servers, std::vector<Client>& clients, fd_set& rd)
+void acceptNewClient(std::vector<server>& servers, std::vector<Client>& clients, fd_set& rd, fd_set& tmp_rd, int& maxSocket)
 {
     Client newClient;
-    
     std::vector<server>::iterator it = servers.begin();
-    int serverIndex = 0; 
+
     while (it != servers.end())
     {
-        if (FD_ISSET((*it).getServerSocket(), &rd))
+        if (FD_ISSET((*it).getServerSocket(), &tmp_rd))
         {
             newClient.setClientSocket(accept((*it).getServerSocket(), NULL, NULL));
             if (newClient.getClientSocket() == -1)
@@ -320,84 +324,74 @@ void acceptNewClient(std::vector<server>& servers, std::vector<Client>& clients,
                 std::cerr << "Failed to accept client connection" << std::endl;
                 continue;
             }
-
-            // Set the client socket to non-blocking mode
+            if (newClient.getClientSocket() > maxSocket)
+                maxSocket = newClient.getClientSocket();
             fcntl(newClient.getClientSocket(), F_SETFL, O_NONBLOCK);
-
             newClient.setServer(*it);
+            FD_SET(newClient.getClientSocket(), &rd);
             clients.push_back(newClient); // New client will be destoyed but its client_socket will keep the return from accept
             std::cout << "New Client request !" << std::endl;
         }
         it++;
-        serverIndex++;
     }
 }
 
 
 void HTTPServer::start()
 {
-    fd_set readSet, writeSet;
-    int maxSocket;
+    fd_set readSet, writeSet, tmp_readSet, tmp_writeSet;
+
+    std::vector<Client>::iterator client_it;
+    std::vector<server>::iterator server_it = this->servers.begin();
+    int maxSocket = -1;
 
     signal(SIGINT, SIG_IGN);
 
+    FD_ZERO(&readSet);
+    FD_ZERO(&writeSet);
+    
     createConnections();
+    while (server_it != servers.end())
+    {
+        FD_SET((*server_it).getServerSocket(), &readSet);
+        if ((*server_it).getServerSocket() > maxSocket)
+            maxSocket = (*server_it).getServerSocket();
+        server_it++;
+    }
+    
     while(true)
     {
-        FD_ZERO(&readSet);
-        FD_ZERO(&writeSet);
-        maxSocket = -1;
-
-        std::vector<server>::iterator it = servers.begin();
-        while (it != servers.end())
-        {
-            //write ??
-            FD_SET((*it).getServerSocket(), &readSet);
-            if ((*it).getServerSocket() > maxSocket)
-                maxSocket = (*it).getServerSocket();
-            it++;
-        }
+        tmp_readSet = readSet;
+        tmp_writeSet = writeSet;
         
-        
-        std::vector<Client>::iterator it1 = clients.begin();
-        while (it1 != clients.end())
-        {
-            FD_SET((*it1).getClientSocket(), &readSet); // ghi tread tansali l9raya w ndir write fd
-            if ((*it1).getClientSocket() > maxSocket)
-                maxSocket = (*it1).getClientSocket();
-            it1++;
-        }
-        
-        if (select(maxSocket + 1, &readSet, &writeSet, NULL, NULL) == -1)
+        if (select(maxSocket + 1, &tmp_readSet, &tmp_writeSet, NULL, NULL) == -1)
             std::cerr << "Error in Select !" << std::endl;
         
         else
         {
-            acceptNewClient(servers, clients, readSet); // each accepted client with its own virtual server
-            // Handle client requests and send responses
-            std::vector<Client>::iterator it = clients.begin();
-            while (it != clients.end())
+            acceptNewClient(servers, clients, readSet, tmp_readSet, maxSocket); // each accepted client with its own virtual server
+            client_it = clients.begin();
+            while (this->clients.size() && client_it != clients.end())
             {
-                if (FD_ISSET((*it).getClientSocket(), &readSet))
-                {
-                    fcntl((*it).getClientSocket(), F_SETFL, O_NONBLOCK);
-                    handleRequest(*it, writeSet);
-                }
+                if (FD_ISSET((*client_it).getClientSocket(), &tmp_readSet))
+                    handleRequest(*client_it, writeSet, readSet);
 
-                if (FD_ISSET((*it).getClientSocket(), &writeSet))
+                if (FD_ISSET((*client_it).getClientSocket(), &tmp_writeSet))
                 {
-                    response(*it);
-                    // sendResponse((*it).getClientSocket());
-                    it = clients.erase(it);
-                    continue;
-                    // (*it1).getClientSocket() = -1;
-                    // if (it1 != clients.end()) {
-                    //     clients.erase(it1);
-                    //     it1--;
+                    response(*client_it);
+                    if (client_it->getState() == DONE)
+                    {
+                        if (client_it->getClientSocket() == maxSocket)
+                            maxSocket--;
+                        close((*client_it).getClientSocket());
+                        FD_CLR((*client_it).getClientSocket(), &writeSet);
+                        FD_CLR((*client_it).getClientSocket(), &readSet);
+                        client_it = clients.erase(client_it);
+                        continue;
+                    }
                 }
-                ++it;
+                ++client_it;
             }
-
         }
     }
 }

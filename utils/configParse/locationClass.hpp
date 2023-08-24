@@ -24,8 +24,6 @@ class location {
 		string			_return;
 		bool			_hasCgi;
 		vector<cgi>		_cgi_pass;
-		string			_cgi_path;
-		string			_cgi_ext;
 	public:
 		location() : _equal("false"), _redirection(""), _root(""), _hasCgi(0){};
 		~location(){};
@@ -42,8 +40,6 @@ class location {
 		void				setEqual(string equal){_equal = equal;};
 		void				setReturn(string ret){this->_return = ret;};
 		void				setCgiPass(cgi obj){_cgi_pass.push_back(obj);};
-		void				setCgiPath(string cgi_path){_cgi_path = cgi_path;};
-		void				setCgiExt(string cgi_ext){_cgi_ext = cgi_ext;};
 		void				setRedirection(string red){_redirection = red;};
 		void				setHasCgi(bool cgi){_hasCgi = cgi;};
 		//?
@@ -59,8 +55,6 @@ class location {
 		string&				getUploadPath(){return (_upload_path);};		
 		string&				getReturn(){return (_return);};
 		vector<cgi>			getCgiPass(){return (_cgi_pass);};
-		string				getCgiPath(){return (_cgi_path);};
-		string				getCgiExt(){return (_cgi_ext);};
 		string&				getRedirection(){return (_redirection);};
 		bool				isCgi(){return (_hasCgi);};
 };

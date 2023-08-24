@@ -29,6 +29,7 @@ void locationMatching(std::vector<Location> locations, std::string url, Client &
             if (locations[i].getPath() == url || locations[i].getPath() == url + "/")
             {
                 client.setLocation(locations[i]);
+                client.getRequest().getURI().erase(0, url.length());
                 return;
             }
         }

@@ -6,7 +6,7 @@
 /*   By: ebelkhei <ebelkhei@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/08 16:57:48 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/08/18 16:21:43 by ebelkhei         ###   ########.fr       */
+/*   Updated: 2023/08/23 17:06:05 by ebelkhei         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,7 +59,7 @@ const std::string& Request::getMethod() const {
     return method;
 }
 
-const std::string& Request::getURI() const {
+std::string& Request::getURI() {
     return uri;
 }
 
