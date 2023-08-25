@@ -22,13 +22,16 @@ OBJS		= $(SRCS:.cpp=.o)
 
 all:		$(NAME)
 
-$(NAME)	: $(OBJS)
-		$(CC) $(CFLAGS) $(SRCS) -o $(NAME)
+$(NAME)	: 
+		@$(CC) $(CFLAGS) $(SRCS) -o $(NAME)
 
 clean:
-		rm -rf $(OBJS)
+		@rm -rf $(OBJS)
 
 fclean:	clean
-		rm -rf $(NAME)
+		@rm -rf $(NAME)
 
 re:	fclean all
+
+up: all clean
+	@echo "\033[0;35m 🚀 $(NAME) was successfully created \033[0m"

@@ -70,6 +70,13 @@ string b = "<!DOCTYPE html>\n\
 void Post(Request req, location loc, Client &client)
 {
 	string body = b;
+	std::vector<std::string> allowed_methods = client.getlocation().getAllowMethodes();
+
+    if (find(allowed_methods.begin(), allowed_methods.end(), "POST") == allowed_methods.end())
+    {
+        client.setStatus(405);
+        return;
+    }
 	if (loc.getUploadPath()[0] == '/')
 		loc.getUploadPath().erase(0, 1);
 	//? location support upload
