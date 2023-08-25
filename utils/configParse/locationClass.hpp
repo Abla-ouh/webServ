@@ -25,7 +25,7 @@ class location {
 		bool			_hasCgi;
 		vector<cgi>		_cgi_pass;
 	public:
-		location() : _equal("false"), _redirection(""), _root(""), _hasCgi(0){};
+		location();
 		~location(){};
 		//?
 		// ? seter's

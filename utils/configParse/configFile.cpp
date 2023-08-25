@@ -47,6 +47,7 @@ void	configFile::getServerContext(ifstream &in, string &line)
 	if (serv.getPort().empty() || serv.getRoot().empty())
 		throw(unvalidConfigFile());
 	serv.checkHostPort();
+	serv.setEnv(_env);
 	_server.push_back(serv);
 }
 

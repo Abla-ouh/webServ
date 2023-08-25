@@ -6,7 +6,7 @@
 /*   By: ybel-hac <ybel-hac@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/02 17:55:47 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/08/24 10:35:39 by ybel-hac         ###   ########.fr       */
+/*   Updated: 2023/08/25 09:40:19 by ybel-hac         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,6 +47,7 @@ class Response
     std::string location;
     std::string redirection_url;
     std::string response;
+    std::string old_url;
     int         file_fd;
     size_t      body_size;
     std::map<int, std::string>  status_code;
@@ -65,6 +66,7 @@ class Response
         std::string getLocationUrl() { return redirection_url; };
         int         getFileFd() { return file_fd; };
         size_t      &getBodySize() { return body_size; };
+        std::string &getOldUrl() { return old_url;};
 
         void        setLocation(std::string other) {location = other;};
         void        setBody(std::string body) { this->body = body;};
@@ -72,6 +74,8 @@ class Response
         void        setLocationUrl(std::string other) { this->redirection_url = other; };
         void        setFileFd(int other) { this->file_fd = other; };
         void        setBodySize(size_t other) { this->body_size = other; };
+        void        setOldUrl(std::string other) { this->old_url = other; };
+
 };
 
 class Request
@@ -95,6 +99,7 @@ class Request
         const std::string& getQuery() const;
         const std::string& getVersion() const;
         const std::string& getHeader(const std::string& key) const;
+		const std::string  getBody(){return ("this is temporary body");};
     
 };
 
@@ -108,6 +113,7 @@ class Client
     int                     client_socket;
     server                  _server;
     STATE                   state;
+	int						cgiFd;
 
 
     public:
@@ -124,15 +130,16 @@ class Client
         int                     getClientSocket() { return client_socket;};
         server                  getServer() { return _server;};
         STATE                   getState() { return state; };
+		int						getCgiFd() {return cgiFd;};
 
-
-        void    setRequest(Request other) { this->request = other; };
-        void    setStatus(int other) { this->status = other; };
-        void    setlocation(location other) { this->_location = other;};
-        void    setlocations(std::vector<location> other) { this->locations = other; };
-        void    setClientSocket(int other) { this->client_socket = other;};
-        void    setServer(server other) { this->_server = other;};
-        void    setState(STATE other) { this->state = other; };
+		void					setCgiFd(int fd) {cgiFd = fd;};
+        void    				setRequest(Request other) { this->request = other; };
+        void    				setStatus(int other) { this->status = other; };
+        void    				setlocation(location other) { this->_location = other;};
+        void    				setlocations(std::vector<location> other) { this->locations = other; };
+        void    				setClientSocket(int other) { this->client_socket = other;};
+        void    				setServer(server other) { this->_server = other;};
+        void    				setState(STATE other) { this->state = other; };
 };
 
 
@@ -162,6 +169,9 @@ class HTTPServer {
 void        response(Client &client);
 void        handleDeleteRequest(Client &client, std::string src);
 void        locationMatching(std::string url, Client &client);
-std::string get_resource_type(const char *res, Client client);
-void		Post(Request req, location loc, Client &client);
+std::string get_resource_type(const char *res, Client &client);
+void		Post(Request& req, location& loc, Client &client);
+void 		cgi_handler(Request& req, Client& client, string scritpPath);
+string		generateName();
+
 #endif

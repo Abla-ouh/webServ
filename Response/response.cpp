@@ -63,9 +63,10 @@ void getDir(Client &client, std::string src)
 
     tmp = client.getRequest().getURI();
     indexes = client.getlocation().getIndex();
+    std::cout << "tmp: " << tmp << std::endl;
     if (tmp[tmp.length() - 1] != '/')
     {
-        client.getResponse().setLocationUrl(client.getRequest().getURI() + "/");
+        client.getResponse().setLocationUrl(client.getResponse().getOldUrl() + "/");
         client.setStatus(301);
         return;
     }
@@ -88,7 +89,6 @@ void getDir(Client &client, std::string src)
         client.setStatus(403);
     // else return autoindex;
 }
-
 
 void get(Client &client, std::string src)
 {
@@ -139,7 +139,7 @@ void check_redirections(Client &client)
     }
 }
 
-std::string get_resource_type(const char *res, Client client)
+std::string get_resource_type(const char *res, Client &client)
 {
     DIR *dir;
 
@@ -240,12 +240,15 @@ void response(Client &client)
 
     if (client.getState() == BUILDING)
     {
+        std::cout << "URI: " << client.getRequest().getURI() << std::endl;
+        client.getResponse().setOldUrl(client.getRequest().getURI());
         locationMatching(client.getRequest().getURI(), client);
+        std::cout << "Location matched: " << client.getlocation().getPath() << std::endl;
         root = client.getlocation().getRoot();
         tmp = client.getRequest().getURI();
             
-        // if (tmp[0] == '/' && root[root.length() - 1] == '/' && tmp.length() > 1)
-        //     tmp.erase(0, 1);
+        if (tmp[0] == '/' && root[root.length() - 1] == '/' && tmp.length() > 1)
+            tmp.erase(0, 1);
 
         src = root + tmp;
         std::cout << "SRC: " << src << std::endl;
@@ -274,9 +277,6 @@ void response(Client &client)
     else if (client.getState() == SENDING)
     {
         sendResponse(client);
-
-        std::cout << "Response: " << response << std::endl;
-        std::cout << "Body: " << client.getResponse().getBody() << std::endl;
         if (!client.getResponse().getBodySize() && !response.length())
         {
             close(client.getResponse().getFileFd());
@@ -308,5 +308,5 @@ void sendResponse(Client &client)
         }
     }
     std::cout << "Response: " << response << std::endl;
-    std::cout << "Size sent: " << send(client.getClientSocket(), response.c_str(), response.size(), 0) << std::endl;
+    send(client.getClientSocket(), response.c_str(), response.size(), 0);
 }
