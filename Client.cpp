@@ -6,11 +6,11 @@
 /*   By: ebelkhei <ebelkhei@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/02 18:35:35 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/08/21 11:51:46 by ebelkhei         ###   ########.fr       */
+/*   Updated: 2023/08/26 18:13:15 by ebelkhei         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "Client.hpp"
+#include "HTTPServer.hpp"
 
 
 Client::Client()
