@@ -1,70 +1,86 @@
-#include "../../HTTPServer.hpp"
-#include <iostream>
-#include <cstring>
-#include <string>
-#include <vector>
-#include <sstream>
-#include <errno.h>
-#include <stdio.h>
-#include <fstream>
-#include <iostream>
-#include <signal.h>
-#include <sys/stat.h>
-#include <dirent.h>
-#include <sys/types.h>
-#include <sys/wait.h>
-#include <unistd.h>
-#include <algorithm>
+#include "CGI.hpp"
 
 using namespace std;
 
 
-void	setCgiEnv(Request req, Client client)
+void	CGI::setCgiEnv(Request req, Client &client, string interpreter, string scritpPath)
 {
-	setenv("CONTENT_LENGTH", req.getHeader("Content-Length").c_str(), 1);
-	setenv("CONTENT_TYPE", req.getHeader("Content-Type").c_str(), 1);
-	setenv("AUTH_TYPE", "1.1", 1);
-	setenv("PAHT_INFO", client.getlocation().getPath().c_str(), 1);
-	setenv("PAHT_TRANSLATED", (client.getlocation().getRoot() + '/' + client.getlocation().getPath()).c_str(), 1);
-	setenv("QUERY_STRING", req.getQuery().c_str(), 1);
-	// setenv("REMOTE_ADDR", client.get, 1);
-	setenv("REQUEST_METHOD", req.getMethod().c_str(), 1);
-	setenv("REQUEST_URI", req.getMethod().c_str(), 1);
-	// client.getlocation().getRoot() + '/' + req.getURI();
-	setenv("SCRIPT_NAME", client.getlocation().getIndex()[0].c_str(), 1);
-	setenv("SERVER_PORT", client.getServer().getPort().c_str(), 1);
-	setenv("SERVER_PROTOCOL", ("HTTP/" + req.getVersion()).c_str(), 1);
-	setenv("SERVER_NAME", client.getServer().getHost().c_str(), 1);
-	setenv("SERVER_SOFTWARE", (client.getServer().getServerName() + req.getVersion()).c_str() , 1);
-	setenv("GATEWAY_INTERFACE", "1.1", 1);
+	_client = client;
+	_env["HTTP_HOST"] = req.getHeader("Host"); // ! check
+	_env["PATH"] = client.getServer().getRoot();
+	_env["CONTENT_LENGTH"] = req.getHeader("Content-Length");
+	_env["CONTENT_TYPE"] = req.getHeader("Content-Type");
+	_env["REQUEST_URI"] = req.getURI();
+	_env["AUTH_TYPE"] = "1.1";
+	_env["PAHT_INFO"] = client.getlocation().getPath();
+	_env["PAHT_TRANSLATED"] = client.getlocation().getPath();
+	_env["QUERY_STRING"] = req.getQuery();
+	_env["REMOTE_ADDR"] = client.getServer().getHost();
+	_env["REMOTE_IDENT"] = req.getHeader("Authorization");
+	_env["REMOTE_USER"] = req.getHeader("Authorization");
+	_env["REQUEST_METHOD"] = "POST";
+	_env["REQUEST_URI"] = req.getURI();
+	_env["SCRIPT_NAME"] = interpreter;
+	_env["SCRIPT_FILENAME"] = scritpPath;
+	// cout << RED + itt->lang << "\n";
+	_env["SERVER_NAME"] = _env["REMOTE_ADDR"];
+	_env["SERVER_PORT"] = client.getServer().getPort();
+	_env["SERVER_PROTOCOL"] = ("HTTP/" + req.getVersion());
+	_env["SERVER_NAME"] = client.getServer().getHost();
+	_env["SERVER_SOFTWARE"] = client.getServer().getServerName() + '/' + req.getVersion();
+	_env["GATEWAY_INTERFACE"] = "1.1";
+	_env["REDIRECT_STATUS"] = "200";
 }
 
-void cgi_handler(Request& req, Client& client, string scritpPath)
+char	**CGI::getCgiEnv()
 {
-	int pid;
-	// int status;
-	// int savedfd[2];
-	FILE* infd = tmpfile();
-	FILE* outfd = tmpfile();
-	// string	scritpPath = client.getlocation().getRoot() + '/' + req.getURI() + '/' + client.getlocation().getIndex()[0];
-	// string	scritpPath = src;
+	size_t	len = 0;
+	char	**old_env = _client.getServer().getEnv();
+	size_t	i = 0;
 
+	while (old_env[len])
+		len++;
+	char	**env = new char*[len + _env.size() + 2];
+
+	for (; i < len; i++)
+		env[i] = strdup(old_env[i]);
+	for (map<string, string>::iterator itt = _env.begin(); itt != _env.end(); itt++)
+		env[i++] = strdup((itt->first + "=" + itt->second).c_str());
+	env[i] = 0;
+	return (env);
+}
+
+void CGI::cgi_executor(Request& req, Client& client, string scritpPath)
+{
+	int								pid;
+	FILE*							infd = tmpfile();
+	FILE*							outfd = tmpfile();
+	char							**env;
+	map<string, string>				obj = client.getlocation().getCgiPass();
+	map<string, string>::iterator	interpreter = obj.find(scritpPath.substr(scritpPath.find_last_of(".") + 1));
+
+	if (interpreter == obj.end())
+		return (client.setState(DONE), client.setStatus(404));
 	if (access(scritpPath.c_str(), R_OK))
-		return (client.setStatus(500), perror(scritpPath.c_str()));
-	if (access(client.getlocation().getCgiPass()[0].path.c_str(), R_OK))
-		return (client.setStatus(500), perror(client.getlocation().getCgiPass()[0].path.c_str()));
+		return (client.setState(DONE), client.setStatus(500), perror(scritpPath.c_str()));
+	if (access(interpreter->second.c_str(), X_OK))
+		return (client.setState(DONE), client.setStatus(500), perror(interpreter->second.c_str()));
+	if (scritpPath.substr(scritpPath.length() - (interpreter->first.length() + 1)) != ("." + interpreter->first))
+		return (client.setState(DONE), client.setStatus(404));
 	client.setCgiFd(fileno(outfd));
-	setCgiEnv(req, client);
-
+	setCgiEnv(req, client, interpreter->second, scritpPath);
+	env = getCgiEnv();
 	if ((pid = fork()) == -1)
 		return (client.setStatus(500), perror("fork"));
 	if (!pid)
 	{
-		char	*tab[3] = {strdup(client.getlocation().getCgiPass()[0].path.c_str()), strdup(scritpPath.c_str()), 0};
+		char	*tab[3] = {strdup(interpreter->second.c_str()), strdup(scritpPath.c_str()), 0};
 		write(fileno(infd), req.getBody().c_str(), req.getBody().length());
 		dup2(fileno(infd), STDIN_FILENO);
 		dup2(fileno(outfd), STDOUT_FILENO);
-		execve(tab[0], tab, client.getServer().getEnv());
+		dup2(fileno(outfd), STDERR_FILENO);
+		execve(tab[0], tab, env);
+		client.setStatus(500);
 		perror("execve");
 		exit(1);
 	}

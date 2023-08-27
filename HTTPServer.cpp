@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HTTPServer.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ybel-hac <ybel-hac@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ebelkhei <ebelkhei@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/02 18:20:47 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/08/24 10:35:31 by ybel-hac         ###   ########.fr       */
+/*   Updated: 2023/08/27 11:05:37 by ebelkhei         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -345,7 +345,7 @@ void HTTPServer::start()
     std::vector<server>::iterator server_it = this->servers.begin();
     int maxSocket = -1;
 
-    signal(SIGINT, SIG_IGN);
+    // signal(SIGINT, SIG_IGN);
 
     FD_ZERO(&readSet);
     FD_ZERO(&writeSet);
@@ -381,8 +381,10 @@ void HTTPServer::start()
                     response(*client_it);
                     if (client_it->getState() == DONE)
                     {
+                        std::cout << "Dropping client " << std::endl;
                         if (client_it->getClientSocket() == maxSocket)
                             maxSocket--;
+                        close(client_it->getResponse().getFileFd());
                         close((*client_it).getClientSocket());
                         FD_CLR((*client_it).getClientSocket(), &writeSet);
                         FD_CLR((*client_it).getClientSocket(), &readSet);

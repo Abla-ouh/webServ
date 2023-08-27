@@ -2,6 +2,7 @@
 #include "../../HTTPServer.hpp"
 #include <sys/types.h>
 #include <dirent.h>
+#include "../CGI/CGI.hpp"
 
 string	generateName()
 {
@@ -42,6 +43,8 @@ string getIndexFromDirectory(Client& client, string directory)
 
 void	dir_has_index_file(Client& client, location loc, Request req)
 {
+	CGI cgi;
+
 	string	index = getIndexFromDirectory(client, client.getlocation().getRoot() + '/' + req.getURI());
 	cout << "**************** check if directory has index file ****************\n";
 	if (index == "null" || !loc.isCgi())
@@ -49,7 +52,7 @@ void	dir_has_index_file(Client& client, location loc, Request req)
 	else
 	{
 		client.setStatus(201); // ? run cgi
-		cgi_handler(req, client, index);
+		cgi.cgi_executor(req, client, index);
 		cout << "CGI EXECUTED***************\n\n";
 	}
 }
@@ -99,8 +102,9 @@ void Post(Request& req, location& loc, Client &client)
 		{
 			if (loc.isCgi())
 			{
+				CGI cgi;
 				client.setStatus(201); // ? run cgi
-				cgi_handler(req, client, loc.getRoot() + '/' + req.getURI());
+				cgi.cgi_executor(req, client, loc.getRoot() + '/' + req.getURI());
 				cout << "*************** CGI EXECUTED ***************\n\n";
 			}
 			else

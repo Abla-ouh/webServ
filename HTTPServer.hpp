@@ -6,7 +6,7 @@
 /*   By: ybel-hac <ybel-hac@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/02 17:55:47 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/08/25 09:40:19 by ybel-hac         ###   ########.fr       */
+/*   Updated: 2023/08/27 11:27:57 by ybel-hac         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,6 +37,8 @@ enum STATE
 {
     BUILDING,
     SENDING,
+    FILE_READING,
+    BUILDING_2,
     WAITING_CGI,
     DONE
 };
@@ -49,12 +51,13 @@ class Response
     std::string response;
     std::string old_url;
     int         file_fd;
-    size_t      body_size;
+    unsigned long long      body_size;
     std::map<int, std::string>  status_code;
 
     public:
-        Response();
-
+        Response() ;
+        // ~Response() { if (file_fd) close(file_fd);};
+        
         std::string &getBody();
         std::string getStatusLine(int status_code);
         std::string getDate();
@@ -65,7 +68,7 @@ class Response
         std::string getLocation() { return location; };
         std::string getLocationUrl() { return redirection_url; };
         int         getFileFd() { return file_fd; };
-        size_t      &getBodySize() { return body_size; };
+        unsigned long long      &getBodySize() { return body_size; };
         std::string &getOldUrl() { return old_url;};
 
         void        setLocation(std::string other) {location = other;};
@@ -171,7 +174,8 @@ void        handleDeleteRequest(Client &client, std::string src);
 void        locationMatching(std::string url, Client &client);
 std::string get_resource_type(const char *res, Client &client);
 void		Post(Request& req, location& loc, Client &client);
-void 		cgi_handler(Request& req, Client& client, string scritpPath);
 string		generateName();
+string		getIndexFromDirectory(Client& client, string directory);
+std::string intToString(int number);
 
 #endif

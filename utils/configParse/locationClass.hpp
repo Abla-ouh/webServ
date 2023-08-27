@@ -12,18 +12,18 @@ typedef struct s_cgi
 
 class location {
 	private:
-		string			_equal;
-		string			_redirection;
-		string			_path;
-		vector<string>	_allow_methodes;
-		string			_client_max_body_size;
-		string			_root;
-		vector<string>	_index;
-		string			_autoindex;
-		string			_upload_path;
-		string			_return;
-		bool			_hasCgi;
-		vector<cgi>		_cgi_pass;
+		string				_equal;
+		string				_redirection;
+		string				_path;
+		vector<string>		_allow_methodes;
+		string				_client_max_body_size;
+		string				_root;
+		vector<string>		_index;
+		string				_autoindex;
+		string				_upload_path;
+		string				_return;
+		bool				_hasCgi;
+		map<string, string>	_cgi_pass;
 	public:
 		location() : _equal("false"), _redirection(""), _root(""), _hasCgi(0){};
 		~location(){};
@@ -39,7 +39,7 @@ class location {
 		void				setAutoIndex(string autoindex){_autoindex = autoindex;};
 		void				setEqual(string equal){_equal = equal;};
 		void				setReturn(string ret){this->_return = ret;};
-		void				setCgiPass(cgi obj){_cgi_pass.push_back(obj);};
+		void				setCgiPass(string ext, string path){_cgi_pass[ext] = path;};
 		void				setRedirection(string red){_redirection = red;};
 		void				setHasCgi(bool cgi){_hasCgi = cgi;};
 		//?
@@ -54,7 +54,7 @@ class location {
 		string&				getAutoIndex(){return (_autoindex);};
 		string&				getUploadPath(){return (_upload_path);};		
 		string&				getReturn(){return (_return);};
-		vector<cgi>			getCgiPass(){return (_cgi_pass);};
+		map<string, string>	getCgiPass(){return (_cgi_pass);};
 		string&				getRedirection(){return (_redirection);};
 		bool				isCgi(){return (_hasCgi);};
 };

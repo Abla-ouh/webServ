@@ -73,14 +73,15 @@ void	server::getLocationContext(ifstream &in, string line)
 		else if (key == "cgi_pass")
 		{
 			count_argument(value, 2);
-			cgi obj;
+			string	ext;
+			string	path;
 
-			obj.lang = value.substr(0, value.find_first_of("	 "));
+			ext = value.substr(0, value.find_first_of("	 "));
 			value.erase(0, value.find_first_of("	 "));
 			value.erase(remove(value.begin(), value.end(), ' '), value.end());
 			value.erase(remove(value.begin(), value.end(), '	'), value.end());
-			obj.path = value;
-			loc.setCgiPass(obj);
+			path = value;
+			loc.setCgiPass(ext, path);
 			loc.setHasCgi(1);
 		}
 	}
@@ -128,9 +129,9 @@ void server::print()
 		cout << _locations[i].getReturn() << "\n";
 
 		cout << GREEN "CGI Pass: \n" WHITE;
-		vector<cgi>	obj = _locations[i].getCgiPass();
-		for (size_t i = 0; i < obj.size(); i++)
-			cout << "|lang = " << obj[i].lang << "|Path = " << obj[i].path << "\n";
+		map<string, string>	obj = _locations[i].getCgiPass();
+		for (map<string, string>::iterator itt = obj.begin(); itt != obj.end(); itt++)
+			cout << "|lang = " << itt->first << "|Path = " << itt->second << "\n";
 	}
 }
 
