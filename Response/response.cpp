@@ -49,8 +49,6 @@ void getFile(Client &client, bool s)
     while ((a = read(fd, &c, 1)) > 0 && max--)
         client.getResponse().getBodySize()++;
 
-    std::cout << "a: " << a << std::endl;
-
     if (!a)
     {
         lseek(fd, 0, SEEK_SET);
@@ -92,13 +90,12 @@ void getDir(Client &client, std::string src)
         }
         client.setStatus(404);
     }
-    std::cout << "autoindex: " << client.getlocation().getAutoIndex() << std::endl;
     if (client.getlocation().getAutoIndex() == "off")
         client.setStatus(403);
     else
     {
-        std::cout << "autoindex" << std::endl;
         client.getResponse().setBody(createAutoindexPage(src));
+        client.setState(BUILDING_2);
         client.setStatus(200);
     }
 }
@@ -289,7 +286,6 @@ void response(Client &client)
             tmp.erase(0, 1);
 
         src = root + tmp;
-        // std::cout << "SRC: " << src << std::endl;
 
         if (!client.getStatus())
             check_redirections(client);

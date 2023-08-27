@@ -40,7 +40,10 @@ void locationMatching(std::string url, Client &client)
         if (url.length() == 1)
         {
             if (!setDefaultLocation(locations, client))
+            {
+                std::cout << "No default location found" << std::endl;
                 client.setStatus(404);
+            }
             return;
         }
         for (size_t i = 0; i < locations.size(); i++)

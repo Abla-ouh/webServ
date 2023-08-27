@@ -6,7 +6,7 @@
 /*   By: ebelkhei <ebelkhei@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/02 18:20:47 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/08/26 18:57:16 by ebelkhei         ###   ########.fr       */
+/*   Updated: 2023/08/27 11:05:37 by ebelkhei         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -369,20 +369,15 @@ void HTTPServer::start()
         
         else
         {
-            std::cout << "Select is working !" << std::endl;
             acceptNewClient(servers, clients, readSet, tmp_readSet, maxSocket); // each accepted client with its own virtual server
             client_it = clients.begin();
             while (this->clients.size() && client_it != clients.end())
             {
                 if (FD_ISSET((*client_it).getClientSocket(), &tmp_readSet))
-                {
-                    std::cout << "Client request !" << std::endl;
                     handleRequest(*client_it, writeSet, readSet);
-                }
 
                 if (FD_ISSET((*client_it).getClientSocket(), &tmp_writeSet))
                 {
-                    std::cout << "Client response !" << std::endl;
                     response(*client_it);
                     if (client_it->getState() == DONE)
                     {
