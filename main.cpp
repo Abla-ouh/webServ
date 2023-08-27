@@ -6,7 +6,7 @@
 /*   By: ybel-hac <ybel-hac@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/03 18:48:07 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/08/27 11:28:02 by ybel-hac         ###   ########.fr       */
+/*   Updated: 2023/08/27 11:38:57 by ybel-hac         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,7 @@
 
 int main(int ac, char const *av[], char **env)
 {
+	signal(SIGPIPE, SIG_IGN);
 	if (ac == 2)
 	{
 		try {
