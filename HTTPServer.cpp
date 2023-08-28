@@ -6,7 +6,7 @@
 /*   By: abouhaga <abouhaga@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/02 18:20:47 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/08/28 14:03:39 by abouhaga         ###   ########.fr       */
+/*   Updated: 2023/08/28 21:11:38 by abouhaga         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,7 +70,7 @@ void acceptNewClient(std::vector<server>& servers, std::vector<Client>& clients,
             newClient.setServer(*it);
             FD_SET(newClient.getClientSocket(), &rd);
             clients.push_back(newClient); // New client will be destoyed but its client_socket will keep the return from accept
-            std::cout << "New Client request !" << std::endl;
+            std::cout << YELLOW <<"New Client request !" << WHITE << std::endl;
         }
         it++;
     }

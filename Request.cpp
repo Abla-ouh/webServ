@@ -6,7 +6,7 @@
 /*   By: abouhaga <abouhaga@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/08 16:57:48 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/08/28 14:04:37 by abouhaga         ###   ########.fr       */
+/*   Updated: 2023/08/28 21:00:34 by abouhaga         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -194,53 +194,82 @@ bool findHex(Client &client)
     
 }
 
-void ft_chunked (Client &client, char *data, int b_lenght)
+template<typename T>
+T custom_min(T a, T b) {
+    return a < b ? a : b;
+}
+
+
+void ft_chunked(Client &client, const char *data, int b_length)
 {
     int rd_times = 0;
     client.waiting_for_chunk_size = false;
+    int write_size;
 
-    while (rd_times < b_lenght)
+    while (rd_times < b_length)
     {
         if (!client.chunk_size)
         {
-            while (rd_times < b_lenght)
+            while (rd_times < b_length)
             {
                 client.hexBuff[client.hex_len++] = data[rd_times++];
                 if (findHex(client))
                     break;
             }
+
             // If chunk size indicator not found, wait for more data
             if (!client.waiting_for_chunk_size)
                 break;
-            client.chunk_size = std::strtoul(client.hexBuff, NULL, 16);
+
+            char chunkSizeBuffer[10];
+            memcpy(chunkSizeBuffer, client.hexBuff, client.hex_len);
+            chunkSizeBuffer[client.hex_len] = '\0';
+            client.chunk_size = strtoul(chunkSizeBuffer, NULL, 16);
+
             client.hex_len = 0;
             memset(client.hexBuff, 0, 20);
-            if (!client.chunk_size) {
+
+            if (!client.chunk_size)
+            {
                 close(client.file);
                 client.isBodyReady = true;
                 client.ready = true;
                 break;
             }
         }
-        while (rd_times < b_lenght && client.chunk_size) {
-            write(client.file ,data + rd_times, 1);
-            client.chunk_size--;
-            rd_times++;
-        }
+
+        write_size = custom_min<size_t>(client.chunk_size, b_length - rd_times);
+        write(client.file, data + rd_times, write_size);
+
+        client.chunk_size -= write_size;
+        rd_times += write_size;
     }
 }
 
-bool isChuncked(const std::string &requestHeaders)
+bool isChuncked(std::string request)
 {
-    return requestHeaders.find("Transfer-Encoding: chunked") != std::string::npos;
+    std::vector<std::string> output;
+	std::string token;
+	std::stringstream ss(request);
+	while (std::getline(ss, token, '\n')) {
+		output.push_back(token);
+	}
+	std::vector<std::string>::iterator it;
+	for (it = output.begin(); it != output.end(); it++){
+		std::string tmp = *it;
+		if (tmp.find("Transfer-Encoding: chunked") != std::string::npos) {
+			return true;
+		}
+	}
+	return false;
 }
 
 void HTTPServer::handleRequest(Client &client, fd_set &writeSet, fd_set &readSet)
 {
     Request &request = client.getRequest();
-    char data[10250];
-	memset(data,'\0', 10250);
-    int rd  = recv(client.getClientSocket(), data, 10250, 0);
+    char data[20240];
+	memset(data,'\0', 20240);
+    int rd  = recv(client.getClientSocket(), data, 20240, 0);
     if (client.currentState == HEADER_READING)
     {
         if (rd <= 0)
