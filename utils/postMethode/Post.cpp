@@ -48,7 +48,7 @@ void	dir_has_index_file(Client& client, location loc, Request req)
 	string	index = getIndexFromDirectory(client, client.getlocation().getRoot() + '/' + req.getURI());
 	cout << "**************** check if directory has index file ****************\n";
 	if (index == "null" || !loc.isCgi())
-		client.setStatus(500); // !!!!!!!!!!!!! here should be 403
+		client.setStatus(403);
 	else
 	{
 		client.setStatus(201); // ? run cgi
@@ -83,14 +83,14 @@ void Post(Request& req, location& loc, Client &client)
 		if (access(uploadDir.c_str(), W_OK))
 		{
 			perror(uploadDir.c_str());
-			return (client.setStatus(500)); // !!!!!!!!!!!!! here should be 403
+			return (client.setStatus(403));
 		}
 		string	random = generateName();
 		ofstream file((uploadDir + "/" + random).c_str());
 		if (!file)
 		{
 			perror((uploadDir + "/" + random).c_str());
-			return (client.setStatus(500)); // !!!!!!!!!!!!! here should be 403
+			return (client.setStatus(403));
 		}
 		file.write(body.c_str(), body.length());
 		client.setStatus(201);
@@ -110,7 +110,7 @@ void Post(Request& req, location& loc, Client &client)
 			else
 			{
 				cout << "does not have cgi\n";
-				client.setStatus(500); // !!!!!!!!!!!!! here should be 403
+				client.setStatus(403);
 			}
 		}
 		else if (get_resource_type((loc.getRoot() + '/' + req.getURI()).c_str(), client) == "DIRE") // * is dir
