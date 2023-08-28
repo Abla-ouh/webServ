@@ -50,7 +50,7 @@ char	**CGI::getCgiEnv()
 	return (env);
 }
 
-void CGI::cgi_executor(Request& req, Client& client, string scritpPath)
+void CGI::cgi_executor(Request& req, Client& client, string scritpPath, string requestFile)
 {
 	int								pid;
 	FILE*							infd = tmpfile();
@@ -74,7 +74,7 @@ void CGI::cgi_executor(Request& req, Client& client, string scritpPath)
 		return (client.setStatus(500), perror("fork"));
 	if (!pid)
 	{
-		char	*tab[3] = {strdup(interpreter->second.c_str()), strdup(scritpPath.c_str()), 0};
+		char	*tab[4] = {strdup(interpreter->second.c_str()), strdup(scritpPath.c_str()), strdup(requestFile.c_str()), 0};
 		write(fileno(infd), req.getBody().c_str(), req.getBody().length());
 		dup2(fileno(infd), STDIN_FILENO);
 		dup2(fileno(outfd), STDOUT_FILENO);

@@ -60,8 +60,6 @@ void	server::getLocationContext(ifstream &in, string line)
 			if (get_return(key, value, loc.getReturn(), in, line, loc.getRedirection()))
 				break;
 		}
-		else if (key == "client_max_body_size")
-			loc.setClient_max_body_size(count_argument(value, 1) && check_number(value) ? value : "");
 		else if (key == "root")
 			loc.setRoot(count_argument(value, 1) ? value : "");
 		else if (key == "index")
@@ -84,6 +82,10 @@ void	server::getLocationContext(ifstream &in, string line)
 			loc.setCgiPass(ext, path);
 			loc.setHasCgi(1);
 		}
+		else if (key == "cgi_path")
+			loc.setCgiPath(count_argument(value, 1) ? value : "");
+		else
+			throw(unvalidDirective());
 	}
 	this->_locations.push_back(loc);
 }
@@ -108,9 +110,6 @@ void server::print()
 		for (size_t i = 0; i < vec2.size(); i++)
 			cout << "|" << vec2[i] << "|" << "\n";
 
-		cout << GREEN "Client Max Body Size: \n" WHITE;
-		cout << _locations[i].getClient_max_body_size() << "\n";
-
 		cout << GREEN "Root: \n" WHITE;
 		cout << _locations[i].getRoot() << "\n";
 
@@ -132,6 +131,9 @@ void server::print()
 		map<string, string>	obj = _locations[i].getCgiPass();
 		for (map<string, string>::iterator itt = obj.begin(); itt != obj.end(); itt++)
 			cout << "|lang = " << itt->first << "|Path = " << itt->second << "\n";
+
+		cout << GREEN "CGI Path: \n" WHITE;
+		cout << _locations[i].getCgiPath() << "\n";
 	}
 }
 

@@ -10,6 +10,6 @@ class CGI
 		CGI(){};
 		~CGI(){};
 		void	setCgiEnv(Request req, Client &client, string scriptName, string scritpPath);
-		void	cgi_executor(Request& req, Client& client, string scritpPath);
+		void	cgi_executor(Request& req, Client& client, string scritpPath, string requestFile);
 		char	**getCgiEnv();
 };

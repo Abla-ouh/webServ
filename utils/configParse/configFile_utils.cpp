@@ -140,3 +140,17 @@ int	get_return(string& key, string& value, string& final, ifstream& in, string& 
 	}
 	return (1);
 }
+
+
+void	configFile::lastCheck()
+{
+	vector<server>::iterator	itt1 = _server.begin();
+	string						temp;
+
+	for (; itt1 != _server.end(); itt1++)
+	{
+		for (vector<server>::iterator itt2 = _server.begin(); itt2 != _server.end(); itt2++)
+			if (itt1 != itt2 && itt1->getServerName() == itt2->getServerName())
+					throw (unvalidConfigFile());
+	}
+}
