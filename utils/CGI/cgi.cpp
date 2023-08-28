@@ -50,24 +50,14 @@ char	**CGI::getCgiEnv()
 	return (env);
 }
 
-void CGI::cgi_executor(Request& req, Client& client, string scritpPath, string requestFile)
+void CGI::cgi_executor(Client& client, string scritpPath, string requestFile, string interpreter)
 {
 	FILE*							infd = tmpfile();
 	FILE*							outfd = tmpfile();
 	char							**env;
-	map<string, string>				obj = client.getlocation().getCgiPass();
-	map<string, string>::iterator	interpreter = obj.find(scritpPath.substr(scritpPath.find_last_of(".") + 1));
 
-	if (interpreter == obj.end())
-		return (client.setState(DONE), client.setStatus(404));
-	if (access(scritpPath.c_str(), R_OK))
-		return (client.setState(DONE), client.setStatus(500), perror(scritpPath.c_str()));
-	if (access(interpreter->second.c_str(), X_OK))
-		return (client.setState(DONE), client.setStatus(500), perror(interpreter->second.c_str()));
-	if (scritpPath.substr(scritpPath.length() - (interpreter->first.length() + 1)) != ("." + interpreter->first))
-		return (client.setState(DONE), client.setStatus(404));
 	client.setCgiFd(fileno(outfd));
-	setCgiEnv(req, client, interpreter->second, scritpPath);
+	setCgiEnv(client.getRequest(), client, interpreter, scritpPath);
 	env = getCgiEnv();
 	client.setStartTime(time(0));
 	client.setChildPid(fork());
@@ -75,8 +65,8 @@ void CGI::cgi_executor(Request& req, Client& client, string scritpPath, string r
 		return (client.setStatus(500), perror("fork"));
 	if (!client.getChildPid())
 	{
-		char	*tab[4] = {strdup(interpreter->second.c_str()), strdup(scritpPath.c_str()), strdup(requestFile.c_str()), 0};
-		write(fileno(infd), req.getBody().c_str(), req.getBody().length());
+		char	*tab[4] = {strdup(interpreter.c_str()), strdup(scritpPath.c_str()), strdup(requestFile.c_str()), 0};
+		write(fileno(infd), client.getRequest().getBody().c_str(), client.getRequest().getBody().length());
 		dup2(fileno(infd), STDIN_FILENO);
 		dup2(fileno(outfd), STDOUT_FILENO);
 		dup2(fileno(outfd), STDERR_FILENO);
@@ -102,8 +92,27 @@ void	run_cgi(Client &client, string requestFile)
 	cout << "**************** run_cgi ****************\n";
 	CGI		cgi;
 	string	scriptPath;
+	map<string, string>				obj = client.getlocation().getCgiPass();
+	map<string, string>::iterator	interpreter = obj.find(requestFile.substr(requestFile.find_last_of(".") + 1));
 
-	cgi.cgi_executor(client.getRequest(), client, client.getlocation().getCgiPath(), requestFile);
+	if (access(requestFile.c_str(), R_OK)) // ? check file is exist and have write permession
+		return (client.setState(DONE), client.setStatus(500), perror(requestFile.c_str()));
+	if (interpreter == obj.end())
+	{
+		if (!client.getlocation().getCgiPath().empty())
+		{
+			interpreter = obj.find(client.getlocation().getCgiPath().substr(client.getlocation().getCgiPath().find_last_of(".") + 1));
+			if (interpreter == obj.end())
+				return (client.setState(DONE), client.setStatus(404));
+			cgi.cgi_executor(client, client.getlocation().getCgiPath(), requestFile, interpreter->second);
+		}
+	}
+	if (interpreter != obj.end() && access(interpreter->second.c_str(), X_OK))
+		return (client.setState(DONE), client.setStatus(500), perror(interpreter->second.c_str()));
+	// if (requestFile.substr(requestFile.length() - (interpreter->first.length() + 1)) != ("." + interpreter->first))
+	// 	return (client.setState(DONE), client.setStatus(404));
+
+	cgi.cgi_executor(client, client.getlocation().getRoot() + '/' + client.getRequest().getURI(), requestFile, interpreter->second);
 }
 
 // int main()
