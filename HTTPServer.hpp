@@ -6,7 +6,7 @@
 /*   By: abouhaga <abouhaga@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/02 17:55:47 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/08/22 21:51:15 by abouhaga         ###   ########.fr       */
+/*   Updated: 2023/08/28 14:02:08 by abouhaga         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,9 +28,11 @@
 #include <signal.h>
 #include <sys/stat.h>
 #include <dirent.h>
+#include <sys/types.h>
 #include <sys/stat.h>
 #include <dirent.h>
 #include <algorithm>
+#include <ios>
 
 enum STATE
 {
@@ -63,6 +65,7 @@ class Request
         Request();
         void initRequest(const std::string& httpRequest);
         void parseHeaders(const std::string& headersBlock);
+        bool isValid_URI_Char(char c);
 
         const std::string& getMethod() const;
         const std::string& getURI() const;
@@ -108,7 +111,6 @@ class Client
     int                     status;
     int                     client_socket;
     server                  _server;
-    bool                    isBodyReady;
     std::string             BodyFilename;
     STATE                   state;
 
@@ -116,9 +118,25 @@ class Client
 
         Client();
         ~Client();
-
+        size_t                  hex_len;
+        char                    hexBuff[20];
+        char                    hexTempBuff[10];
+        size_t                  chunk_size;
+        bool                    waiting_for_chunk_size;
+        bool                    ready;
+        int                     firstTime;
+        bool                    isBodyReady;
+	    size_t                  _return;
+        bool                    already_checked;
+        int                     file;
+	    bool                    readyToParse;
+        std::string             file_name;
+        std::string             header;
+        size_t                  bodyPos;
+        bool                    bodyChunked;
         RequestState            currentState;
         char                    data[8000];
+        
         Request&                getRequest() { return request;};
         Response&               getResponse() { return response;};
         int                     getStatus() { return status;};
@@ -126,7 +144,7 @@ class Client
         std::vector<location>&  getlocations() { return locations; };
         int                     getClientSocket() { return client_socket;};
         server                  getServer() { return _server;};
-        const std::string       &getParsedRequestBodyFilename() const { return BodyFilename;}
+        const std::string       &getBodyFilename() const { return BodyFilename;}
         STATE                   getState() { return state; };
 
         void            setRequest(Request other) { this->request = other; };
@@ -154,11 +172,8 @@ class HTTPServer {
         std::vector<Client> clients;
 
     //private:
-        void readFromFile(std::string file, std::string &str);
         void removeClient(int clientSocket);
         void handleRequest(Client &client, fd_set &writeSet, fd_set &readSet);
-        void sendResponse(int clientSocket);
-        void sendErrorResponse(int clientSocket, const std::string& statusLine);
         std::string get_resource_type(const std::string& uri);
         //void handleDeleteRequest(int clientSocket, const std::string& uri, std::vector<server>& servers);
 
@@ -173,4 +188,8 @@ void        handleDeleteRequest(Client &client, std::string src);
 void        locationMatching(std::string url, Client &client);
 std::string get_resource_type(const char *res, Client client);
 void		Post(Request req, location loc, Client &client);
+
+size_t      getFileSize(const std::string& name);
+char*       substr_no_null(const char* str, int start, int length, int str_len);
+size_t      is_carriage(std::string str, Client &client);
 #endif

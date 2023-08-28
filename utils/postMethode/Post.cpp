@@ -52,8 +52,6 @@ void	dir_has_index_file(Client& client, location loc, Request req)
 	}
 	closedir(dir);
 }
-
-
 // ! test body
 
 string b = "<!DOCTYPE html>\n\
