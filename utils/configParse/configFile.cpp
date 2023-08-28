@@ -77,7 +77,6 @@ configFile::configFile(const string file, char **env) : _full_file(""), _env(env
 		else
 			throw (unvalidDirective());
 	}
-	lastCheck();
 	if (_server.empty())
 		throw(unvalidConfigFile());
 }

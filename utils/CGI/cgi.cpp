@@ -52,7 +52,6 @@ char	**CGI::getCgiEnv()
 
 void CGI::cgi_executor(Request& req, Client& client, string scritpPath, string requestFile)
 {
-	int								pid;
 	FILE*							infd = tmpfile();
 	FILE*							outfd = tmpfile();
 	char							**env;
@@ -70,9 +69,11 @@ void CGI::cgi_executor(Request& req, Client& client, string scritpPath, string r
 	client.setCgiFd(fileno(outfd));
 	setCgiEnv(req, client, interpreter->second, scritpPath);
 	env = getCgiEnv();
-	if ((pid = fork()) == -1)
+	client.setStartTime(time(0));
+	client.setChildPid(fork());
+	if (client.getChildPid() == -1)
 		return (client.setStatus(500), perror("fork"));
-	if (!pid)
+	if (!client.getChildPid())
 	{
 		char	*tab[4] = {strdup(interpreter->second.c_str()), strdup(scritpPath.c_str()), strdup(requestFile.c_str()), 0};
 		write(fileno(infd), req.getBody().c_str(), req.getBody().length());
@@ -94,6 +95,15 @@ void CGI::cgi_executor(Request& req, Client& client, string scritpPath, string r
 	// }
 	// else
 	// 	client.setState(WAITING_CGI);
+}
+
+void	run_cgi(Client &client, string requestFile)
+{
+	cout << "**************** run_cgi ****************\n";
+	CGI		cgi;
+	string	scriptPath;
+
+	cgi.cgi_executor(client.getRequest(), client, client.getlocation().getCgiPath(), requestFile);
 }
 
 // int main()

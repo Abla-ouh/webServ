@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HTTPServer.hpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ybel-hac <ybel-hac@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ebelkhei <ebelkhei@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/02 17:55:47 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/08/27 11:27:57 by ybel-hac         ###   ########.fr       */
+/*   Updated: 2023/08/28 16:02:29 by ebelkhei         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,8 +16,11 @@
 #include "./utils/configParse/serverClass.hpp"
 //#include "Client.hpp"
 //#include "Request.hpp"
-#include "./utils/configParse/configFile.hpp"
 //#include "./Response/response.hpp"
+
+#define IS_DIR_TYPE 1
+#define IS_FILE_TYPE 2
+
 #include <string>
 #include <vector>
 #include <sstream>
@@ -31,6 +34,7 @@
 #include <sys/types.h> 
 #include <sys/wait.h> 
 #include <unistd.h>
+#include <time.h>
 #include <algorithm>
 
 enum STATE
@@ -40,6 +44,7 @@ enum STATE
     FILE_READING,
     BUILDING_2,
     WAITING_CGI,
+    SENDING_CGI,
     DONE
 };
 
@@ -117,7 +122,8 @@ class Client
     server                  _server;
     STATE                   state;
 	int						cgiFd;
-
+    pid_t                   child_pid;
+    time_t                  start_time;
 
     public:
 
@@ -134,7 +140,10 @@ class Client
         server                  getServer() { return _server;};
         STATE                   getState() { return state; };
 		int						getCgiFd() {return cgiFd;};
+        pid_t                   getChildPid() { return child_pid; };
+        time_t                  getStartTime() { return start_time; };
 
+        void                    setChildPid(pid_t pid) { child_pid = pid; };
 		void					setCgiFd(int fd) {cgiFd = fd;};
         void    				setRequest(Request other) { this->request = other; };
         void    				setStatus(int other) { this->status = other; };
@@ -143,6 +152,7 @@ class Client
         void    				setClientSocket(int other) { this->client_socket = other;};
         void    				setServer(server other) { this->_server = other;};
         void    				setState(STATE other) { this->state = other; };
+        void                    setStartTime(time_t other) { this->start_time = other; };
 };
 
 
@@ -177,5 +187,6 @@ void		Post(Request& req, location& loc, Client &client);
 string		generateName();
 string		getIndexFromDirectory(Client& client, string directory);
 std::string intToString(int number);
+void	    run_cgi(Client &client, string requestFile);
 
 #endif

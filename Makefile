@@ -12,7 +12,8 @@ SRCS = main.cpp Client.cpp HTTPServer.cpp Request.cpp\
 		$(CONFIG_PARSE)../CGI/cgi.cpp\
 		$(RESPONSE)locationMatching.cpp\
 		$(RESPONSE)response.cpp\
-		$(RESPONSE)utils.cpp
+		$(RESPONSE)utils.cpp\
+		delete/delete.cpp\
 
 NAME		= webserv
 CC	= g++
