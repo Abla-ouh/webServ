@@ -256,7 +256,7 @@ void response(Client &client)
     {
         // Check if CGI timed out
         // if CGI has done, set state to SENDING. Else, close connection and set the appropriate status.
-        std::cout << "Waiting CGI" << std::endl;
+        // std::cout << "Waiting CGI" << std::endl;
         pid_t pid = waitpid(client.getChildPid(), NULL, WNOHANG);
         if (pid == -1)
             client.setState(DONE);
@@ -265,6 +265,7 @@ void response(Client &client)
         {
             lseek(client.getCgiFd(), 0, SEEK_SET);
             client.setState(SENDING_CGI);
+            std::cout << "FD li wssel: " << client.getCgiFd() << std::endl;
         }
 
     }
@@ -298,7 +299,7 @@ void sendCgi(Client &client)
             break;
         }
         a = send(client.getClientSocket(), &c, 1, 0);
-        std::cout << "Sent: " << c << std::endl;
+        // std::cout << "Sent: " << c << std::endl;
         if (a < 0)
         {
             std::cout << "Client Closed the connection: " << std::endl;
@@ -355,8 +356,8 @@ void sendResponse(Client &client)
             client.getResponse().getBodySize()--;
         }
     }
-    std::cout << "Response: " << response << std::endl;
-    std::cout << "Body size left: " << client.getResponse().getBodySize() << std::endl;
+    // std::cout << "Response: " << response << std::endl;
+    // std::cout << "Body size left: " << client.getResponse().getBodySize() << std::endl;
     if (!client.getResponse().getBodySize())
         client.setState(DONE);
 }

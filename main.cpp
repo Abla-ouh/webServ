@@ -3,15 +3,16 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ebelkhei <ebelkhei@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ybel-hac <ybel-hac@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/03 18:48:07 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/08/28 15:52:21 by ebelkhei         ###   ########.fr       */
+/*   Updated: 2023/08/27 11:38:57 by ybel-hac         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "utils/configParse/configFile.hpp"
 #include "HTTPServer.hpp"
+#include<stdio.h>
 
 
 int main(int ac, char const *av[], char **env)

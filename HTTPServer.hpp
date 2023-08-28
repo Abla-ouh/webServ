@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HTTPServer.hpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ybel-hac <ybel-hac@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ebelkhei <ebelkhei@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/02 17:55:47 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/08/28 17:03:26 by ybel-hac         ###   ########.fr       */
+/*   Updated: 2023/08/28 18:16:27 by ebelkhei         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,10 +17,6 @@
 //#include "Client.hpp"
 //#include "Request.hpp"
 //#include "./Response/response.hpp"
-#include <utility>
-
-#define IS_DIR_TYPE 1
-#define IS_FILE_TYPE 2
 
 #include <string>
 #include <vector>

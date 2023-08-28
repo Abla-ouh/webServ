@@ -18,7 +18,7 @@ void	CGI::setCgiEnv(Request req, Client &client, string interpreter, string scri
 	_env["REMOTE_ADDR"] = client.getServer().getHost();
 	_env["REMOTE_IDENT"] = req.getHeader("Authorization");
 	_env["REMOTE_USER"] = req.getHeader("Authorization");
-	_env["REQUEST_METHOD"] = "POST";
+	_env["REQUEST_METHOD"] = req.getMethod();
 	_env["REQUEST_URI"] = req.getURI();
 	_env["SCRIPT_NAME"] = interpreter;
 	_env["SCRIPT_FILENAME"] = scritpPath;
@@ -59,6 +59,10 @@ void CGI::cgi_executor(Client& client, string scritpPath, string requestFile, st
 	client.setCgiFd(fileno(outfd));
 	setCgiEnv(client.getRequest(), client, interpreter, scritpPath);
 	env = getCgiEnv();
+
+	std::cout << "FD: " << client.getCgiFd() << "\n";
+	std::cout << "FD2: " << fileno(outfd) << "\n";
+
 	client.setStartTime(time(0));
 	client.setChildPid(fork());
 	if (client.getChildPid() == -1)
@@ -105,6 +109,7 @@ void	run_cgi(Client &client, string requestFile)
 			if (interpreter == obj.end())
 				return (client.setState(DONE), client.setStatus(404));
 			cgi.cgi_executor(client, client.getlocation().getCgiPath(), requestFile, interpreter->second);
+			return ;
 		}
 	}
 	if (interpreter != obj.end() && access(interpreter->second.c_str(), X_OK))
