@@ -56,13 +56,11 @@ void CGI::cgi_executor(Client& client, string scritpPath, string requestFile, st
 	FILE*							outfd = tmpfile();
 	char							**env;
 
+	if (interpreter[0] != '/')
+		interpreter = client.getlocation().getRoot() + '/' + interpreter;
 	client.setCgiFd(fileno(outfd));
 	setCgiEnv(client.getRequest(), client, interpreter, scritpPath);
 	env = getCgiEnv();
-
-	std::cout << "FD: " << client.getCgiFd() << "\n";
-	std::cout << "FD2: " << fileno(outfd) << "\n";
-
 	client.setStartTime(time(0));
 	client.setChildPid(fork());
 	if (client.getChildPid() == -1)
@@ -99,6 +97,8 @@ void	run_cgi(Client &client, string requestFile)
 	map<string, string>				obj = client.getlocation().getCgiPass();
 	map<string, string>::iterator	interpreter = obj.find(requestFile.substr(requestFile.find_last_of(".") + 1));
 
+	if (client.getlocation().getCgiPath()[0] != '/')
+		client.getlocation().setCgiPath(client.getlocation().getRoot() + "/" + client.getlocation().getCgiPath());
 	if (access(requestFile.c_str(), R_OK)) // ? check file is exist and have write permession
 		return (client.setState(DONE), client.setStatus(500), perror(requestFile.c_str()));
 	if (interpreter == obj.end())
