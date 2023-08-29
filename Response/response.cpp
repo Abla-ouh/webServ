@@ -8,7 +8,11 @@ void check_errors(Client &client, int code)
     ss << code;
     std::map<std::string, std::string> errors = client.getServer().getErrorPage();
     fd = open(errors[ss.str()].c_str(), O_RDONLY);
-    std::cout << "FD: " << fd << " " << errors[ss.str()] << std::endl;
+    if (fd < 0)
+    {
+        check_errors(client, 500);
+        return;
+    }
     client.getResponse().setFileFd(fd);
 }
 
@@ -294,12 +298,8 @@ void sendCgi(Client &client)
     {
         r = read(client.getCgiFd(), &c, 1);
         if (r <= 0)
-        {
-            std::cout << r << std::endl;
             break;
-        }
         a = send(client.getClientSocket(), &c, 1, 0);
-        // std::cout << "Sent: " << c << std::endl;
         if (a < 0)
         {
             std::cout << "Client Closed the connection: " << std::endl;
@@ -313,16 +313,15 @@ void sendCgi(Client &client)
 
 void sendResponse(Client &client)
 {
-    size_t size = 2048;
-    size_t     i = 0;
-    int     a = 0;
     std::string response;
-    char c;
+    size_t      size = 2048;
+    size_t      i = 0;
+    int         a = 0;
+    int         r;
+    char        c;
 
-    std::cout << "Sending response" << std::endl;
     if (client.getResponse().getResponse().length())
     {
-        // std::cout << "Sending response header" << std::endl;
         response = client.getResponse().getResponse();
         if (send(client.getClientSocket(), response.c_str(), response.size(), 0) < 0)
         {
@@ -336,10 +335,9 @@ void sendResponse(Client &client)
 
     if (client.getResponse().getBodySize())
     {
-        // std::cout << "Sending response body" << std::endl;
         while (i++ < size && client.getResponse().getBodySize())
         {
-            if (read(client.getResponse().getFileFd(), &c, 1) <= 0)
+            if ((r = read(client.getResponse().getFileFd(), &c, 1)) <= 0)
                 break;
             a = send(client.getClientSocket(), &c, 1, 0);
             if (a < 0)
@@ -348,16 +346,16 @@ void sendResponse(Client &client)
                 client.setState(DONE);
                 return;
             }
-            // else if (a < 1)
-            // {
-            //     client.getResponse().setResponse(static_cast<std::string>(&c));
-            //     break;
-            // }
+            else if (a < 1)
+            {
+                client.getResponse().setResponse(static_cast<std::string>(&c));
+                break;
+            }
             client.getResponse().getBodySize()--;
         }
     }
     // std::cout << "Response: " << response << std::endl;
     // std::cout << "Body size left: " << client.getResponse().getBodySize() << std::endl;
-    if (!client.getResponse().getBodySize())
+    if (!client.getResponse().getBodySize() || !r)
         client.setState(DONE);
 }

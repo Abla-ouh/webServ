@@ -100,20 +100,22 @@ void	run_cgi(Client &client, string requestFile)
 	if (client.getlocation().getCgiPath()[0] != '/')
 		client.getlocation().setCgiPath(client.getlocation().getRoot() + "/" + client.getlocation().getCgiPath());
 	if (access(requestFile.c_str(), R_OK)) // ? check file is exist and have write permession
-		return (client.setState(DONE), client.setStatus(500), perror(requestFile.c_str()));
+		return (client.setStatus(500), perror(requestFile.c_str()));
 	if (interpreter == obj.end())
 	{
 		if (!client.getlocation().getCgiPath().empty())
 		{
 			interpreter = obj.find(client.getlocation().getCgiPath().substr(client.getlocation().getCgiPath().find_last_of(".") + 1));
 			if (interpreter == obj.end())
-				return (client.setState(DONE), client.setStatus(404));
+				return (client.setStatus(404));
+			if (access(interpreter->second.c_str(), X_OK))
+				return (client.setStatus(500), perror(interpreter->second.c_str()));
 			cgi.cgi_executor(client, client.getlocation().getCgiPath(), requestFile, interpreter->second);
 			return ;
 		}
 	}
 	if (interpreter != obj.end() && access(interpreter->second.c_str(), X_OK))
-		return (client.setState(DONE), client.setStatus(500), perror(interpreter->second.c_str()));
+		return (client.setStatus(500), perror(interpreter->second.c_str()));
 	// if (requestFile.substr(requestFile.length() - (interpreter->first.length() + 1)) != ("." + interpreter->first))
 	// 	return (client.setState(DONE), client.setStatus(404));
 
