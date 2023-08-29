@@ -6,7 +6,7 @@
 /*   By: abouhaga <abouhaga@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/08 16:57:48 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/08/28 21:00:34 by abouhaga         ###   ########.fr       */
+/*   Updated: 2023/08/29 23:22:31 by abouhaga         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -200,7 +200,7 @@ T custom_min(T a, T b) {
 }
 
 
-void ft_chunked(Client &client, const char *data, int b_length)
+void ft_chunked(Client &client, const char *data, int b_length, fd_set &writeSet, fd_set &readSet)
 {
     int rd_times = 0;
     client.waiting_for_chunk_size = false;
@@ -234,6 +234,8 @@ void ft_chunked(Client &client, const char *data, int b_length)
                 close(client.file);
                 client.isBodyReady = true;
                 client.ready = true;
+                FD_CLR(client.getClientSocket(), &readSet);
+                FD_SET(client.getClientSocket(), &writeSet);
                 break;
             }
         }
@@ -335,6 +337,8 @@ void HTTPServer::handleRequest(Client &client, fd_set &writeSet, fd_set &readSet
                 close(client.file);
                 client.isBodyReady = true;
                 client.ready = true;
+                FD_CLR(client.getClientSocket(), &readSet);
+                FD_SET(client.getClientSocket(), &writeSet);
             }
             client.firstTime = 0;
         }
@@ -372,11 +376,11 @@ void HTTPServer::handleRequest(Client &client, fd_set &writeSet, fd_set &readSet
             client.bodyPos -= 2;
             char *holder;
             holder = substr_no_null(data, client.bodyPos, rd, rd);
-            ft_chunked(client, holder, rd - client.bodyPos);
+            ft_chunked(client, holder, rd - client.bodyPos, writeSet, readSet);
             delete []holder;
             client.firstTime = 0;
         }
         else
-            ft_chunked(client, data, rd);
+            ft_chunked(client, data, rd, writeSet, readSet);
     }
 }

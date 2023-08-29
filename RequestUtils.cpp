@@ -6,7 +6,7 @@
 /*   By: abouhaga <abouhaga@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/28 12:58:04 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/08/28 14:04:30 by abouhaga         ###   ########.fr       */
+/*   Updated: 2023/08/29 23:43:44 by abouhaga         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,8 @@ size_t getFileSize(const std::string& name)
 {
     std::ifstream file(name.c_str(), std::ifstream::ate | std::ifstream::binary);
     size_t size = 0;
+
+    
     if (file.is_open())
     {
         size = file.tellg();

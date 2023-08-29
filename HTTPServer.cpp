@@ -6,7 +6,7 @@
 /*   By: abouhaga <abouhaga@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/02 18:20:47 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/08/28 21:11:38 by abouhaga         ###   ########.fr       */
+/*   Updated: 2023/08/29 22:34:23 by abouhaga         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -80,6 +80,7 @@ void acceptNewClient(std::vector<server>& servers, std::vector<Client>& clients,
 void HTTPServer::start()
 {
     fd_set readSet, writeSet, tmp_readSet, tmp_writeSet;
+    int err = 0;
 
     std::vector<Client>::iterator client_it;
     std::vector<server>::iterator server_it = this->servers.begin();
@@ -104,9 +105,13 @@ void HTTPServer::start()
         tmp_readSet = readSet;
         tmp_writeSet = writeSet;
         
-        if (select(maxSocket + 1, &tmp_readSet, &tmp_writeSet, NULL, NULL) == -1)
-            std::cerr << "Error in Select !" << std::endl;
-        
+        err = select(maxSocket + 1, &tmp_readSet, &tmp_writeSet, NULL, NULL);
+        if (err < 0)
+        {
+            std::perror("select() Error ");
+            exit(1);
+        }
+
         else
         {
             acceptNewClient(servers, clients, readSet, tmp_readSet, maxSocket); // each accepted client with its own virtual server
