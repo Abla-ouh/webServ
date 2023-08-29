@@ -63,3 +63,9 @@ class unvalidConfigFile : public exception
 	public:
 		const char* what() const throw(){return ("unvalid Config File\n");};
 };
+
+class unvalidErrorPages : public exception
+{
+	public:
+		const char* what() const throw(){return ("unvalid Error Pages\n");};
+};

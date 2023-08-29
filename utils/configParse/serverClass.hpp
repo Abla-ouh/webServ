@@ -26,6 +26,8 @@
 
 using namespace std;
 
+class location;
+
 typedef struct error_page
 {
 	string		error_page_path;
@@ -45,6 +47,7 @@ class server {
 		struct addrinfo 	hint;
         struct addrinfo 	*res;
 		int             	server_socket;
+		char**				_env;
 	public:
 		server();
 		~server(){};
@@ -63,6 +66,7 @@ class server {
 							if (!ret.second)
 								ret.first->second = value;
 						};
+		void			setEnv(char **env){_env = env;};
 		//void			setLocations();
 		//?
 		// ? geter's
@@ -79,7 +83,7 @@ class server {
 		int						getServerSocket() { return server_socket;};
 		void					print();
         void    				CreateSocket(server servers);
-
+		char**					getEnv(){return (_env);}
 		void					checkHostPort();
 };
 

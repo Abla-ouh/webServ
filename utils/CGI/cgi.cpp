@@ -1,88 +1,129 @@
-#include "../../HTTPServer.hpp"
-#include <iostream>
-#include <cstring>
-#include <string>
-#include <vector>
-#include <sstream>
-#include <errno.h>
-#include <stdio.h>
-#include <fstream>
-#include <iostream>
-#include <signal.h>
-#include <sys/stat.h>
-#include <dirent.h>
-#include <sys/types.h>
-#include <sys/wait.h>
-#include <unistd.h>
-#include <algorithm>
+#include "CGI.hpp"
 
 using namespace std;
 
 
-void	setCgiEnv(Request req, Client client)
+void	CGI::setCgiEnv(Request req, Client &client, string interpreter, string scritpPath)
 {
-	
-	setenv("CONTENT_LENGTH", req.getHeader("Content-Length").c_str(), 1);
-	setenv("CONTENT_TYPE", req.getHeader("Content-Type").c_str(), 1);
-	setenv("AUTH_TYPE", "1.1", 1);
-	setenv("PAHT_INFO", client.getlocation().getPath().c_str(), 1);
-	setenv("PAHT_TRANSLATED", (client.getlocation().getRoot() + '/' + client.getlocation().getPath()).c_str(), 1);
-	setenv("QUERY_STRING", req.getQuery().c_str(), 1);
-	setenv("REMOTE_ADDR", client.get, 1);
-	setenv("REQUEST_METHOD", req.getMethod().c_str(), 1);
-	setenv("REQUEST_URI", req.getHeader("").c_str(), 1);
-	setenv("SCRIPT_NAME", req.getHeader("").c_str(), 1);
-	setenv("SERVER_PORT", client.getServer().getPort().c_str(), 1);
-	setenv("SERVER_PROTOCOL", ("HTTP/" + req.getVersion()).c_str(), 1);
-
-	setenv("SERVER_NAME", client.getServer().getHost().c_str(), 1);
-	setenv("SERVER_SOFTWARE", (client.getServer().getServerName() + req.getVersion()).c_str() , 1);
-	setenv("GATEWAY_INTERFACE", "1.1", 1);
+	_client = client;
+	_env["HTTP_HOST"] = req.getHeader("Host"); // ! check
+	_env["PATH"] = client.getServer().getRoot();
+	_env["CONTENT_LENGTH"] = req.getHeader("Content-Length");
+	_env["CONTENT_TYPE"] = req.getHeader("Content-Type");
+	_env["REQUEST_URI"] = req.getURI();
+	_env["AUTH_TYPE"] = "1.1";
+	_env["PAHT_INFO"] = client.getlocation().getPath();
+	_env["PAHT_TRANSLATED"] = client.getlocation().getPath();
+	_env["QUERY_STRING"] = req.getQuery();
+	_env["REMOTE_ADDR"] = client.getServer().getHost();
+	_env["REMOTE_IDENT"] = req.getHeader("Authorization");
+	_env["REMOTE_USER"] = req.getHeader("Authorization");
+	_env["REQUEST_METHOD"] = req.getMethod();
+	_env["REQUEST_URI"] = req.getURI();
+	_env["SCRIPT_NAME"] = interpreter;
+	_env["SCRIPT_FILENAME"] = scritpPath;
+	// cout << RED + itt->lang << "\n";
+	_env["SERVER_NAME"] = _env["REMOTE_ADDR"];
+	_env["SERVER_PORT"] = client.getServer().getPort();
+	_env["SERVER_PROTOCOL"] = ("HTTP/" + req.getVersion());
+	_env["SERVER_NAME"] = client.getServer().getHost();
+	_env["SERVER_SOFTWARE"] = client.getServer().getServerName() + '/' + req.getVersion();
+	_env["GATEWAY_INTERFACE"] = "1.1";
+	_env["REDIRECT_STATUS"] = "200";
 }
 
-void cgi_handler()
+char	**CGI::getCgiEnv()
 {
-	// setCgiEnv(req, client);
-	int pid;
-	int pipedfd[2];
-	int status;
-	int savedfd[2];
-	string file = "cgi.php";
-	ofstream outFile("out");
+	size_t	len = 0;
+	char	**old_env = _client.getServer().getEnv();
+	size_t	i = 0;
 
-	savedfd[0] = dup(STDIN_FILENO);
-	savedfd[1] = dup(STDOUT_FILENO);
-	if (pipe(pipedfd) == -1)
+	while (old_env[len])
+		len++;
+	char	**env = new char*[len + _env.size() + 2];
+
+	for (; i < len; i++)
+		env[i] = strdup(old_env[i]);
+	for (map<string, string>::iterator itt = _env.begin(); itt != _env.end(); itt++)
+		env[i++] = strdup((itt->first + "=" + itt->second).c_str());
+	env[i] = 0;
+	return (env);
+}
+
+void CGI::cgi_executor(Client& client, string scritpPath, string requestFile, string interpreter)
+{
+	FILE*							infd = tmpfile();
+	FILE*							outfd = tmpfile();
+	char							**env;
+
+	if (interpreter[0] != '/')
+		interpreter = client.getlocation().getRoot() + '/' + interpreter;
+	client.setCgiFd(fileno(outfd));
+	setCgiEnv(client.getRequest(), client, interpreter, scritpPath);
+	env = getCgiEnv();
+	client.setStartTime(time(0));
+	client.setChildPid(fork());
+	if (client.getChildPid() == -1)
+		return (client.setStatus(500), perror("fork"));
+	if (!client.getChildPid())
 	{
-		perror("pipe");
-		return;
-	}
-	dup2(pipedfd[1], STDOUT_FILENO);
-	dup2(pipedfd[0], STDIN_FILENO);
-	if ((pid = fork()) == -1)
-	{
-		perror("fork");
-		// return (client.setStatus(500));
-		return;
-	}
-	if (!pid)
-	{
-		char *tab[3] = {strdup("/usr/bin/php-cgi"), strdup(file.c_str()), 0};
-		// close(pipedfd[0]);
-		execve(tab[0], tab, 0);
+		char	*tab[4] = {strdup(interpreter.c_str()), strdup(scritpPath.c_str()), strdup(requestFile.c_str()), 0};
+		write(fileno(infd), client.getRequest().getBody().c_str(), client.getRequest().getBody().length());
+		dup2(fileno(infd), STDIN_FILENO);
+		dup2(fileno(outfd), STDOUT_FILENO);
+		dup2(fileno(outfd), STDERR_FILENO);
+		execve(tab[0], tab, env);
+		client.setStatus(500);
 		perror("execve");
+		exit(1);
 	}
-	waitpid(-1, &status, 0);
-	close(pipedfd[1]);
-	dup2(savedfd[1], STDOUT_FILENO);
-	string line;
-	while (getline(cin, line))
-		cout << line << "\n";
-	dup2(savedfd[0], STDIN_FILENO);
+
+	// if (waitpid(-1, &status, WNOHANG) == -1)
+	// 	client.setStatus(500);
+	// else if (waitpid(-1, &status, WNOHANG))
+	// {
+	// 	client.setCgiFd(fileno(outfd));
+	// 	client.setState(DONE);
+	// }
+	// else
+	// 	client.setState(WAITING_CGI);
 }
 
-int main()
+void	run_cgi(Client &client, string requestFile)
 {
-	cgi_handler();
-	return (0);
+	cout << "**************** run_cgi ****************\n";
+	CGI		cgi;
+	string	scriptPath;
+	map<string, string>				obj = client.getlocation().getCgiPass();
+	map<string, string>::iterator	interpreter = obj.find(requestFile.substr(requestFile.find_last_of(".") + 1));
+
+	if (client.getlocation().getCgiPath()[0] != '/')
+		client.getlocation().setCgiPath(client.getlocation().getRoot() + "/" + client.getlocation().getCgiPath());
+	if (access(requestFile.c_str(), R_OK)) // ? check file is exist and have write permession
+		return (client.setStatus(500), perror(requestFile.c_str()));
+	if (interpreter == obj.end())
+	{
+		if (!client.getlocation().getCgiPath().empty())
+		{
+			interpreter = obj.find(client.getlocation().getCgiPath().substr(client.getlocation().getCgiPath().find_last_of(".") + 1));
+			if (interpreter == obj.end())
+				return (client.setStatus(404));
+			if (access(interpreter->second.c_str(), X_OK))
+				return (client.setStatus(500), perror(interpreter->second.c_str()));
+			cgi.cgi_executor(client, client.getlocation().getCgiPath(), requestFile, interpreter->second);
+			return ;
+		}
+	}
+	if (interpreter != obj.end() && access(interpreter->second.c_str(), X_OK))
+		return (client.setStatus(500), perror(interpreter->second.c_str()));
+	// if (requestFile.substr(requestFile.length() - (interpreter->first.length() + 1)) != ("." + interpreter->first))
+	// 	return (client.setState(DONE), client.setStatus(404));
+
+	cgi.cgi_executor(client, client.getlocation().getRoot() + '/' + client.getRequest().getURI(), requestFile, interpreter->second);
 }
+
+// int main()
+// {
+// 	cgi_handler();
+// 	return (0);
+// }

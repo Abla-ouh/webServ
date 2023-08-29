@@ -6,7 +6,7 @@
 /*   By: ebelkhei <ebelkhei@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/02 17:55:47 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/08/26 18:35:28 by ebelkhei         ###   ########.fr       */
+/*   Updated: 2023/08/28 18:16:27 by ebelkhei         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,8 +16,8 @@
 #include "./utils/configParse/serverClass.hpp"
 //#include "Client.hpp"
 //#include "Request.hpp"
-#include "./utils/configParse/configFile.hpp"
 //#include "./Response/response.hpp"
+
 #include <string>
 #include <vector>
 #include <sstream>
@@ -31,6 +31,7 @@
 #include <sys/types.h> 
 #include <sys/wait.h> 
 #include <unistd.h>
+#include <time.h>
 #include <algorithm>
 
 enum STATE
@@ -40,6 +41,7 @@ enum STATE
     FILE_READING,
     BUILDING_2,
     WAITING_CGI,
+    SENDING_CGI,
     DONE
 };
 
@@ -102,6 +104,7 @@ class Request
         const std::string& getQuery() const;
         const std::string& getVersion() const;
         const std::string& getHeader(const std::string& key) const;
+		const std::string  getBody(){return ("this is temporary body");};
     
 };
 
@@ -115,7 +118,9 @@ class Client
     int                     client_socket;
     server                  _server;
     STATE                   state;
-
+	int						cgiFd;
+    pid_t                   child_pid;
+    time_t                  start_time;
 
     public:
 
@@ -131,15 +136,20 @@ class Client
         int                     getClientSocket() { return client_socket;};
         server                  getServer() { return _server;};
         STATE                   getState() { return state; };
+		int						getCgiFd() {return cgiFd;};
+        pid_t                   getChildPid() { return child_pid; };
+        time_t                  getStartTime() { return start_time; };
 
-
-        void    setRequest(Request other) { this->request = other; };
-        void    setStatus(int other) { this->status = other; };
-        void    setlocation(location other) { this->_location = other;};
-        void    setlocations(std::vector<location> other) { this->locations = other; };
-        void    setClientSocket(int other) { this->client_socket = other;};
-        void    setServer(server other) { this->_server = other;};
-        void    setState(STATE other) { this->state = other; };
+        void                    setChildPid(pid_t pid) { child_pid = pid; };
+		void					setCgiFd(int fd) {cgiFd = fd;};
+        void    				setRequest(Request other) { this->request = other; };
+        void    				setStatus(int other) { this->status = other; };
+        void    				setlocation(location other) { this->_location = other;};
+        void    				setlocations(std::vector<location> other) { this->locations = other; };
+        void    				setClientSocket(int other) { this->client_socket = other;};
+        void    				setServer(server other) { this->_server = other;};
+        void    				setState(STATE other) { this->state = other; };
+        void                    setStartTime(time_t other) { this->start_time = other; };
 };
 
 
@@ -169,6 +179,11 @@ class HTTPServer {
 void        response(Client &client);
 void        handleDeleteRequest(Client &client, std::string src);
 void        locationMatching(std::string url, Client &client);
-std::string get_resource_type(const char *res, Client client);
-void		Post(Request req, location loc, Client &client);
+std::string get_resource_type(const char *res, Client &client);
+void		Post(Request& req, location& loc, Client &client);
+string		generateName();
+string		getIndexFromDirectory(Client& client, string directory);
+std::string intToString(int number);
+void	    run_cgi(Client &client, string requestFile);
+
 #endif
