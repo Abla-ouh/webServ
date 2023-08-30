@@ -287,13 +287,40 @@ void response(Client &client)
 
 void sendCgi(Client &client)
 {
-    size_t size = 2048;
-    char    c;
-    int     a;
-    int     r;
+    size_t		size = 2048;
+    char    	c;
+    int     	a;
+    int     	r;
     std::string status = "HTTP/1.1 200 OK\r\n";
+	string		header = "";
+	char		buff[size];
+	int			rd = 1;
+	int			readed = 0;
 
-    send(client.getClientSocket(), status.c_str(), status.size(), 0);
+	while (rd > 0)
+	{
+		string	content = "", left = "";
+		memset(buff, 0, size);
+		rd = read(client.getCgiFd(), buff, size - 1);
+		if (rd)
+		{
+			content += buff;
+			if (content.find("Status: ") != string::npos && content.find("Status: ") < content.find("\r\n\r\n"))
+			{
+				string status_line = content.substr(content.find("Status: "));
+				status_line.erase(status_line.find("\r\n") + 2);
+				status = "HTTP/1.1 " + status_line.substr(status_line.find_first_of("0123456789"));
+				content.erase(content.find("Status: "), status_line.length());
+			}
+			header += content;
+			readed += rd;
+			if (header.find("\r\n\r\n") != string::npos)
+				break;
+		}
+	}
+	header.insert(0, status);
+    lseek(client.getCgiFd(), readed, SEEK_SET);
+    send(client.getClientSocket(), header.c_str(), header.size(), 0);
     while (size--)
     {
         r = read(client.getCgiFd(), &c, 1);
