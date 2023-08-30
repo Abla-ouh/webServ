@@ -38,4 +38,3 @@ int				check_host(string value);
 void			get_allow_methodes(string& value, vector<string>& vec);
 void			get_multiple_args(string& value, vector<string>& vec);
 int				get_return(string& keystring, string& value, string& final, ifstream& in, string& line, string& red);
-std::string		createAutoindexPage(string root_dir);

@@ -68,7 +68,7 @@ void CGI::cgi_executor(Client& client, string scritpPath, string requestFile, st
 	if (!client.getChildPid())
 	{
 		char	*tab[4] = {strdup(interpreter.c_str()), strdup(scritpPath.c_str()), strdup(requestFile.c_str()), 0};
-		write(fileno(infd), client.getRequest().getBody().c_str(), client.getRequest().getBody().length());
+		write(fileno(infd), "Hello World!", 13);
 		dup2(fileno(infd), STDIN_FILENO);
 		dup2(fileno(outfd), STDOUT_FILENO);
 		dup2(fileno(outfd), STDERR_FILENO);

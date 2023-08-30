@@ -320,7 +320,7 @@ void sendCgi(Client &client)
 	}
 	header.insert(0, status);
     lseek(client.getCgiFd(), readed, SEEK_SET);
-    send(client.getClientSocket(), header.c_str(), header.size(), 0);
+    send(client.getClientSocket(), status.c_str(), status.size(), 0);
     while (size--)
     {
         r = read(client.getCgiFd(), &c, 1);

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HTTPServer.hpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ebelkhei <ebelkhei@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ybel-hac <ybel-hac@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/02 17:55:47 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/08/28 18:16:27 by ebelkhei         ###   ########.fr       */
+/*   Updated: 2023/08/29 19:52:50 by ybel-hac         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,10 +14,10 @@
 #define HTTP_SERVER_HPP
 
 #include "./utils/configParse/serverClass.hpp"
+#include "./utils/configParse/configFile.hpp"
 //#include "Client.hpp"
 //#include "Request.hpp"
 //#include "./Response/response.hpp"
-
 #include <string>
 #include <vector>
 #include <sstream>
@@ -28,11 +28,13 @@
 #include <signal.h>
 #include <sys/stat.h>
 #include <dirent.h>
-#include <sys/types.h> 
-#include <sys/wait.h> 
-#include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <dirent.h>
+#include <sys/wait.h>
 #include <time.h>
 #include <algorithm>
+#include <ios>
 
 enum STATE
 {
@@ -43,6 +45,38 @@ enum STATE
     WAITING_CGI,
     SENDING_CGI,
     DONE
+};
+
+enum RequestState {
+    HEADER_READING,
+    BODY_READING,
+    PROCESSING,
+    RESPONSE_SENDING,
+    COMPLETED
+};
+
+class Request
+{
+    private:
+
+    std::string method;
+    std::string uri;
+    std::string query;
+    std::string version;
+
+    std::map<std::string, std::string> headers;
+    
+    public:
+        Request();
+        void initRequest(const std::string& httpRequest);
+        void parseHeaders(const std::string& headersBlock);
+        bool isValid_URI_Char(char c);
+
+        std::string& getMethod();
+        std::string& getURI();
+        std::string& getQuery();
+        std::string& getVersion();
+        std::string& getHeader(const std::string& key);
 };
 
 class Response
@@ -80,36 +114,10 @@ class Response
         void        setFileFd(int other) { this->file_fd = other; };
         void        setBodySize(size_t other) { this->body_size = other; };
         void        setOldUrl(std::string other) { this->old_url = other; };
-
 };
-
-class Request
-{
-    private:
-
-    std::string method;
-    std::string uri;
-    std::string query;
-    std::string version;
-
-    std::map<std::string, std::string> headers;
-    void parseHeaders(const std::string& headersBlock);
-    
-    public:
-        Request();
-        void initRequest(const std::string& httpRequest);
-
-        const std::string& getMethod() const;
-        std::string& getURI();
-        const std::string& getQuery() const;
-        const std::string& getVersion() const;
-        const std::string& getHeader(const std::string& key) const;
-		const std::string  getBody(){return ("this is temporary body");};
-    
-};
-
 class Client
 {
+
     std::vector<location>   locations;
     Request                 request;
     Response                response;
@@ -121,13 +129,31 @@ class Client
 	int						cgiFd;
     pid_t                   child_pid;
     time_t                  start_time;
+	std::string             BodyFilename;
 
     public:
 
         Client();
         ~Client();
-
+        size_t                  hex_len;
+        char                    hexBuff[20];
+        char                    hexTempBuff[10];
+        size_t                  chunk_size;
+        bool                    waiting_for_chunk_size;
+        bool                    ready;
+        int                     firstTime;
+        bool                    isBodyReady;
+	    size_t                  _return;
+        bool                    already_checked;
+        int                     file;
+	    bool                    readyToParse;
+        std::string             file_name;
+        std::string             header;
+        size_t                  bodyPos;
+        bool                    bodyChunked;
+        RequestState            currentState;
         char                    data[8000];
+        
         Request&                getRequest() { return request;};
         Response&               getResponse() { return response;};
         int                     getStatus() { return status;};
@@ -135,6 +161,7 @@ class Client
         std::vector<location>&  getlocations() { return locations; };
         int                     getClientSocket() { return client_socket;};
         server                  getServer() { return _server;};
+        const std::string       &getBodyFilename() const { return BodyFilename;}
         STATE                   getState() { return state; };
 		int						getCgiFd() {return cgiFd;};
         pid_t                   getChildPid() { return child_pid; };
@@ -150,6 +177,10 @@ class Client
         void    				setServer(server other) { this->_server = other;};
         void    				setState(STATE other) { this->state = other; };
         void                    setStartTime(time_t other) { this->start_time = other; };
+        void            		setCurrentState(RequestState state) {currentState = state;}
+        void            		setParsedRequestBodyFilename(const std::string &filename) { BodyFilename = filename;}
+        void            		setBodyReady(bool ready) { isBodyReady = ready;}
+        RequestState    		getCurrentState() const { return currentState;}
 };
 
 
@@ -164,14 +195,8 @@ class HTTPServer {
         std::vector<Client> clients;
 
     //private:
-    
-        void readFromFile(std::string file, std::string &str);
-        void addClient(int clientSocket);
         void removeClient(int clientSocket);
         void handleRequest(Client &client, fd_set &writeSet, fd_set &readSet);
-        void sendResponse(int clientSocket);
-        void sendErrorResponse(int clientSocket, const std::string& statusLine);
-        std::string get_resource_type(const std::string& uri);
         //void handleDeleteRequest(int clientSocket, const std::string& uri, std::vector<server>& servers);
 
 };
@@ -179,11 +204,19 @@ class HTTPServer {
 void        response(Client &client);
 void        handleDeleteRequest(Client &client, std::string src);
 void        locationMatching(std::string url, Client &client);
+
+void        response(Client &client);
+void        handleDeleteRequest(Client &client, std::string src);
+void        locationMatching(std::string url, Client &client);
 std::string get_resource_type(const char *res, Client &client);
+size_t      getFileSize(const std::string& name);
+char*       substr_no_null(const char* str, int start, int length, int str_len);
+size_t      is_carriage(std::string str, Client &client);
 void		Post(Request& req, location& loc, Client &client);
 string		generateName();
 string		getIndexFromDirectory(Client& client, string directory);
 std::string intToString(int number);
 void	    run_cgi(Client &client, string requestFile);
+std::string	createAutoindexPage(string root_dir);
 
 #endif
