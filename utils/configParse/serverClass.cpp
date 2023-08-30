@@ -2,6 +2,19 @@
 
 server::server()
 {
+	this->setErrorPage("200", "error_pages/200.html");
+	this->setErrorPage("201", "error_pages/201.html");
+	this->setErrorPage("501", "error_pages/501.html");
+	this->setErrorPage("400", "error_pages/400.html");
+	this->setErrorPage("403", "error_pages/403.html");
+	this->setErrorPage("404", "error_pages/404.html");
+	this->setErrorPage("405", "error_pages/405.html");
+	this->setErrorPage("413", "error_pages/413.html");
+	this->setErrorPage("414", "error_pages/414.html");
+	this->setErrorPage("301", "error_pages/301.html");
+	this->setErrorPage("500", "error_pages/500.html");
+	this->setErrorPage("505", "error_pages/505.html");
+	this->setErrorPage("204", "error_pages/204.html");
 	_port = "8080";
 	_host = "127.0.0.1";
 	//_client_max_body_size;
@@ -47,8 +60,6 @@ void	server::getLocationContext(ifstream &in, string line)
 			if (get_return(key, value, loc.getReturn(), in, line, loc.getRedirection()))
 				break;
 		}
-		else if (key == "client_max_body_size")
-			loc.setClient_max_body_size(count_argument(value, 1) && check_number(value) ? value : "");
 		else if (key == "root")
 			loc.setRoot(count_argument(value, 1) ? value : "");
 		else if (key == "index")
@@ -60,26 +71,24 @@ void	server::getLocationContext(ifstream &in, string line)
 		else if (key == "cgi_pass")
 		{
 			count_argument(value, 2);
-			cgi obj;
+			string	ext;
+			string	path;
 
-			obj.lang = value.substr(0, value.find_first_of("	 "));
+			ext = value.substr(0, value.find_first_of("	 "));
 			value.erase(0, value.find_first_of("	 "));
 			value.erase(remove(value.begin(), value.end(), ' '), value.end());
 			value.erase(remove(value.begin(), value.end(), '	'), value.end());
-			obj.path = value;
-			loc.setCgiPass(obj);
-			loc.setHasCgi(true);
+			path = value;
+			loc.setCgiPass(ext, path);
+			loc.setHasCgi(1);
 		}
 		else if (key == "cgi_path")
 			loc.setCgiPath(count_argument(value, 1) ? value : "");
-		else if (key == "cgi_ext")
-			loc.setCgiExt(count_argument(value, 1) ? value : "");
 		else
-		{
-			cout << line << "\n";
-			throw (unvalidDirective());
-		}
+			throw(unvalidDirective());
 	}
+	if (loc.isCgi() && loc.getCgiPath().empty())
+		throw (unvalidConfigFile());
 	this->_locations.push_back(loc);
 }
 
@@ -103,9 +112,6 @@ void server::print()
 		for (size_t i = 0; i < vec2.size(); i++)
 			cout << "|" << vec2[i] << "|" << "\n";
 
-		cout << GREEN "Client Max Body Size: \n" WHITE;
-		cout << _locations[i].getClient_max_body_size() << "\n";
-
 		cout << GREEN "Root: \n" WHITE;
 		cout << _locations[i].getRoot() << "\n";
 
@@ -124,15 +130,12 @@ void server::print()
 		cout << _locations[i].getReturn() << "\n";
 
 		cout << GREEN "CGI Pass: \n" WHITE;
-		vector<cgi>	obj = _locations[i].getCgiPass();
-		for (size_t i = 0; i < obj.size(); i++)
-			cout << "|lang = " << obj[i].lang << "|Path = " << obj[i].path << "\n";
+		map<string, string>	obj = _locations[i].getCgiPass();
+		for (map<string, string>::iterator itt = obj.begin(); itt != obj.end(); itt++)
+			cout << "|lang = " << itt->first << "|Path = " << itt->second << "\n";
 
 		cout << GREEN "CGI Path: \n" WHITE;
 		cout << _locations[i].getCgiPath() << "\n";
-
-		cout << GREEN "CGI extension: \n" WHITE;
-		cout << _locations[i].getCgiExt() << "\n";
 	}
 }
 

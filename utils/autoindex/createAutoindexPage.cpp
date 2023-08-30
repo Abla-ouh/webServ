@@ -3,15 +3,16 @@
 // * the function create a autoindex page dependibg on the directory passed as argument
 // @param root_dir the directory want to create autoindex of it
 // @return the function return 0 in error and 1 in success
-int	createAutoindexPage(string root_dir)
+std::string	createAutoindexPage(string root_dir)
 {
 	struct dirent *de;
-	ofstream page((root_dir + '/' + "autoindex.html").c_str());
+	std::string page;
+	// ofstream page((root_dir + '/' + "autoindex.html").c_str());
 	DIR *dir = opendir(root_dir.c_str());
 
 	if (!dir)
-		return (0);
-	page << "<!DOCTYPE html>\n\
+		return ("");
+	page += "<!DOCTYPE html>\n\
 <html lang=\"en\">\n\
 \t<head>\n\
 	\t<meta charset=\"UTF-8\">\n\
@@ -55,11 +56,11 @@ int	createAutoindexPage(string root_dir)
 	{
 		string link = "";
 		link = ("\t\t\t<a href=\"" + string(de->d_name) + "\"" + ">" + string(de->d_name) + "</a>\n");
-		page << link + "\n";
+		page += link + "\n";
 	}
-	page << "\t\t</div>\n";
-	page << "\t</body>\n";
-	page << "</html>\n";
+	page += "\t\t</div>\n";
+	page += "\t</body>\n";
+	page += "</html>\n";
 	closedir(dir);
-	return (1);
+	return (page);
 }

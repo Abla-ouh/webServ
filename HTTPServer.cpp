@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HTTPServer.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: abouhaga <abouhaga@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ybel-hac <ybel-hac@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/02 18:20:47 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/08/29 22:34:23 by abouhaga         ###   ########.fr       */
+/*   Updated: 2023/08/30 11:24:27 by ybel-hac         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -80,13 +80,12 @@ void acceptNewClient(std::vector<server>& servers, std::vector<Client>& clients,
 void HTTPServer::start()
 {
     fd_set readSet, writeSet, tmp_readSet, tmp_writeSet;
-    int err = 0;
-
+	int		err = 0;
     std::vector<Client>::iterator client_it;
     std::vector<server>::iterator server_it = this->servers.begin();
     int maxSocket = -1;
 
-    signal(SIGINT, SIG_IGN);
+    // signal(SIGINT, SIG_IGN);
 
     FD_ZERO(&readSet);
     FD_ZERO(&writeSet);
@@ -104,40 +103,37 @@ void HTTPServer::start()
     {
         tmp_readSet = readSet;
         tmp_writeSet = writeSet;
-        
-        err = select(maxSocket + 1, &tmp_readSet, &tmp_writeSet, NULL, NULL);
+
+		err = select(maxSocket + 1, &tmp_readSet, &tmp_writeSet, NULL, NULL);
         if (err < 0)
         {
             std::perror("select() Error ");
             exit(1);
         }
-
         else
         {
             acceptNewClient(servers, clients, readSet, tmp_readSet, maxSocket); // each accepted client with its own virtual server
             client_it = clients.begin();
             while (this->clients.size() && client_it != clients.end())
             {
-                // std::cout << "Clients size: " << clients.size() << std::endl;
                 if (FD_ISSET((*client_it).getClientSocket(), &tmp_readSet))
                     handleRequest(*client_it, writeSet, readSet);
 
                 if (FD_ISSET((*client_it).getClientSocket(), &tmp_writeSet))
                 {
-                    std::cout << "here" << std::endl;
-                    //exit(0);
                     response(*client_it);
                     if (client_it->getState() == DONE)
                     {
-                        client_it = clients.erase(client_it);
-                        close(client_it->getClientSocket());
+                        std::cout << "Dropping client " << std::endl;
+                        if (client_it->getClientSocket() == maxSocket)
+                            maxSocket--;
+                        close(client_it->getResponse().getFileFd());
+                        close((*client_it).getClientSocket());
                         FD_CLR((*client_it).getClientSocket(), &writeSet);
+                        FD_CLR((*client_it).getClientSocket(), &readSet);
+                        client_it = clients.erase(client_it);
+                        continue;
                     }
-                    continue;
-                    // // (*it1).getClientSocket() = -1;
-                    // // if (it1 != clients.end()) {
-                    // //     clients.erase(it1);
-                    // //     it1--;
                 }
                 ++client_it;
             }

@@ -2,56 +2,60 @@
 #include "../../HTTPServer.hpp"
 #include <sys/types.h>
 #include <dirent.h>
+#include "../CGI/CGI.hpp"
 
 string	generateName()
 {
 	string final = "";
 	srand((unsigned)time(0));
-	for (int i = 0; i < 10; i++)
+	for (int i = 0; i < 20; i++)
 		final += 97 + rand() % 25;
 	return (final);
 }
 
-void	location_has_cgi()
+string getIndexFromDirectory(Client& client, string directory)
 {
-
-}
-
-void	dir_has_index_file(Client& client, location loc, Request req)
-{
-	cout << "**************** enter in dir_has_index_file ****************\n";
-	struct dirent *de;
-	DIR*	dir = opendir((loc.getRoot() + '/' + req.getURI()).c_str());
-	bool	has_index = 0;
+	struct dirent	*de;
+	DIR*			dir = opendir(directory.c_str());
+	bool			has_index = 0;
+	location		loc = client.getlocation();
 
 	if (!dir)
 	{
 		perror("opendir");
 		client.setStatus(500);
 	}
-	else
+	while ((de = readdir(dir)) != 0 && !has_index)
 	{
-		while ((de = readdir(dir)) != 0 && !has_index)
+		stringstream ss;
+
+		ss << de->d_name;
+		vector<string>::iterator itt = find(loc.getIndex().begin(), loc.getIndex().end(), ss.str());
+		if (itt != loc.getIndex().end())
 		{
-			for (vector<string>::iterator itt = loc.getIndex().begin(); itt != loc.getIndex().end(); itt++)
-			{
-				if (!(*itt).compare(de->d_name))
-				{
-					has_index = 1;
-					break;
-				}
-			}
-		}
-		if (!has_index || !loc.isCgi())
-			client.setStatus(403);
-		else
-		{
-			cout << "need to run cgi\n";
-			client.setStatus(201); // ? run cgi
+			closedir(dir);
+			return (directory + *itt);
 		}
 	}
 	closedir(dir);
+	return ("null");
 }
+
+void	dir_has_index_file(Client& client, location loc, Request req)
+{
+	string	index = getIndexFromDirectory(client, client.getlocation().getRoot() + '/' + req.getURI());
+	cout << "**************** check if directory has index file ****************\n";
+	if (index == "null" || !loc.isCgi())
+		client.setStatus(403);
+	else
+	{
+		client.setStatus(201); // ? run cgi
+		run_cgi(client, index);
+		cout << "*************** CGI EXECUTED***************\n\n";
+	}
+}
+
+
 // ! test body
 
 string b = "<!DOCTYPE html>\n\
@@ -65,7 +69,7 @@ string b = "<!DOCTYPE html>\n\
 </body>\n\
 </html>";
 
-void Post(Request req, location loc, Client &client)
+void Post(Request& req, location& loc, Client &client)
 {
 	string body = b;
 	if (loc.getUploadPath()[0] == '/')
@@ -79,22 +83,27 @@ void Post(Request req, location loc, Client &client)
 			perror(uploadDir.c_str());
 			return (client.setStatus(403));
 		}
-		ofstream file((uploadDir + "/" + generateName()).c_str());
+		string	random = generateName();
+		ofstream file((uploadDir + "/" + random).c_str());
 		if (!file)
 		{
-			perror((uploadDir + "/" + generateName()).c_str());
+			perror((uploadDir + "/" + random).c_str());
 			return (client.setStatus(403));
 		}
 		file.write(body.c_str(), body.length());
 		client.setStatus(201);
 	}
 	//? location doesn't support upload
-	else if (req.getURI().length() > 1)
+	else if (req.getURI().length() > 0)
 	{
 		if (get_resource_type((loc.getRoot() + '/' + req.getURI()).c_str(), client) == "FILE") // * is file
 		{
 			if (loc.isCgi())
+			{
 				client.setStatus(201); // ? run cgi
+				run_cgi(client, loc.getRoot() + '/' + req.getURI());
+				cout << "*************** CGI EXECUTED ***************\n\n";
+			}
 			else
 			{
 				cout << "does not have cgi\n";
@@ -106,7 +115,6 @@ void Post(Request req, location loc, Client &client)
 			if (req.getURI()[req.getURI().length() - 1] != '/')
 			{
 				cout << "Moved Permanetely\n";
-				createAutoindexPage(loc.getRoot() + '/' + req.getURI() + '/');
 				client.setStatus(301); // ? 301 Moved Permanetely
 			}
 			else

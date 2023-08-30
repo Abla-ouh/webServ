@@ -6,7 +6,7 @@
 /*   By: abouhaga <abouhaga@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/02 18:35:35 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/08/28 20:57:47 by abouhaga         ###   ########.fr       */
+/*   Updated: 2023/08/30 16:35:22 by abouhaga         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,7 +40,7 @@ Client::Client() : currentState(HEADER_READING)
     std::string p = "file_";
 	file_name = p.append(RandomString(6));
     //file_name = "request_body";
-    file = open(file_name.c_str(), O_CREAT | O_RDWR | O_APPEND, 0644);
+
     // std::cout << "fd" << file << std::endl;
     already_checked = false;
 	_return = 0;

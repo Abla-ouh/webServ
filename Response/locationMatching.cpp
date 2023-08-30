@@ -37,20 +37,21 @@ void locationMatching(std::string url, Client &client)
 
     while (url.length())
     {
-        for (size_t i = 0; i < locations.size(); i++)
-        {
-            if (locations[i].getPath() == url || locations[i].getPath() == url + "/")
-            {
-                client.setlocation(locations[i]);
-                return;
-            }
-        }
         if (url.length() == 1)
         {
             if (!setDefaultLocation(locations, client))
             {
                 std::cout << "No default location found" << std::endl;
                 client.setStatus(404);
+            }
+            return;
+        }
+        for (size_t i = 0; i < locations.size(); i++)
+        {
+            if (locations[i].getPath() == url)
+            {
+                client.setlocation(locations[i]);
+                client.getRequest().getURI().erase(0, url.length());
                 return;
             }
         }

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   RequestUtils.cpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: abouhaga <abouhaga@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ybel-hac <ybel-hac@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/28 12:58:04 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/08/30 11:20:00 by abouhaga         ###   ########.fr       */
+/*   Updated: 2023/08/30 11:26:32 by ybel-hac         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,7 @@ size_t getFileSize(const std::string& name)
     std::ifstream file(name.c_str(), std::ifstream::ate | std::ifstream::binary);
     size_t size = 0;
 
-    
+
     if (file.is_open())
     {
         size = file.tellg();

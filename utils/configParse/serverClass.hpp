@@ -26,18 +26,28 @@
 
 using namespace std;
 
+class location;
+
+typedef struct error_page
+{
+	string		error_page_path;
+	string		error_page_info;
+}				error_page;
+
 class server {
 	private:
 		string				_port;
 		string				_root;
 		string				_host;
 		string				_server_name;
+		vector<string>		_index;
 		string				_client_max_body_size;
 		map<string, string>	_error_pages;
 		vector<location>	_locations;
 		struct addrinfo 	hint;
         struct addrinfo 	*res;
 		int             	server_socket;
+		char**				_env;
 	public:
 		server();
 		~server(){};
@@ -47,6 +57,7 @@ class server {
 		void			setRoot(string root){_root = root;};
 		void			setPort(string port){_port = port;};
 		void			setHost(string host){_host = host;};
+		void			setIndex(string index){_index.push_back(index);};
 		void			setServerName(string serverName){_server_name = serverName;};
 		void			setclient_max_body_size(string client_max){_client_max_body_size = client_max;};
 		void			setErrorPage(string key, string value){
@@ -55,6 +66,7 @@ class server {
 							if (!ret.second)
 								ret.first->second = value;
 						};
+		void			setEnv(char **env){_env = env;};
 		//void			setLocations();
 		//?
 		// ? geter's
@@ -62,6 +74,7 @@ class server {
 		string					getRoot(){return (_root);};
 		string					getPort(){return (_port);};
 		string&					getHost(){return (_host);};
+		vector<string>&			getIndex(){return (_index);};
 		string&					getclient_max_body_size(){return (_client_max_body_size);};
 		string					getServerName(){return (_server_name);};
 		map<string, string>&	getErrorPage(){return (_error_pages);};
@@ -70,7 +83,7 @@ class server {
 		int						getServerSocket() { return server_socket;};
 		void					print();
         void    				CreateSocket(server servers);
-
+		char**					getEnv(){return (_env);}
 		void					checkHostPort();
 };
 

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: abouhaga <abouhaga@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ybel-hac <ybel-hac@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/03 18:48:07 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/08/28 10:09:28 by abouhaga         ###   ########.fr       */
+/*   Updated: 2023/08/29 19:40:51 by ybel-hac         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,7 +32,7 @@ std::cout << WHITE << std::endl;
 
 }
 
-int main(int ac, char const *av[])
+int main(int ac, char const *av[], char **env)
 {
     printHeader();
 
@@ -40,7 +40,7 @@ int main(int ac, char const *av[])
     {
         try {
             std::cout << GREEN <<"\nAvailable ports: " << std::endl;
-            configFile config((std::string(av[1])));
+            configFile config((std::string(av[1])), env);
             HTTPServer server(config);
             server.start();
         }
