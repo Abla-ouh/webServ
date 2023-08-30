@@ -6,7 +6,7 @@
 /*   By: abouhaga <abouhaga@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/08 16:57:48 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/08/29 23:22:31 by abouhaga         ###   ########.fr       */
+/*   Updated: 2023/08/30 11:57:50 by abouhaga         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -313,6 +313,7 @@ void HTTPServer::handleRequest(Client &client, fd_set &writeSet, fd_set &readSet
             
             std::cout << "holder: " << holder << std::endl;
             std::cout << "getFileSize: " << getFileSize(client.file_name) << std::endl;
+            //std::cout << "content-lenght" << (size_t)std::atoi(request.getHeader("Content-Length").c_str()) << std::endl;
             if (getFileSize(client.file_name) < (size_t)std::atoi(request.getHeader("Content-Length").c_str()))
             {
                 std::cout << "content lenght : " << std::atoi(request.getHeader("Content-Length").c_str()) << std::endl;
