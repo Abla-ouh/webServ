@@ -6,7 +6,7 @@
 /*   By: abouhaga <abouhaga@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/08 16:57:48 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/08/30 16:37:10 by abouhaga         ###   ########.fr       */
+/*   Updated: 2023/08/30 17:19:20 by abouhaga         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,14 +51,14 @@ void Request::initRequest(const std::string& httpRequestHeader)
     std::string headersBlock = remainingRequest.substr(pos);
     
     parseHeaders(headersBlock);
-    std::cout << "method: " << method << std::endl;
-    std::cout << "uri: " << uri << std::endl;
-    std::cout << "query: " << query << std::endl;
-    std::cout << "version: " << version << std::endl;
-    std::cout << "headers: " << std::endl;
-    for (std::map<std::string, std::string>::const_iterator it = headers.begin(); it != headers.end(); ++it) {
-        std::cout << it->first << ": " << it->second << std::endl;
-    }
+    // std::cout << "method: " << method << std::endl;
+    // std::cout << "uri: " << uri << std::endl;
+    // std::cout << "query: " << query << std::endl;
+    // std::cout << "version: " << version << std::endl;
+    // std::cout << "headers: " << std::endl;
+    // for (std::map<std::string, std::string>::const_iterator it = headers.begin(); it != headers.end(); ++it) {
+    //     std::cout << it->first << ": " << it->second << std::endl;
+    // }
 }
 
 
