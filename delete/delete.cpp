@@ -53,15 +53,44 @@ int delete_directory_contents(const std::string &dir_path)
     return 0;
 }
 
+void getIndexFile(Client &client, std::string &index, std::string src)
+{
+    std::string file;
+    std::vector<std::string> indexes;
+    indexes = client.getlocation().getIndex();
+
+    if (!indexes.empty())
+    {
+        for (size_t i = 0; i < indexes.size(); i++)
+        {
+            file = src + indexes[i];
+            std::cout << "FILE: " << file << std::endl;
+            if (!access(file.c_str(), F_OK))
+            {
+                index = file;
+                return;
+            }
+        }
+    }
+}
+
 void handleDeleteRequest(Client &client, std::string src)
 {
     std::string full_path = src;
+    std::string tmp = client.getRequest().getURI();
     std::string rcs_type = get_resource_type(full_path.c_str(), client);
+    std::string indexFile;
 
     if (client.getStatus())
         return;
     if (rcs_type == "FILE")
     {
+        if (client.getlocation().isCgi())
+        {
+            client.setState(WAITING_CGI);
+            run_cgi(client, src);
+            return;
+        }
         // Handle file deletion
         if (unlink(full_path.c_str()) == 0)
             // Successfully deleted the file
@@ -74,6 +103,27 @@ void handleDeleteRequest(Client &client, std::string src)
     }
     else if (rcs_type == "DIRE")
     {
+        std::cout << "Tmp: " + tmp << std::endl;
+        if (tmp[tmp.length() - 1] != '/')
+        {
+            client.setStatus(409);
+            return ;
+        }
+        std::cout << "CGI " << client.getlocation().isCgi();
+        if (client.getlocation().isCgi())
+        {
+            std::cout << "Has CGI\n";
+            getIndexFile(client, indexFile, src);
+            if (!indexFile.empty())
+            {
+                std::cout << "Has Index file\n";
+                client.setState(WAITING_CGI);
+                run_cgi(client, src);
+            }
+            else
+                client.setStatus(403);
+            return;
+        }
         // Handle directory deletion
         if (delete_directory_contents(full_path) == 0 && rmdir(full_path.c_str()) == 0)
             // Successfully deleted the directory

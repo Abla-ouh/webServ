@@ -14,7 +14,7 @@ void	CGI::setCgiEnv(Request req, Client &client, string interpreter, string scri
 	_env["AUTH_TYPE"] = "1.1";
 	_env["PAHT_INFO"] = client.getlocation().getPath();
 	_env["PAHT_TRANSLATED"] = client.getlocation().getPath();
-	_env["QUERY_STRING"] = req.getQuery();
+	_env["QUERY_STRING"] = !req.getQuery().empty() ? req.getQuery().substr(1) : "";
 	_env["REMOTE_ADDR"] = client.getServer().getHost();
 	_env["REMOTE_IDENT"] = req.getHeader("Authorization");
 	_env["REMOTE_USER"] = req.getHeader("Authorization");
@@ -52,7 +52,6 @@ char	**CGI::getCgiEnv()
 
 void CGI::cgi_executor(Client& client, string scritpPath, string requestFile, string interpreter)
 {
-	FILE*							infd = tmpfile();
 	FILE*							outfd = tmpfile();
 	char							**env;
 
@@ -68,8 +67,7 @@ void CGI::cgi_executor(Client& client, string scritpPath, string requestFile, st
 	if (!client.getChildPid())
 	{
 		char	*tab[4] = {strdup(interpreter.c_str()), strdup(scritpPath.c_str()), strdup(requestFile.c_str()), 0};
-		write(fileno(infd), "Hello World!", 13);
-		dup2(fileno(infd), STDIN_FILENO);
+		dup2(client.file, STDIN_FILENO);
 		dup2(fileno(outfd), STDOUT_FILENO);
 		dup2(fileno(outfd), STDERR_FILENO);
 		execve(tab[0], tab, env);

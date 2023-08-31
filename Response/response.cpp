@@ -233,8 +233,8 @@ void response(Client &client)
                 get(client, src);
             else if (client.getRequest().getMethod() == "POST")
                 Post(client.getRequest(), client.getlocation(), client);
-            // else if (client.getRequest().getMethod() == "DELETE") ==> check if delete is allowed.
-            //     handleDeleteRequest(client, src);
+            else if (client.getRequest().getMethod() == "DELETE") //==> check if delete is allowed.
+                handleDeleteRequest(client, src);
         
         }
         if (client.getStatus() != 200 && client.getStatus())
@@ -320,7 +320,7 @@ void sendCgi(Client &client)
 	}
 	header.insert(0, status);
     lseek(client.getCgiFd(), readed, SEEK_SET);
-    send(client.getClientSocket(), status.c_str(), status.size(), 0);
+    send(client.getClientSocket(), header.c_str(), header.size(), 0);
     while (size--)
     {
         r = read(client.getCgiFd(), &c, 1);
@@ -350,6 +350,7 @@ void sendResponse(Client &client)
     if (client.getResponse().getResponse().length())
     {
         response = client.getResponse().getResponse();
+        std::cout << "*******\n" << response << std::endl;
         if (send(client.getClientSocket(), response.c_str(), response.size(), 0) < 0)
         {
             std::cout << "Client Closed the connection: " << std::endl;
@@ -366,6 +367,7 @@ void sendResponse(Client &client)
         {
             if ((r = read(client.getResponse().getFileFd(), &c, 1)) <= 0)
                 break;
+            // std::cout << c;
             a = send(client.getClientSocket(), &c, 1, 0);
             if (a < 0)
             {

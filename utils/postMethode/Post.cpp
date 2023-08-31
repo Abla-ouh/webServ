@@ -49,7 +49,7 @@ void	dir_has_index_file(Client& client, location loc, Request req)
 		client.setStatus(403);
 	else
 	{
-		client.setStatus(201); // ? run cgi
+		client.setState(WAITING_CGI);
 		run_cgi(client, index);
 		cout << "*************** CGI EXECUTED***************\n\n";
 	}
@@ -71,7 +71,10 @@ string b = "<!DOCTYPE html>\n\
 
 void Post(Request& req, location& loc, Client &client)
 {
-	string body = b;
+	if (find(client.getlocation().getAllowMethodes().begin(), client.getlocation().getAllowMethodes().end(), "POST") == client.getlocation().getAllowMethodes().end())
+		return (client.setStatus(405));
+	cout << RED "**************** POST ****************\n" WHITE;
+
 	if (loc.getUploadPath()[0] == '/')
 		loc.getUploadPath().erase(0, 1);
 	//? location support upload
@@ -90,8 +93,10 @@ void Post(Request& req, location& loc, Client &client)
 			perror((uploadDir + "/" + random).c_str());
 			return (client.setStatus(403));
 		}
-		file.write(body.c_str(), body.length());
-		client.setStatus(201);
+		if (rename(client.file_name.c_str(), (uploadDir + "/" + random).c_str()) < 0)
+			client.setStatus(501);
+		else
+			client.setStatus(201);
 	}
 	//? location doesn't support upload
 	else if (req.getURI().length() > 0)
@@ -100,9 +105,9 @@ void Post(Request& req, location& loc, Client &client)
 		{
 			if (loc.isCgi())
 			{
-				client.setStatus(201); // ? run cgi
+				client.setState(WAITING_CGI);
 				run_cgi(client, loc.getRoot() + '/' + req.getURI());
-				cout << "*************** CGI EXECUTED ***************\n\n";
+				cout << GREEN "*************** CGI EXECUTED ***************\n\n" RESET;
 			}
 			else
 			{

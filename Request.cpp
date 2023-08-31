@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ybel-hac <ybel-hac@student.42.fr>          +#+  +:+       +#+        */
+/*   By: abouhaga <abouhaga@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/08 16:57:48 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/08/30 15:51:56 by ybel-hac         ###   ########.fr       */
+/*   Updated: 2023/08/30 17:19:20 by abouhaga         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,14 +51,14 @@ void Request::initRequest(const std::string& httpRequestHeader)
     std::string headersBlock = remainingRequest.substr(pos);
     
     parseHeaders(headersBlock);
-    std::cout << "method: " << method << std::endl;
-    std::cout << "uri: " << uri << std::endl;
-    std::cout << "query: " << query << std::endl;
-    std::cout << "version: " << version << std::endl;
-    std::cout << "headers: " << std::endl;
-    for (std::map<std::string, std::string>::const_iterator it = headers.begin(); it != headers.end(); ++it) {
-        std::cout << it->first << ": " << it->second << std::endl;
-    }
+    // std::cout << "method: " << method << std::endl;
+    // std::cout << "uri: " << uri << std::endl;
+    // std::cout << "query: " << query << std::endl;
+    // std::cout << "version: " << version << std::endl;
+    // std::cout << "headers: " << std::endl;
+    // for (std::map<std::string, std::string>::const_iterator it = headers.begin(); it != headers.end(); ++it) {
+    //     std::cout << it->first << ": " << it->second << std::endl;
+    // }
 }
 
 
@@ -119,7 +119,7 @@ bool Request::isValid_URI_Char(char c) {
 }
 
 
-void RequestErrors(Request &request, Client &client)
+bool RequestErrors(Request &request, Client &client)
 {
     std::string method = request.getMethod();
     std::string uri = request.getURI();
@@ -134,12 +134,12 @@ void RequestErrors(Request &request, Client &client)
     if (!transferEncoding.empty() && transferEncoding != "chunked")
     {
         client.setStatus(501);
-        return;
+        return  0;
     }
 
     if (method == "POST" && contentLengthStr.empty() && transferEncoding.empty()) {
         client.setStatus(400);
-        return;
+        return 0;
     }
         
     for (size_t i = 0; i < uri.length(); i++)
@@ -147,27 +147,28 @@ void RequestErrors(Request &request, Client &client)
         if (!request.isValid_URI_Char(uri[i]))
         {
             client.setStatus(400);
-            return;
+            return 0;
         }
     }
     if (uri.length() > 2048)
     {
         client.setStatus(414);
-        return;
+        return 0;
     }
     if (request.getVersion() != "HTTP/1.1" && request.getVersion() != "HTTP/1.0") {
         client.setStatus(505);
-        return;
+        return 0;
     }
-    //Until i get the body size from config file 
-//     if (!contentLengthStr.empty()) {
-//         size_t contentLength = atoi(contentLengthStr.c_str());
-//         size_t maxBodySize = getclient_max_body_size();
-//         if (contentLength > maxBodySize) {
-//             client.setStatus(413);
-//             return;
-//         }
-//     }
+    if (!contentLengthStr.empty()) {
+        size_t contentLength = atoi(contentLengthStr.c_str());
+        size_t maxBodySize = atoi(client.getServer().getclient_max_body_size().c_str());
+        if (contentLength > maxBodySize) {
+            client.setStatus(413);
+            return 0;
+        }
+    }
+
+    return (1);
 }
 
 
@@ -288,7 +289,11 @@ void HTTPServer::handleRequest(Client &client, fd_set &writeSet, fd_set &readSet
                 client.header = std::string(data).substr(0, client._return);
 
                 request.initRequest(client.header);
-                RequestErrors(request, client); //if any error khass ndir chi haja
+                if (!RequestErrors(request, client))
+                {
+                    FD_CLR(client.getClientSocket(), &readSet);
+                    FD_SET(client.getClientSocket(), &writeSet);
+                }
                 client.bodyPos = client._return + 4;
                 client.bodyChunked = isChuncked(client.header);
                 client.firstTime = 1;
@@ -302,9 +307,19 @@ void HTTPServer::handleRequest(Client &client, fd_set &writeSet, fd_set &readSet
                 return;
             }
 	    }
-        client.currentState = BODY_READING;
+        if (request.getMethod() == "POST")
+        {
+            client.currentState = BODY_READING;
+            client.file = open(client.file_name.c_str(), O_CREAT | O_RDWR | O_APPEND, 0644);
+        }
+        else
+        {
+            FD_CLR(client.getClientSocket(), &readSet);  
+            FD_SET(client.getClientSocket(), &writeSet);
+            return ;
+        }
     }
-    if (!client.bodyChunked && client.getCurrentState() == BODY_READING && request.getMethod() == "POST")
+    if (!client.bodyChunked && client.getCurrentState() == BODY_READING)
     {
         if (client.firstTime)
         {
@@ -369,7 +384,7 @@ void HTTPServer::handleRequest(Client &client, fd_set &writeSet, fd_set &readSet
         }
         
 	}
-    else if (client.bodyChunked && client.getCurrentState() == BODY_READING && request.getMethod() == "POST")
+    else if (client.bodyChunked && client.getCurrentState() == BODY_READING)
     {
         if (client.firstTime)
         {

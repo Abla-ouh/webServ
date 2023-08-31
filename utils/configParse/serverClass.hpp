@@ -22,6 +22,7 @@
 #define BLUE "\033[0;34m"
 #define PURPLE "\033[0;35m"
 #define WHITE "\033[0;37m"
+#define RESET "\033[0;37m"
 
 
 using namespace std;

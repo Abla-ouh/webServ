@@ -6,7 +6,7 @@
 /*   By: ybel-hac <ybel-hac@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/02 18:35:35 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/08/30 11:48:55 by ybel-hac         ###   ########.fr       */
+/*   Updated: 2023/08/31 11:15:10 by ybel-hac         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,10 +37,10 @@ Client::Client() : currentState(HEADER_READING)
     this->status = 0; 
     this->state = BUILDING;
     memset(data, 0, 8000);
-    std::string p = "file_";
+    std::string p = "./tmp/file_";
 	file_name = p.append(RandomString(6));
     //file_name = "request_body";
-    file = open(file_name.c_str(), O_CREAT | O_RDWR | O_APPEND, 0644);
+
     // std::cout << "fd" << file << std::endl;
     already_checked = false;
 	_return = 0;
