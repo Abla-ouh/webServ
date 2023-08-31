@@ -41,7 +41,6 @@ class server {
 		string				_root;
 		string				_host;
 		string				_server_name;
-		vector<string>		_index;
 		string				_client_max_body_size;
 		map<string, string>	_error_pages;
 		vector<location>	_locations;
@@ -58,7 +57,6 @@ class server {
 		void			setRoot(string root){_root = root;};
 		void			setPort(string port){_port = port;};
 		void			setHost(string host){_host = host;};
-		void			setIndex(string index){_index.push_back(index);};
 		void			setServerName(string serverName){_server_name = serverName;};
 		void			setclient_max_body_size(string client_max){_client_max_body_size = client_max;};
 		void			setErrorPage(string key, string value){
@@ -75,7 +73,6 @@ class server {
 		string					getRoot(){return (_root);};
 		string					getPort(){return (_port);};
 		string&					getHost(){return (_host);};
-		vector<string>&			getIndex(){return (_index);};
 		string&					getclient_max_body_size(){return (_client_max_body_size);};
 		string					getServerName(){return (_server_name);};
 		map<string, string>&	getErrorPage(){return (_error_pages);};

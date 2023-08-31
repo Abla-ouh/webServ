@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ebelkhei <ebelkhei@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ybel-hac <ybel-hac@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/08 16:57:48 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/08/31 19:06:28 by ebelkhei         ###   ########.fr       */
+/*   Updated: 2023/08/31 22:04:52 by ybel-hac         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -315,7 +315,7 @@ void HTTPServer::handleRequest(Client &client, fd_set &writeSet, fd_set &readSet
         if (request.getMethod() == "POST")
         {
             client.currentState = BODY_READING;
-            client.file = open(client.file_name.c_str(), O_CREAT | O_RDWR | O_APPEND, 0644);
+			client.file = open(client.file_name.c_str(), O_CREAT | O_RDWR | O_APPEND, 0644);
         }
         else
         {
