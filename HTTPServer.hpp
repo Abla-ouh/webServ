@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HTTPServer.hpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ybel-hac <ybel-hac@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ebelkhei <ebelkhei@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/02 17:55:47 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/08/29 19:52:50 by ybel-hac         ###   ########.fr       */
+/*   Updated: 2023/08/31 15:05:18 by ebelkhei         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -72,6 +72,7 @@ class Request
         void parseHeaders(const std::string& headersBlock);
         bool isValid_URI_Char(char c);
 
+        void setURI(const std::string& uri) { this->uri = uri; };
         std::string& getMethod();
         std::string& getURI();
         std::string& getQuery();

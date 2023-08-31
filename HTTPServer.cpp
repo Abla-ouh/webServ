@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HTTPServer.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ybel-hac <ybel-hac@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ebelkhei <ebelkhei@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/02 18:20:47 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/08/30 11:24:27 by ybel-hac         ###   ########.fr       */
+/*   Updated: 2023/08/31 14:46:57 by ebelkhei         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -116,10 +116,10 @@ void HTTPServer::start()
             client_it = clients.begin();
             while (this->clients.size() && client_it != clients.end())
             {
-                if (FD_ISSET((*client_it).getClientSocket(), &tmp_readSet))
+                if (FD_ISSET(client_it->getClientSocket(), &tmp_readSet))
                     handleRequest(*client_it, writeSet, readSet);
 
-                if (FD_ISSET((*client_it).getClientSocket(), &tmp_writeSet))
+                if (FD_ISSET(client_it->getClientSocket(), &tmp_writeSet))
                 {
                     response(*client_it);
                     if (client_it->getState() == DONE)
@@ -128,9 +128,9 @@ void HTTPServer::start()
                         if (client_it->getClientSocket() == maxSocket)
                             maxSocket--;
                         close(client_it->getResponse().getFileFd());
-                        close((*client_it).getClientSocket());
-                        FD_CLR((*client_it).getClientSocket(), &writeSet);
-                        FD_CLR((*client_it).getClientSocket(), &readSet);
+                        close(client_it->getClientSocket());
+                        FD_CLR(client_it->getClientSocket(), &writeSet);
+                        FD_CLR(client_it->getClientSocket(), &readSet);
                         client_it = clients.erase(client_it);
                         continue;
                     }

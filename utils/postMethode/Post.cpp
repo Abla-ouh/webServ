@@ -94,12 +94,12 @@ void Post(Request& req, location& loc, Client &client)
 			return (client.setStatus(403));
 		}
 		if (rename(client.file_name.c_str(), (uploadDir + "/" + random).c_str()) < 0)
-			client.setStatus(501);
+			client.setStatus(500);
 		else
 			client.setStatus(201);
 	}
 	//? location doesn't support upload
-	else if (req.getURI().length() > 0)
+	else
 	{
 		if (get_resource_type((loc.getRoot() + '/' + req.getURI()).c_str(), client) == "FILE") // * is file
 		{
@@ -130,10 +130,5 @@ void Post(Request& req, location& loc, Client &client)
 			cout << "404 Not Found\n";
 			client.setStatus(404);
 		}
-	}
-	else
-	{
-		cout << "404 Not Found\n";
-		client.setStatus(404);
 	}
 }

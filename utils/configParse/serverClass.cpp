@@ -17,7 +17,7 @@ server::server()
 	this->setErrorPage("204", "error_pages/204.html");
 	_port = "8080";
 	_host = "127.0.0.1";
-	//_client_max_body_size;
+	_client_max_body_size = "1000000";
 	_root = "./";
 	//_index_page;
 	//_server_name;

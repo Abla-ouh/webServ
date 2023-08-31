@@ -1,16 +1,10 @@
-#!/usr/bin/php-cgi
 <?php
+$variableName = "QUERY_STRING"; // Change this to the name of your environment variable
 
-// Read data from standard input
-$inputData = file_get_contents('php://input');
-header("Content-type: text/html\r\n\r\n");
-echo "<html>";
-echo "<head>";
-echo "<title>CGI Input Data</title>";
-echo "</head>";
-echo "<body>";
-echo "<h1>Input Data:</h1>";
-echo "<p>{$inputData}</p>";
-echo "</body>";
-echo "</html>";
+if (isset($_SERVER[$variableName])) {
+    $variableValue = $_SERVER[$variableName];
+    echo "Value of $variableName: $variableValue";
+} else {
+    echo "Environment variable $variableName not set.";
+}
 ?>
