@@ -6,7 +6,7 @@
 /*   By: abouhaga <abouhaga@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/08 16:57:48 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/08/30 17:19:20 by abouhaga         ###   ########.fr       */
+/*   Updated: 2023/08/31 18:42:53 by abouhaga         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -159,7 +159,8 @@ bool RequestErrors(Request &request, Client &client)
         client.setStatus(505);
         return 0;
     }
-    if (!contentLengthStr.empty()) {
+    if (!contentLengthStr.empty() && request.getMethod() != "POST")
+    {
         size_t contentLength = atoi(contentLengthStr.c_str());
         size_t maxBodySize = atoi(client.getServer().getclient_max_body_size().c_str());
         if (contentLength > maxBodySize) {
