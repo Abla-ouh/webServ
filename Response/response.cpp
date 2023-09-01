@@ -53,7 +53,7 @@ void checkResourceExistence(const char *res, int &fd, bool &isDir, Client &clien
         client.setStatus(404);
 }
 
-void getFile(Client &client, bool s)
+void getFile(Client &client, int s)
 {
     char c;
     int max = 2048;
@@ -208,13 +208,11 @@ void sendCgi(Client &client);
 
 void response(Client &client)
 {
-    int         err;
+
     std::string tmp;
     std::string src;
     std::string root;
     std::string &response = client.getResponse().getResponse();
-
-    err = 1;
 
     if (client.getState() == BUILDING)
     {
@@ -250,12 +248,16 @@ void response(Client &client)
             std::cout << "ERROR: " << client.getStatus() << std::endl;
             client.setState(FILE_READING);
             check_errors(client, client.getStatus());
-            err = 0;
+            client.err = 0;
         }
     }
     
+	if (client.getState() == MOVING_FILE)
+		writeToNewFile(client);
+
     if (client.getState() == FILE_READING)
-        getFile(client, err);
+        getFile(client, client.err);
+
 
     if (client.getState() == BUILDING_2)
     {

@@ -42,7 +42,7 @@ void	configFile::getServerContext(ifstream &in, string &line)
 		else
 			throw (unvalidDirective());
 	}
-	if (serv.getPort().empty() || serv.getRoot().empty())
+	if (serv.getServerName().empty())
 		throw(unvalidConfigFile());
 	serv.checkHostPort();
 	serv.setEnv(_env);

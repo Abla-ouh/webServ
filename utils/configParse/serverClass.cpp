@@ -86,8 +86,6 @@ void	server::getLocationContext(ifstream &in, string line)
 		else
 			throw(unvalidDirective());
 	}
-	if (loc.isCgi() && loc.getCgiPath().empty())
-		throw (unvalidConfigFile());
 	this->_locations.push_back(loc);
 }
 

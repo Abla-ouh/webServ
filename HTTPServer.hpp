@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HTTPServer.hpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ebelkhei <ebelkhei@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ybel-hac <ybel-hac@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/02 17:55:47 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/08/31 15:05:18 by ebelkhei         ###   ########.fr       */
+/*   Updated: 2023/08/31 23:26:52 by ybel-hac         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,6 +44,7 @@ enum STATE
     BUILDING_2,
     WAITING_CGI,
     SENDING_CGI,
+	MOVING_FILE,
     DONE
 };
 
@@ -136,6 +137,7 @@ class Client
 
         Client();
         ~Client();
+		int						err;
         size_t                  hex_len;
         char                    hexBuff[20];
         char                    hexTempBuff[10];
@@ -154,7 +156,9 @@ class Client
         bool                    bodyChunked;
         RequestState            currentState;
         char                    data[8000];
-        
+        int						uploadedOutFile;
+        int						uploadedInFile;
+
         Request&                getRequest() { return request;};
         Response&               getResponse() { return response;};
         int                     getStatus() { return status;};
@@ -219,5 +223,8 @@ string		getIndexFromDirectory(Client& client, string directory);
 std::string intToString(int number);
 void	    run_cgi(Client &client, string requestFile);
 std::string	createAutoindexPage(string root_dir);
+void		writeToNewFile(Client &client);
+void check_errors(Client &client, int code);
+void getFile(Client &client, int s);
 
 #endif

@@ -6,7 +6,7 @@
 /*   By: ybel-hac <ybel-hac@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/02 18:35:35 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/08/31 21:51:50 by ybel-hac         ###   ########.fr       */
+/*   Updated: 2023/08/31 23:24:34 by ybel-hac         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,14 +33,15 @@ std::string RandomString(int length) {
 
 Client::Client() : currentState(HEADER_READING)
 {
+	this->err = 1;
     this->locations = _server.getLocation();
     this->status = 0; 
     this->state = BUILDING;
     memset(data, 0, 8000);
-    std::string p = "./tmp/file_";
+    std::string p = "/tmp/file_";
 
-	if (access("./tmp", F_OK))
-		p = "file_";
+	// if (access("./tmp", F_OK))
+		// p = "file_";
 	file_name = p.append(RandomString(6));
     //file_name = "request_body";
 
