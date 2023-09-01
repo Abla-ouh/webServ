@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ebelkhei <ebelkhei@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ybel-hac <ybel-hac@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/08 16:57:48 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/08/31 19:23:37 by ebelkhei         ###   ########.fr       */
+/*   Updated: 2023/09/01 16:30:49 by ybel-hac         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -315,7 +315,8 @@ void HTTPServer::handleRequest(Client &client, fd_set &writeSet, fd_set &readSet
         if (request.getMethod() == "POST")
         {
             client.currentState = BODY_READING;
-            client.file = open(client.file_name.c_str(), O_CREAT | O_RDWR | O_APPEND, 0644);
+			client.file = open(client.file_name.c_str(), O_CREAT | O_RDWR | O_APPEND, 0644);
+			client.uploadedInFile = open(client.file_name.c_str(), O_CREAT | O_RDWR | O_APPEND, 0644);
         }
         else
         {
@@ -330,16 +331,17 @@ void HTTPServer::handleRequest(Client &client, fd_set &writeSet, fd_set &readSet
         {
             char *holder;
             holder = substr_no_null(data, client.bodyPos, rd, rd);
-            
-            std::cout << "holder: " << holder << std::endl;
-            std::cout << "getFileSize: " << getFileSize(client.file_name) << std::endl;
-            if (getFileSize(client.file_name) < (size_t)std::atoi(request.getHeader("Content-Length").c_str()))
+
+            if ((getFileSize(client.file_name) < (size_t)std::atoi(request.getHeader("Content-Length").c_str())) && holder != NULL && std::atoi(request.getHeader("Content-Length").c_str()) != 0)
             {
                 std::cout << "content lenght : " << std::atoi(request.getHeader("Content-Length").c_str()) << std::endl;
-                std::cout << "file: " << client.file_name << std::endl;
                 std::cout << "readBytes: " << rd - client.bodyPos << std::endl;
                 std::cout << "getFileSize: " << getFileSize(client.file_name) << std::endl;
-                write(client.file, holder, rd - client.bodyPos);
+                if ((size_t)std::atoi(request.getHeader("Content-Length").c_str()) < rd - client.bodyPos)
+                    write(client.file, holder, std::atoi(request.getHeader("Content-Length").c_str()));
+                else
+                    write(client.file, holder, rd - client.bodyPos);
+                // write(client.file, holder, rd - client.bodyPos);
                 std::cout << "getFileSize: " << getFileSize(client.file_name) << std::endl;
                 std::cout << "holder: " << holder << std::endl;
                 if (getFileSize(client.file_name) == (size_t)std::atoi(request.getHeader("Content-Length").c_str())) {

@@ -6,11 +6,10 @@
 /*   By: ybel-hac <ybel-hac@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/03 18:48:07 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/08/29 19:40:51 by ybel-hac         ###   ########.fr       */
+/*   Updated: 2023/09/01 16:30:21 by ybel-hac         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "utils/configParse/configFile.hpp"
 #include "utils/configParse/configFile.hpp"
 #include "HTTPServer.hpp"
 #include <stdio.h>
@@ -34,19 +33,20 @@ std::cout << WHITE << std::endl;
 
 int main(int ac, char const *av[], char **env)
 {
+	int err_line = 0;
     printHeader();
 
     if (ac == 2)
     {
         try {
             std::cout << GREEN <<"\nAvailable ports: " << std::endl;
-            configFile config((std::string(av[1])), env);
+            configFile config((std::string(av[1])), env, &err_line);
             HTTPServer server(config);
             server.start();
         }
         catch (std::exception& err)
         {
-            std::cerr << RED "Error: " << err.what() << WHITE << std::endl;
+            std::cerr << RED "Error: in line " << err_line << " : " << err.what() << WHITE << std::endl;
         }
     }
     else

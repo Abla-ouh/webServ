@@ -1,18 +1,16 @@
 #include "../HTTPServer.hpp"
 
-void check_errors(Client &client, int code, int &err)
+void check_errors(Client &client, int code)
 {
     std::stringstream ss;
     int fd;
 
-    client.setState(FILE_READING);
-    err = 0;
     ss << code;
     std::map<std::string, std::string> errors = client.getServer().getErrorPage();
     fd = open(errors[ss.str()].c_str(), O_RDONLY);
     if (fd < 0)
     {
-        check_errors(client, 500, err);
+        check_errors(client, 500);
         return;
     }
     client.getResponse().setFileFd(fd);
@@ -55,7 +53,7 @@ void checkResourceExistence(const char *res, int &fd, bool &isDir, Client &clien
         client.setStatus(404);
 }
 
-void getFile(Client &client, int &s)
+void getFile(Client &client, int s)
 {
     char c;
     int max = 2048;
@@ -64,7 +62,7 @@ void getFile(Client &client, int &s)
 
     if (client.getResponse().getFileFd() < 0)
     {
-        check_errors(client, 500, s);
+        check_errors(client, 500);
         client.setStatus(500);
     }
 
@@ -83,7 +81,7 @@ void getFile(Client &client, int &s)
     }
     else if (a < 0)
     {
-        check_errors(client, 500, s);
+        check_errors(client, 500);
         client.setStatus(500);
     }
 }
@@ -212,13 +210,11 @@ void sendCgi(Client &client);
 
 void response(Client &client)
 {
-    int         err;
+
     std::string tmp;
     std::string src;
     std::string root;
     std::string &response = client.getResponse().getResponse();
-
-    err = 1;
 
     if (client.getState() == BUILDING)
     {
@@ -249,12 +245,21 @@ void response(Client &client)
                 handleDeleteRequest(client, src);
         
         }
-        if (client.getStatus() != 200 && client.getStatus()) 
-            check_errors(client, client.getStatus(), err);
+        if (client.getStatus() != 200 && client.getStatus())
+        {
+            std::cout << "ERROR: " << client.getStatus() << std::endl;
+            client.setState(FILE_READING);
+            check_errors(client, client.getStatus());
+            client.err = 0;
+        }
     }
     
+	if (client.getState() == MOVING_FILE)
+		writeToNewFile(client);
+
     if (client.getState() == FILE_READING)
-        getFile(client, err);
+        getFile(client, client.err);
+
 
     if (client.getState() == BUILDING_2)
     {
@@ -271,16 +276,15 @@ void response(Client &client)
         if (time(0) - client.getStartTime() > 5)
         {
             std::cout << "CGI timed out" << std::endl;
-            err = 1;
             client.setStatus(504);
-            check_errors(client, 504, err);
+            check_errors(client, 504);
             return;
         }
         pid_t pid = waitpid(client.getChildPid(), NULL, WNOHANG);
         if (pid == -1)
         {
             client.setStatus(500);
-            check_errors(client, 500, err);
+            check_errors(client, 500);
         }
         else if (pid)
         {
@@ -323,7 +327,7 @@ void sendCgi(Client &client)
 		{
             if (rd < 0)
             {
-                check_errors(client, 500, r);
+                check_errors(client, 500);
                 client.setStatus(500);
                 return;
             }
@@ -365,7 +369,7 @@ void sendCgi(Client &client)
     }
     if (r < 0)
     {
-        check_errors(client, 500, r);
+        check_errors(client, 500);
         client.setStatus(500);
         return;
     }
@@ -417,7 +421,7 @@ void sendResponse(Client &client)
     }
     if (r < 0)
     {
-        check_errors(client, 500, r);
+        check_errors(client, 500);
         client.setStatus(500);
         return;
     }

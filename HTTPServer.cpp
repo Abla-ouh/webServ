@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HTTPServer.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ebelkhei <ebelkhei@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ybel-hac <ybel-hac@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/02 18:20:47 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/08/31 23:32:38 by ebelkhei         ###   ########.fr       */
+/*   Updated: 2023/09/01 16:29:45 by ybel-hac         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -86,7 +86,7 @@ void HTTPServer::start()
     int maxSocket = -1;
 
     // signal(SIGINT, SIG_IGN);
-
+	signal(SIGPIPE, SIG_IGN);
     FD_ZERO(&readSet);
     FD_ZERO(&writeSet);
     

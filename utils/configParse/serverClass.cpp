@@ -30,7 +30,7 @@ server::server()
 }
 
 
-void	server::getLocationContext(ifstream &in, string line)
+void	server::getLocationContext(ifstream &in, string line, int *err)
 {
 	location	loc;
 	string		key = "", value = "";
@@ -49,6 +49,7 @@ void	server::getLocationContext(ifstream &in, string line)
 	loc.setRoot(_root);
 	while (getline(in, line))
 	{
+		(*err)++;
 		int	returnValue = clean_line(line, key, value);
 		if (returnValue == 1)
 			continue;
@@ -88,8 +89,6 @@ void	server::getLocationContext(ifstream &in, string line)
 		else
 			throw(unvalidDirective());
 	}
-	if (loc.isCgi() && loc.getCgiPath().empty())
-		throw (unvalidConfigFile());
 	this->_locations.push_back(loc);
 }
 
@@ -146,7 +145,7 @@ void	server::checkHostPort()
     
     hint.ai_family = AF_INET;
     hint.ai_socktype = SOCK_STREAM;
-    if (getaddrinfo(this->getServerName().c_str(), this->getPort().c_str(), &hint, &res))
+    if (getaddrinfo(this->getHost().c_str(), this->getPort().c_str(), &hint, &res))
     {
         // freeaddrinfo(res); // sigfault when free res
 		throw runtime_error("ERROR : Can't resolve hostname\n");
@@ -162,7 +161,7 @@ void server::CreateSocket(server servers)
     hint.ai_socktype = SOCK_STREAM;
     int yes = 1;
 
-    if (getaddrinfo(servers.getServerName().c_str(), servers.getPort().c_str(), &hint, &res))
+    if (getaddrinfo(servers.getHost().c_str(), servers.getPort().c_str(), &hint, &res))
     {
 		//cout << getaddrinfo(servers.getServerName().c_str(), servers.getPort().c_str(), &hint, &res) << std::endl;
 		//throw runtime_error("ERROR : Can't resolve hostname");
