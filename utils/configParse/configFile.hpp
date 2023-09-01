@@ -14,15 +14,13 @@ using namespace std;
 
 class server;
 
-
 class configFile {
 	private:
 		vector<server>	_server;
 		string			_full_file;
 		char**			_env;
-		int				*_err;
 	public:
-		configFile(const string file, char **env, int *err);
+		configFile(const string file, char **env);
 		~configFile(){};
 		vector<server>&	getServers(){return (_server);};
 		void	getServerContext(ifstream &in, string &line);

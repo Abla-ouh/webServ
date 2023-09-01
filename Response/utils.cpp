@@ -16,6 +16,7 @@ Response::Response()
     this->status_code[500] = "Internal Server Error";
     this->status_code[505] = "HTTP Version Not Supported";
     this->status_code[204] = "No Content";
+    this->status_code[504] = "Gateway Timeout";
 
     this->body_size = 0;
     // this->file_fd = 0;

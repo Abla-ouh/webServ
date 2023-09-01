@@ -49,7 +49,7 @@ fclean: clean
 
 clean_files:
 	@echo "$(RED)$(BOLD)Cleaning files starting with 'file_'...$(RESET)"
-	rm -f ./tmp/file_*
+	rm -f file_*
 
 re: fclean all
 

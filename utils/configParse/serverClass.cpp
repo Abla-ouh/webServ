@@ -15,10 +15,12 @@ server::server()
 	this->setErrorPage("500", "error_pages/500.html");
 	this->setErrorPage("505", "error_pages/505.html");
 	this->setErrorPage("204", "error_pages/204.html");
+	this->setErrorPage("504", "error_pages/504.html");
 	_port = "8080";
 	_host = "127.0.0.1";
 	_client_max_body_size = "1000000";
 	_root = "./";
+	//_index_page;
 	//_server_name;
 	//_virtual_servers;
 	//_err;
@@ -28,7 +30,7 @@ server::server()
 }
 
 
-void	server::getLocationContext(ifstream &in, string line, int *err)
+void	server::getLocationContext(ifstream &in, string line)
 {
 	location	loc;
 	string		key = "", value = "";
@@ -47,7 +49,6 @@ void	server::getLocationContext(ifstream &in, string line, int *err)
 	loc.setRoot(_root);
 	while (getline(in, line))
 	{
-		(*err)++;
 		int	returnValue = clean_line(line, key, value);
 		if (returnValue == 1)
 			continue;
@@ -87,6 +88,8 @@ void	server::getLocationContext(ifstream &in, string line, int *err)
 		else
 			throw(unvalidDirective());
 	}
+	if (loc.isCgi() && loc.getCgiPath().empty())
+		throw (unvalidConfigFile());
 	this->_locations.push_back(loc);
 }
 
@@ -143,7 +146,7 @@ void	server::checkHostPort()
     
     hint.ai_family = AF_INET;
     hint.ai_socktype = SOCK_STREAM;
-    if (getaddrinfo(this->getHost().c_str(), this->getPort().c_str(), &hint, &res))
+    if (getaddrinfo(this->getServerName().c_str(), this->getPort().c_str(), &hint, &res))
     {
         // freeaddrinfo(res); // sigfault when free res
 		throw runtime_error("ERROR : Can't resolve hostname\n");
@@ -159,7 +162,7 @@ void server::CreateSocket(server servers)
     hint.ai_socktype = SOCK_STREAM;
     int yes = 1;
 
-    if (getaddrinfo(servers.getHost().c_str(), servers.getPort().c_str(), &hint, &res))
+    if (getaddrinfo(servers.getServerName().c_str(), servers.getPort().c_str(), &hint, &res))
     {
 		//cout << getaddrinfo(servers.getServerName().c_str(), servers.getPort().c_str(), &hint, &res) << std::endl;
 		//throw runtime_error("ERROR : Can't resolve hostname");

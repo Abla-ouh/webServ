@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Client.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ybel-hac <ybel-hac@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ebelkhei <ebelkhei@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/02 18:35:35 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/08/31 23:24:34 by ybel-hac         ###   ########.fr       */
+/*   Updated: 2023/08/31 23:13:17 by ebelkhei         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,15 +33,11 @@ std::string RandomString(int length) {
 
 Client::Client() : currentState(HEADER_READING)
 {
-	this->err = 1;
     this->locations = _server.getLocation();
     this->status = 0; 
     this->state = BUILDING;
     memset(data, 0, 8000);
-    std::string p = "/tmp/file_";
-
-	// if (access("./tmp", F_OK))
-		// p = "file_";
+    std::string p = "file_";
 	file_name = p.append(RandomString(6));
     //file_name = "request_body";
 
@@ -55,7 +51,7 @@ Client::Client() : currentState(HEADER_READING)
     ready = false;
 	hex_len = 0;
 	chunk_size = 0;
-    
+    this->child_pid = 0;
 }
 
 Client::~Client()

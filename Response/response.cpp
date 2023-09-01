@@ -1,16 +1,18 @@
 #include "../HTTPServer.hpp"
 
-void check_errors(Client &client, int code)
+void check_errors(Client &client, int code, int &err)
 {
     std::stringstream ss;
     int fd;
 
+    client.setState(FILE_READING);
+    err = 0;
     ss << code;
     std::map<std::string, std::string> errors = client.getServer().getErrorPage();
     fd = open(errors[ss.str()].c_str(), O_RDONLY);
     if (fd < 0)
     {
-        check_errors(client, 500);
+        check_errors(client, 500, err);
         return;
     }
     client.getResponse().setFileFd(fd);
@@ -53,7 +55,7 @@ void checkResourceExistence(const char *res, int &fd, bool &isDir, Client &clien
         client.setStatus(404);
 }
 
-void getFile(Client &client, int s)
+void getFile(Client &client, int &s)
 {
     char c;
     int max = 2048;
@@ -62,7 +64,7 @@ void getFile(Client &client, int s)
 
     if (client.getResponse().getFileFd() < 0)
     {
-        check_errors(client, 500);
+        check_errors(client, 500, s);
         client.setStatus(500);
     }
 
@@ -79,6 +81,11 @@ void getFile(Client &client, int s)
             client.setStatus(200);
         client.setState(BUILDING_2);
     }
+    else if (a < 0)
+    {
+        check_errors(client, 500, s);
+        client.setStatus(500);
+    }
 }
 
 void getDir(Client &client, std::string src)
@@ -90,9 +97,6 @@ void getDir(Client &client, std::string src)
 
     tmp = client.getRequest().getURI();
     indexes = client.getlocation().getIndex();
-
-    std::cout << "TMP: " << tmp << std::endl;
-
     if (tmp[tmp.length() - 1] != '/')
     {
         client.getResponse().setLocationUrl(client.getResponse().getOldUrl() + "/");
@@ -208,11 +212,13 @@ void sendCgi(Client &client);
 
 void response(Client &client)
 {
-
+    int         err;
     std::string tmp;
     std::string src;
     std::string root;
     std::string &response = client.getResponse().getResponse();
+
+    err = 1;
 
     if (client.getState() == BUILDING)
     {
@@ -243,21 +249,12 @@ void response(Client &client)
                 handleDeleteRequest(client, src);
         
         }
-        if (client.getStatus() != 200 && client.getStatus())
-        {
-            std::cout << "ERROR: " << client.getStatus() << std::endl;
-            client.setState(FILE_READING);
-            check_errors(client, client.getStatus());
-            client.err = 0;
-        }
+        if (client.getStatus() != 200 && client.getStatus()) 
+            check_errors(client, client.getStatus(), err);
     }
     
-	if (client.getState() == MOVING_FILE)
-		writeToNewFile(client);
-
     if (client.getState() == FILE_READING)
-        getFile(client, client.err);
-
+        getFile(client, err);
 
     if (client.getState() == BUILDING_2)
     {
@@ -271,12 +268,23 @@ void response(Client &client)
         // Check if CGI timed out
         // if CGI has done, set state to SENDING. Else, close connection and set the appropriate status.
         // std::cout << "Waiting CGI" << std::endl;
+        if (time(0) - client.getStartTime() > 5)
+        {
+            std::cout << "CGI timed out" << std::endl;
+            err = 1;
+            client.setStatus(504);
+            check_errors(client, 504, err);
+            return;
+        }
         pid_t pid = waitpid(client.getChildPid(), NULL, WNOHANG);
         if (pid == -1)
-            client.setState(DONE);
-            // client.setStatus(500);
+        {
+            client.setStatus(500);
+            check_errors(client, 500, err);
+        }
         else if (pid)
         {
+            client.setChildPid(0);
             lseek(client.getCgiFd(), 0, SEEK_SET);
             client.setState(SENDING_CGI);
         }
@@ -313,6 +321,12 @@ void sendCgi(Client &client)
 		rd = read(client.getCgiFd(), buff, size - 1);
 		if (rd)
 		{
+            if (rd < 0)
+            {
+                check_errors(client, 500, r);
+                client.setStatus(500);
+                return;
+            }
 			content += buff;
 			if (content.find("Status: ") != string::npos && content.find("Status: ") < content.find("\r\n\r\n"))
 			{
@@ -329,19 +343,31 @@ void sendCgi(Client &client)
 	}
 	header.insert(0, status);
     lseek(client.getCgiFd(), readed, SEEK_SET);
-    send(client.getClientSocket(), header.c_str(), header.size(), 0);
+    std::cout << "*******\n" << header << std::endl;
+    if (send(client.getClientSocket(), header.c_str(), header.size(), 0) <= 0)
+    {
+        std::cout << "Client Closed the connection: " << std::endl;
+        client.setState(DONE);
+        return;
+    }
     while (size--)
     {
         r = read(client.getCgiFd(), &c, 1);
         if (r <= 0)
             break;
         a = send(client.getClientSocket(), &c, 1, 0);
-        if (a < 0)
+        if (a <= 0)
         {
             std::cout << "Client Closed the connection: " << std::endl;
             client.setState(DONE);
             return;
         } 
+    }
+    if (r < 0)
+    {
+        check_errors(client, 500, r);
+        client.setStatus(500);
+        return;
     }
     if (r && !client.getResponse().getBodySize())
         client.getResponse().getBodySize()++;
@@ -361,7 +387,7 @@ void sendResponse(Client &client)
     if (client.getResponse().getResponse().length())
     {
         response = client.getResponse().getResponse();
-        // std::cout << "\n\nResponse: \n\n\n" << response;
+        std::cout << "*******\n" << response << std::endl;
         if (send(client.getClientSocket(), response.c_str(), response.size(), 0) < 0)
         {
             std::cout << "Client Closed the connection: " << std::endl;
@@ -378,6 +404,7 @@ void sendResponse(Client &client)
         {
             if ((r = read(client.getResponse().getFileFd(), &c, 1)) <= 0)
                 break;
+            std::cout << c;
             a = send(client.getClientSocket(), &c, 1, 0);
             if (a < 0)
             {
@@ -385,16 +412,22 @@ void sendResponse(Client &client)
                 client.setState(DONE);
                 return;
             }
-            else if (a < 1)
-            {
-                client.getResponse().setResponse(static_cast<std::string>(&c));
-                break;
-            }
             client.getResponse().getBodySize()--;
         }
+    }
+    if (r < 0)
+    {
+        check_errors(client, 500, r);
+        client.setStatus(500);
+        return;
     }
     if (r && !client.getResponse().getBodySize())
         client.getResponse().getBodySize()++;
     if (!r || !client.getResponse().getBodySize())
         client.setState(DONE);
 }
+
+
+
+
+// Fix the Status in CGI timeout

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HTTPServer.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ybel-hac <ybel-hac@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ebelkhei <ebelkhei@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/02 18:20:47 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/09/01 11:52:16 by ybel-hac         ###   ########.fr       */
+/*   Updated: 2023/08/31 23:32:38 by ebelkhei         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -86,7 +86,7 @@ void HTTPServer::start()
     int maxSocket = -1;
 
     // signal(SIGINT, SIG_IGN);
-	signal(SIGPIPE, SIG_IGN);
+
     FD_ZERO(&readSet);
     FD_ZERO(&writeSet);
     
@@ -116,21 +116,26 @@ void HTTPServer::start()
             client_it = clients.begin();
             while (this->clients.size() && client_it != clients.end())
             {
-                if (FD_ISSET(client_it->getClientSocket(), &tmp_readSet))
+                if (FD_ISSET((*client_it).getClientSocket(), &tmp_readSet))
                     handleRequest(*client_it, writeSet, readSet);
 
-                if (FD_ISSET(client_it->getClientSocket(), &tmp_writeSet))
+                if (FD_ISSET((*client_it).getClientSocket(), &tmp_writeSet))
                 {
                     response(*client_it);
                     if (client_it->getState() == DONE)
                     {
+                        if (client_it->getChildPid() != 0)
+                        {
+                            kill(client_it->getChildPid(), SIGKILL);
+                            client_it->setChildPid(0);    
+                        }
                         std::cout << "Dropping client " << std::endl;
                         if (client_it->getClientSocket() == maxSocket)
                             maxSocket--;
                         close(client_it->getResponse().getFileFd());
-                        close(client_it->getClientSocket());
-                        FD_CLR(client_it->getClientSocket(), &writeSet);
-                        FD_CLR(client_it->getClientSocket(), &readSet);
+                        close((*client_it).getClientSocket());
+                        FD_CLR((*client_it).getClientSocket(), &writeSet);
+                        FD_CLR((*client_it).getClientSocket(), &readSet);
                         client_it = clients.erase(client_it);
                         continue;
                     }

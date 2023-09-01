@@ -1,21 +1,17 @@
-#!/usr/bin/env python3
+import time
 
-#  generate an HTTP header that prints the argumnets passed to the script
+print("Content-type: text/html\n")
+print("<html>")
+print("<head>")
+print("<title>Delayed CGI Example</title>")
+print("</head>")
+print("<body>")
+print("<h1>Delayed Python CGI Example</h1>")
+print("<p>This is a delayed response.</p>")
 
-import sys
+# Introduce a delay of 5 seconds
+time.sleep(50)
 
-def main():
-    # Get all command-line arguments except the script name itself
-    print("Content-Type: text/plain\r\n")
-    print("\r\n")
-    arguments = sys.argv[1:]
-    
-    if arguments:
-        print("Arguments passed:")
-        for arg in arguments:
-            print(arg)
-    else:
-        print("No arguments passed.")
-
-if __name__ == "__main__":
-    main()
+print("<p>Delayed response is complete!</p>")
+print("</body>")
+print("</html>")

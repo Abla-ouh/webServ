@@ -55,26 +55,19 @@ void	dir_has_index_file(Client& client, location loc, Request req)
 	}
 }
 
-void	writeToNewFile(Client &client)
-{
-	int		rd;
-	char	buffer[2048];
 
-	memset(buffer, 0, 2048);
-	rd = read(client.uploadedInFile, buffer, 2047);
-	if (rd > 0)
-		write(client.uploadedOutFile, buffer, rd);
-	if (rd <= 0)
-	{
-		perror("");
-		close(client.uploadedOutFile);
-		close(client.uploadedInFile);
-		client.setStatus(201);
-		client.err = 0;
-		client.setState(FILE_READING);
-		check_errors(client, client.getStatus());
-	}
-}
+// ! test body
+
+string b = "<!DOCTYPE html>\n\
+<html>\n\
+<head>\n\
+    <title>Hello, World!</title>\n\
+</head>\n\
+<body>\n\
+    <h1>Hello, World!</h1>\n\
+    <p>This is a simple HTML page.</p>\n\
+</body>\n\
+</html>";
 
 void Post(Request& req, location& loc, Client &client)
 {
@@ -94,15 +87,16 @@ void Post(Request& req, location& loc, Client &client)
 			return (client.setStatus(403));
 		}
 		string	random = generateName();
-		cout << YELLOW << req.getHeader("Content-Type") << RESET <<"\n";
-		int file = open((uploadDir + "/" + random).c_str(), O_CREAT | O_WRONLY, 0644);
+		ofstream file((uploadDir + "/" + random).c_str());
 		if (!file)
 		{
 			perror((uploadDir + "/" + random).c_str());
 			return (client.setStatus(403));
 		}
-		client.uploadedOutFile = file;
-		client.setState(MOVING_FILE);
+		if (rename(client.file_name.c_str(), (uploadDir + "/" + random).c_str()) < 0)
+			client.setStatus(500);
+		else
+			client.setStatus(201);
 	}
 	//? location doesn't support upload
 	else
