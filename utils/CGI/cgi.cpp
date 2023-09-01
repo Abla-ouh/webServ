@@ -12,8 +12,8 @@ void	CGI::setCgiEnv(Request req, Client &client, string interpreter, string scri
 	_env["CONTENT_TYPE"] = req.getHeader("Content-Type");
 	_env["REQUEST_URI"] = req.getURI();
 	_env["AUTH_TYPE"] = "1.1";
-	_env["PAHT_INFO"] = client.getlocation().getPath();
-	_env["PAHT_TRANSLATED"] = client.getlocation().getPath();
+	_env["PATH_INFO"] = req.getURI();
+	_env["PATH_TRANSLATED"] = client.getlocation().getPath();
 	_env["QUERY_STRING"] = !req.getQuery().empty() ? req.getQuery().substr(1) : "";
 	_env["REMOTE_ADDR"] = client.getServer().getHost();
 	_env["REMOTE_IDENT"] = req.getHeader("Authorization");
@@ -25,7 +25,7 @@ void	CGI::setCgiEnv(Request req, Client &client, string interpreter, string scri
 	// cout << RED + itt->lang << "\n";
 	_env["SERVER_NAME"] = _env["REMOTE_ADDR"];
 	_env["SERVER_PORT"] = client.getServer().getPort();
-	_env["SERVER_PROTOCOL"] = ("HTTP/" + req.getVersion());
+	_env["SERVER_PROTOCOL"] = ("HTTP/1.1");
 	_env["SERVER_NAME"] = client.getServer().getHost();
 	_env["SERVER_SOFTWARE"] = client.getServer().getServerName() + '/' + req.getVersion();
 	_env["GATEWAY_INTERFACE"] = "1.1";
@@ -75,16 +75,6 @@ void CGI::cgi_executor(Client& client, string scritpPath, string requestFile, st
 		perror("execve");
 		exit(1);
 	}
-
-	// if (waitpid(-1, &status, WNOHANG) == -1)
-	// 	client.setStatus(500);
-	// else if (waitpid(-1, &status, WNOHANG))
-	// {
-	// 	client.setCgiFd(fileno(outfd));
-	// 	client.setState(DONE);
-	// }
-	// else
-	// 	client.setState(WAITING_CGI);
 }
 
 void	run_cgi(Client &client, string requestFile)
@@ -114,14 +104,6 @@ void	run_cgi(Client &client, string requestFile)
 	}
 	if (interpreter != obj.end() && access(interpreter->second.c_str(), X_OK))
 		return (client.setStatus(500), perror(interpreter->second.c_str()));
-	// if (requestFile.substr(requestFile.length() - (interpreter->first.length() + 1)) != ("." + interpreter->first))
-	// 	return (client.setState(DONE), client.setStatus(404));
 
 	cgi.cgi_executor(client, client.getlocation().getRoot() + '/' + client.getRequest().getURI(), requestFile, interpreter->second);
 }
-
-// int main()
-// {
-// 	cgi_handler();
-// 	return (0);
-// }

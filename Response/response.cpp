@@ -361,7 +361,7 @@ void sendResponse(Client &client)
     if (client.getResponse().getResponse().length())
     {
         response = client.getResponse().getResponse();
-        std::cout << "\n\nResponse: \n\n\n" << response;
+        // std::cout << "\n\nResponse: \n\n\n" << response;
         if (send(client.getClientSocket(), response.c_str(), response.size(), 0) < 0)
         {
             std::cout << "Client Closed the connection: " << std::endl;
@@ -378,7 +378,6 @@ void sendResponse(Client &client)
         {
             if ((r = read(client.getResponse().getFileFd(), &c, 1)) <= 0)
                 break;
-            std::cout << c;
             a = send(client.getClientSocket(), &c, 1, 0);
             if (a < 0)
             {

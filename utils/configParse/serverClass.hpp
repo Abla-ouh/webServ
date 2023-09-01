@@ -77,7 +77,7 @@ class server {
 		string					getServerName(){return (_server_name);};
 		map<string, string>&	getErrorPage(){return (_error_pages);};
 		vector<location>		getLocation(){return (_locations);};
-		void					getLocationContext(ifstream &in, string line);
+		void					getLocationContext(ifstream &in, string line, int *err);
 		int						getServerSocket() { return server_socket;};
 		void					print();
         void    				CreateSocket(server servers);

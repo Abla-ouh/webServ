@@ -8,6 +8,7 @@ void	configFile::getServerContext(ifstream &in, string &line)
 
 	while (getline(in, line))
 	{
+		(*_err)++;
 		tmp = line;
 		_full_file += line + "\n";
 		int returnValue = clean_line(line, key, value);
@@ -38,7 +39,7 @@ void	configFile::getServerContext(ifstream &in, string &line)
 			serv.setErrorPage(key, val);
 		}
 		else if (key == "location" && value.find_first_of("{") < value.length())
-			serv.getLocationContext(in, value.find_first_not_of(" 	{") < value.length() ? line : throw (unvalidDirective()));
+			serv.getLocationContext(in, value.find_first_not_of(" 	{") < value.length() ? line : throw (unvalidDirective()), _err);
 		else
 			throw (unvalidDirective());
 	}
@@ -55,7 +56,7 @@ void	configFile::getServerContext(ifstream &in, string &line)
 // TODO : location => get data done √
 // TODO :
 
-configFile::configFile(const string file, char **env) : _full_file(""), _env(env)
+configFile::configFile(const string file, char **env, int *err) : _full_file(""), _env(env), _err(err)
 {
 	check_file(file, "read");
 	check_braces(file);
@@ -64,6 +65,7 @@ configFile::configFile(const string file, char **env) : _full_file(""), _env(env
 
 	for (; getline(in, line);)
 	{
+		(*_err)++;
 		line.erase(0, line.find_first_not_of(" 	"));
 		if (line[0] == '#' || line.length() < 1)
 			continue;

@@ -28,7 +28,7 @@ server::server()
 }
 
 
-void	server::getLocationContext(ifstream &in, string line)
+void	server::getLocationContext(ifstream &in, string line, int *err)
 {
 	location	loc;
 	string		key = "", value = "";
@@ -47,6 +47,7 @@ void	server::getLocationContext(ifstream &in, string line)
 	loc.setRoot(_root);
 	while (getline(in, line))
 	{
+		(*err)++;
 		int	returnValue = clean_line(line, key, value);
 		if (returnValue == 1)
 			continue;
