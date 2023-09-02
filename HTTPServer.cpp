@@ -3,17 +3,17 @@
 /*                                                        :::      ::::::::   */
 /*   HTTPServer.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ybel-hac <ybel-hac@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ebelkhei <ebelkhei@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/02 18:20:47 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/09/01 16:29:45 by ybel-hac         ###   ########.fr       */
+/*   Updated: 2023/09/02 22:56:01 by ebelkhei         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-
 #include "HTTPServer.hpp"
 
-HTTPServer::HTTPServer(configFile& obj) {
+HTTPServer::HTTPServer(configFile &obj)
+{
     std::vector<server> vec = obj.getServers();
     for (size_t i = 0; i < vec.size(); i++)
         servers.push_back(vec[i]);
@@ -21,7 +21,6 @@ HTTPServer::HTTPServer(configFile& obj) {
 
 HTTPServer::~HTTPServer()
 {
-    
 }
 
 void HTTPServer::createConnections()
@@ -30,25 +29,22 @@ void HTTPServer::createConnections()
     for (size_t i = 0; i < servers.size(); i++)
     {
         servers[i].CreateSocket(servers[i]);
-        std:: cout << "Listening on port: " << RED << servers[i].getPort() << WHITE <<std::endl;
+        std::cout << "Listening on port: " << RED << servers[i].getPort() << WHITE << std::endl;
     }
 }
 
-void HTTPServer::removeClient(int clientSocket)
+void HTTPServer::removeClient(std::vector<Client>::iterator &client_it, int &maxSocket)
 {
-    for (std::vector<Client>::iterator it = clients.begin(); it != clients.end(); it++)
-    {
-        if ((*it).getClientSocket() == clientSocket)
-        {
-            close(clientSocket);
-            clients.erase(it);
-            std::cout << " Client Disconnected." << std::endl;
-            break;
-        }
-    }
+    std::cout << "Dropping client " << std::endl;
+
+    if (client_it->getClientSocket() == maxSocket)
+        maxSocket--;
+    close(client_it->getResponse().getFileFd());
+    close(client_it->getClientSocket());
+    client_it = clients.erase(client_it);
 }
 
-void acceptNewClient(std::vector<server>& servers, std::vector<Client>& clients, fd_set& rd, fd_set& tmp_rd, int& maxSocket)
+void acceptNewClient(std::vector<server> &servers, std::vector<Client> &clients, fd_set &rd, fd_set &tmp_rd, int &maxSocket)
 {
     std::vector<server>::iterator it = servers.begin();
 
@@ -58,7 +54,7 @@ void acceptNewClient(std::vector<server>& servers, std::vector<Client>& clients,
         {
             Client newClient;
             newClient.setClientSocket(accept((*it).getServerSocket(), NULL, NULL));
-            
+
             if (newClient.getClientSocket() == -1)
             {
                 std::cerr << "Failed to accept client connection" << std::endl;
@@ -70,26 +66,24 @@ void acceptNewClient(std::vector<server>& servers, std::vector<Client>& clients,
             newClient.setServer(*it);
             FD_SET(newClient.getClientSocket(), &rd);
             clients.push_back(newClient); // New client will be destoyed but its client_socket will keep the return from accept
-            std::cout << YELLOW <<"New Client request !" << WHITE << std::endl;
+            std::cout << YELLOW << "New Client request !" << WHITE << std::endl;
         }
         it++;
     }
 }
 
-
 void HTTPServer::start()
 {
     fd_set readSet, writeSet, tmp_readSet, tmp_writeSet;
-	int		err = 0;
+    int err = 0;
     std::vector<Client>::iterator client_it;
     std::vector<server>::iterator server_it = this->servers.begin();
     int maxSocket = -1;
 
-    // signal(SIGINT, SIG_IGN);
-	signal(SIGPIPE, SIG_IGN);
+    signal(SIGPIPE, SIG_IGN);
     FD_ZERO(&readSet);
     FD_ZERO(&writeSet);
-    
+
     createConnections();
     while (server_it != servers.end())
     {
@@ -98,13 +92,16 @@ void HTTPServer::start()
             maxSocket = (*server_it).getServerSocket();
         server_it++;
     }
-    
-    while(true)
+
+    while (true)
     {
+        FD_ZERO(&tmp_readSet);
+        FD_ZERO(&tmp_writeSet);
+
         tmp_readSet = readSet;
         tmp_writeSet = writeSet;
 
-		err = select(maxSocket + 1, &tmp_readSet, &tmp_writeSet, NULL, NULL);
+        err = select(maxSocket + 1, &tmp_readSet, &tmp_writeSet, NULL, NULL);
         if (err < 0)
         {
             std::perror("select() Error ");
@@ -112,12 +109,12 @@ void HTTPServer::start()
         }
         else
         {
-            acceptNewClient(servers, clients, readSet, tmp_readSet, maxSocket); // each accepted client with its own virtual server
+            acceptNewClient(servers, clients, readSet, tmp_readSet, maxSocket);
             client_it = clients.begin();
             while (this->clients.size() && client_it != clients.end())
             {
                 if (FD_ISSET((*client_it).getClientSocket(), &tmp_readSet))
-                    handleRequest(*client_it, writeSet, readSet);
+                    handleRequest(client_it, writeSet, readSet, maxSocket);
 
                 if (FD_ISSET((*client_it).getClientSocket(), &tmp_writeSet))
                 {
@@ -127,16 +124,10 @@ void HTTPServer::start()
                         if (client_it->getChildPid() != 0)
                         {
                             kill(client_it->getChildPid(), SIGKILL);
-                            client_it->setChildPid(0);    
+                            client_it->setChildPid(0);
                         }
-                        std::cout << "Dropping client " << std::endl;
-                        if (client_it->getClientSocket() == maxSocket)
-                            maxSocket--;
-                        close(client_it->getResponse().getFileFd());
-                        close((*client_it).getClientSocket());
                         FD_CLR((*client_it).getClientSocket(), &writeSet);
-                        FD_CLR((*client_it).getClientSocket(), &readSet);
-                        client_it = clients.erase(client_it);
+                        removeClient(client_it, maxSocket);
                         continue;
                     }
                 }

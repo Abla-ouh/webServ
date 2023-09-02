@@ -19,7 +19,7 @@ Response::Response()
     this->status_code[504] = "Gateway Timeout";
 
     this->body_size = 0;
-    // this->file_fd = 0;
+    this->file_fd = 0;
 }
 
 std::string Response::getStatusLine(int code)
