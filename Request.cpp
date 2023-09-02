@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ebelkhei <ebelkhei@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ybel-hac <ybel-hac@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/08 16:57:48 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/09/02 22:43:44 by ebelkhei         ###   ########.fr       */
+/*   Updated: 2023/09/02 23:21:17 by ybel-hac         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -93,22 +93,17 @@ std::string &Request::getHeader(const std::string &key)
 
 void Request::parseHeaders(const std::string &headersBlock)
 {
-    size_t pos = 0;
-    while (pos < headersBlock.size())
-    {
-        size_t lineEnd = headersBlock.find("\r\n", pos);
-        if (lineEnd == std::string::npos) // no more \r\n sequences are found
-            break;
-        std::string headerLine = headersBlock.substr(pos, lineEnd - pos); // Extract the current header
-        size_t colonPos = headerLine.find(": ");
-        if (colonPos != std::string::npos)
-        { // colon separator is found
-            std::string key = headerLine.substr(0, colonPos);
-            std::string value = headerLine.substr(colonPos + 2); // +2 skip the colon and space
-            headers[key] = value;                                // store key-value pair
-        }
-        pos = lineEnd + 2; // move nextLine + skip \r\n
-    }
+	string	headersBlock2 = headersBlock;
+
+	headersBlock2.append("\r\n\r\n");
+	while (headersBlock2.find("\r\n\r\n") != string::npos)
+	{
+		string line = headersBlock2.substr(0, headersBlock2.find("\r\n"));
+		headersBlock2.erase(0, headersBlock2.find("\r\n") + 2);
+		string key = line.substr(0, line.find(":"));
+		string value = line.substr(line.find(":") + 2);
+		headers[key] = value;
+	}
 }
 
 bool Request::isValid_URI_Char(char c)

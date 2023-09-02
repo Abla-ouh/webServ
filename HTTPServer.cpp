@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HTTPServer.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ebelkhei <ebelkhei@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ybel-hac <ybel-hac@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/02 18:20:47 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/09/02 22:56:01 by ebelkhei         ###   ########.fr       */
+/*   Updated: 2023/09/02 23:35:45 by ybel-hac         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -114,7 +114,8 @@ void HTTPServer::start()
             while (this->clients.size() && client_it != clients.end())
             {
                 if (FD_ISSET((*client_it).getClientSocket(), &tmp_readSet))
-                    handleRequest(client_it, writeSet, readSet, maxSocket);
+                    if (!handleRequest(client_it, writeSet, readSet, maxSocket))
+						continue;
 
                 if (FD_ISSET((*client_it).getClientSocket(), &tmp_writeSet))
                 {

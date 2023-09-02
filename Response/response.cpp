@@ -176,6 +176,8 @@ void buildResponse(Client &client, std::string &response)
     ss << client.getResponse().getBodySize();
     response = client.getResponse().getStatusLine(client.getStatus()) + crlf;
     response += "Server: " + client.getResponse().getServer() + crlf;
+	// response += ; // ! cookies
+	// response += ;
     if (client.getResponse().getLocationUrl().length())
         response += "Location: " + client.getResponse().getLocationUrl() + crlf;
     response += "Content-Length: " + ss.str() + crlf;

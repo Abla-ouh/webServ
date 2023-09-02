@@ -94,16 +94,15 @@ void Post(Request& req, location& loc, Client &client)
 			return (client.setStatus(403));
 		}
 		string	random = generateName();
-		ofstream file((uploadDir + "/" + random).c_str());
+		string	extension = "." + req.getHeader("Content-Type").substr(req.getHeader("Content-Type").find('/') + 1);
+		int file = open((uploadDir + "/" + random + extension).c_str(), O_CREAT | O_WRONLY, 0644);
 		if (!file)
 		{
 			perror((uploadDir + "/" + random).c_str());
 			return (client.setStatus(403));
 		}
-		if (rename(client.file_name.c_str(), (uploadDir + "/" + random).c_str()) < 0)
-			client.setStatus(500);
-		else
-			client.setStatus(201);
+		client.uploadedOutFile = file;
+		client.setState(MOVING_FILE);
 	}
 	//? location doesn't support upload
 	else

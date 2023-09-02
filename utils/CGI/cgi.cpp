@@ -6,6 +6,7 @@ using namespace std;
 void	CGI::setCgiEnv(Request req, Client &client, string interpreter, string scritpPath)
 {
 	_client = client;
+	_env["Cookie"] = req.getHeader("Cookie");
 	_env["HTTP_HOST"] = req.getHeader("Host"); // ! check
 	_env["PATH"] = client.getServer().getRoot();
 	_env["CONTENT_LENGTH"] = req.getHeader("Content-Length");
