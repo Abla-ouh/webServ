@@ -53,7 +53,7 @@ void checkResourceExistence(const char *res, int &fd, bool &isDir, Client &clien
         client.setStatus(404);
 }
 
-void getFile(Client &client, bool s)
+void getFile(Client &client, int s)
 {
     char c;
     int max = 2048;
@@ -90,6 +90,9 @@ void getDir(Client &client, std::string src)
 
     tmp = client.getRequest().getURI();
     indexes = client.getlocation().getIndex();
+
+    std::cout << "TMP: " << tmp << std::endl;
+
     if (tmp[tmp.length() - 1] != '/')
     {
         client.getResponse().setLocationUrl(client.getResponse().getOldUrl() + "/");
@@ -119,7 +122,8 @@ void getDir(Client &client, std::string src)
         }
         client.setStatus(404);
     }
-    if (client.getlocation().getAutoIndex() == "off")
+    std::cout << "AUTOINDEX: " << client.getlocation().getAutoIndex() << std::endl;
+    if (client.getlocation().getAutoIndex().empty())
         client.setStatus(403);
     else
     {
@@ -145,10 +149,8 @@ void get(Client &client, std::string src)
     {
         if (client.getlocation().isCgi())
         {
-            std::cout << "code 1: " << client.getStatus() << std::endl;
             client.setState(WAITING_CGI);
             run_cgi(client, src);
-            std::cout << "code 2: " << client.getStatus() << std::endl;
             return;
         }
         client.getResponse().setFileFd(fd);
@@ -206,6 +208,7 @@ void sendCgi(Client &client);
 
 void response(Client &client)
 {
+
     std::string tmp;
     std::string src;
     std::string root;
@@ -218,6 +221,7 @@ void response(Client &client)
         root = client.getlocation().getRoot();
         tmp = client.getRequest().getURI();
 
+
         if (tmp[0] == '/' && root[root.length() - 1] == '/' && tmp.length() > 1)
             tmp.erase(0, 1);
 
@@ -226,6 +230,8 @@ void response(Client &client)
         std::cout << "SRC: " << src << std::endl;
         if (!client.getStatus())
             check_redirections(client);
+
+        std::cout << "Method: " << client.getRequest().getMethod() << std::endl;
 
         if (!client.getStatus())
         {
@@ -242,12 +248,16 @@ void response(Client &client)
             std::cout << "ERROR: " << client.getStatus() << std::endl;
             client.setState(FILE_READING);
             check_errors(client, client.getStatus());
-            getFile(client, 0);
+            client.err = 0;
         }
     }
     
+	if (client.getState() == MOVING_FILE)
+		writeToNewFile(client);
+
     if (client.getState() == FILE_READING)
-        getFile(client, 1);
+        getFile(client, client.err);
+
 
     if (client.getState() == BUILDING_2)
     {
@@ -269,7 +279,6 @@ void response(Client &client)
         {
             lseek(client.getCgiFd(), 0, SEEK_SET);
             client.setState(SENDING_CGI);
-            std::cout << "FD li wssel: " << client.getCgiFd() << std::endl;
         }
 
     }
@@ -320,7 +329,7 @@ void sendCgi(Client &client)
 	}
 	header.insert(0, status);
     lseek(client.getCgiFd(), readed, SEEK_SET);
-    send(client.getClientSocket(), status.c_str(), status.size(), 0);
+    send(client.getClientSocket(), header.c_str(), header.size(), 0);
     while (size--)
     {
         r = read(client.getCgiFd(), &c, 1);
@@ -334,7 +343,9 @@ void sendCgi(Client &client)
             return;
         } 
     }
-    if (!r)
+    if (r && !client.getResponse().getBodySize())
+        client.getResponse().getBodySize()++;
+    if (!r || !client.getResponse().getBodySize())
         client.setState(DONE);
 }
 
@@ -350,7 +361,7 @@ void sendResponse(Client &client)
     if (client.getResponse().getResponse().length())
     {
         response = client.getResponse().getResponse();
-        std::cout << "*******\n" << response << std::endl;
+        // std::cout << "\n\nResponse: \n\n\n" << response;
         if (send(client.getClientSocket(), response.c_str(), response.size(), 0) < 0)
         {
             std::cout << "Client Closed the connection: " << std::endl;
@@ -367,7 +378,6 @@ void sendResponse(Client &client)
         {
             if ((r = read(client.getResponse().getFileFd(), &c, 1)) <= 0)
                 break;
-            // std::cout << c;
             a = send(client.getClientSocket(), &c, 1, 0);
             if (a < 0)
             {
@@ -383,8 +393,8 @@ void sendResponse(Client &client)
             client.getResponse().getBodySize()--;
         }
     }
-    // std::cout << "Response: " << response << std::endl;
-    // std::cout << "Body size left: " << client.getResponse().getBodySize() << std::endl;
-    if (!client.getResponse().getBodySize() || !r)
+    if (r && !client.getResponse().getBodySize())
+        client.getResponse().getBodySize()++;
+    if (!r || !client.getResponse().getBodySize())
         client.setState(DONE);
 }

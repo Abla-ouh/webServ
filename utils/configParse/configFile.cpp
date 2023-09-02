@@ -8,6 +8,7 @@ void	configFile::getServerContext(ifstream &in, string &line)
 
 	while (getline(in, line))
 	{
+		(*_err)++;
 		tmp = line;
 		_full_file += line + "\n";
 		int returnValue = clean_line(line, key, value);
@@ -23,8 +24,6 @@ void	configFile::getServerContext(ifstream &in, string &line)
 			serv.setPort(count_argument(value, 1) && check_number(value) && check_range(value, 0, 65536) ? value : "");
 		else if (key == "host")
 			serv.setHost(count_argument(value, 1) && check_host(value) ? value : "");
-		else if (key == "index")
-			get_multiple_args(value, serv.getIndex());
 		else if (key == "server_name")
 			serv.setServerName(count_argument(value, 1) ? value : "");
 		else if (key == "client_max_body_size")
@@ -40,13 +39,13 @@ void	configFile::getServerContext(ifstream &in, string &line)
 			serv.setErrorPage(key, val);
 		}
 		else if (key == "location" && value.find_first_of("{") < value.length())
-			serv.getLocationContext(in, value.find_first_not_of(" 	{") < value.length() ? line : throw (unvalidDirective()));
+			serv.getLocationContext(in, value.find_first_not_of(" 	{") < value.length() ? line : throw (unvalidDirective()), _err);
 		else
 			throw (unvalidDirective());
 	}
-	if (serv.getPort().empty() || serv.getRoot().empty())
+	if (serv.getServerName().empty())
 		throw(unvalidConfigFile());
-	serv.checkHostPort();
+	//serv.checkHostPort();
 	serv.setEnv(_env);
 	_server.push_back(serv);
 }
@@ -57,7 +56,7 @@ void	configFile::getServerContext(ifstream &in, string &line)
 // TODO : location => get data done √
 // TODO :
 
-configFile::configFile(const string file, char **env) : _full_file(""), _env(env)
+configFile::configFile(const string file, char **env, int *err) : _full_file(""), _env(env), _err(err)
 {
 	check_file(file, "read");
 	check_braces(file);
@@ -66,6 +65,7 @@ configFile::configFile(const string file, char **env) : _full_file(""), _env(env
 
 	for (; getline(in, line);)
 	{
+		(*_err)++;
 		line.erase(0, line.find_first_not_of(" 	"));
 		if (line[0] == '#' || line.length() < 1)
 			continue;
@@ -79,6 +79,7 @@ configFile::configFile(const string file, char **env) : _full_file(""), _env(env
 	}
 	if (_server.empty())
 		throw(unvalidConfigFile());
+	lastCheck();
 }
 
 void	configFile::print()
@@ -103,10 +104,6 @@ void	configFile::print()
 		map<string, string>::iterator itt = mp.begin();
 		for (; itt != mp.end(); itt++)
 			cout << "|" << (*itt).first << "|"  << (*itt).second << "|" << "\n";
-		cout << GREEN "Index's: \n" WHITE;
-		vector<string> &vec = _server[i].getIndex();
-		for (size_t i = 0; i < vec.size(); i++)
-			cout << "|" << vec[i] << "|" << "\n";
 		_server[i].print();
 		cout << BLUE "-----------------------" WHITE << "\n";
 	}

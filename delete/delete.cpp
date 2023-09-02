@@ -80,6 +80,13 @@ void handleDeleteRequest(Client &client, std::string src)
     std::string tmp = client.getRequest().getURI();
     std::string rcs_type = get_resource_type(full_path.c_str(), client);
     std::string indexFile;
+    std::vector<std::string> allowed_methods = client.getlocation().getAllowMethodes();
+
+    if (find(allowed_methods.begin(), allowed_methods.end(), "GET") == allowed_methods.end())
+    {
+        client.setStatus(405);
+        return;
+    }
 
     if (client.getStatus())
         return;
@@ -109,7 +116,7 @@ void handleDeleteRequest(Client &client, std::string src)
             client.setStatus(409);
             return ;
         }
-        std::cout << "CGI " << client.getlocation().isCgi();
+        std::cout << "CGI " << client.getlocation().isCgi() << std::endl;
         if (client.getlocation().isCgi())
         {
             std::cout << "Has CGI\n";
@@ -118,7 +125,7 @@ void handleDeleteRequest(Client &client, std::string src)
             {
                 std::cout << "Has Index file\n";
                 client.setState(WAITING_CGI);
-                run_cgi(client, src);
+                run_cgi(client, indexFile);
             }
             else
                 client.setStatus(403);

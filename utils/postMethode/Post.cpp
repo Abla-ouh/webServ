@@ -49,29 +49,39 @@ void	dir_has_index_file(Client& client, location loc, Request req)
 		client.setStatus(403);
 	else
 	{
-		client.setStatus(201); // ? run cgi
+		client.setState(WAITING_CGI);
 		run_cgi(client, index);
 		cout << "*************** CGI EXECUTED***************\n\n";
 	}
 }
 
+void	writeToNewFile(Client &client)
+{
+	int		rd;
+	char	buffer[2048];
 
-// ! test body
-
-string b = "<!DOCTYPE html>\n\
-<html>\n\
-<head>\n\
-    <title>Hello, World!</title>\n\
-</head>\n\
-<body>\n\
-    <h1>Hello, World!</h1>\n\
-    <p>This is a simple HTML page.</p>\n\
-</body>\n\
-</html>";
+	memset(buffer, 0, 2048);
+	rd = read(client.uploadedInFile, buffer, 2047);
+	if (rd > 0)
+		write(client.uploadedOutFile, buffer, rd);
+	if (rd <= 0)
+	{
+		perror("");
+		close(client.uploadedOutFile);
+		close(client.uploadedInFile);
+		client.setStatus(201);
+		client.err = 0;
+		client.setState(FILE_READING);
+		check_errors(client, client.getStatus());
+	}
+}
 
 void Post(Request& req, location& loc, Client &client)
 {
-	string body = b;
+	if (find(client.getlocation().getAllowMethodes().begin(), client.getlocation().getAllowMethodes().end(), "POST") == client.getlocation().getAllowMethodes().end())
+		return (client.setStatus(405));
+	cout << RED "**************** POST ****************\n" WHITE;
+
 	if (loc.getUploadPath()[0] == '/')
 		loc.getUploadPath().erase(0, 1);
 	//? location support upload
@@ -84,25 +94,26 @@ void Post(Request& req, location& loc, Client &client)
 			return (client.setStatus(403));
 		}
 		string	random = generateName();
-		ofstream file((uploadDir + "/" + random).c_str());
+		cout << YELLOW << req.getHeader("Content-Type") << RESET <<"\n";
+		int file = open((uploadDir + "/" + random).c_str(), O_CREAT | O_WRONLY, 0644);
 		if (!file)
 		{
 			perror((uploadDir + "/" + random).c_str());
 			return (client.setStatus(403));
 		}
-		file.write(body.c_str(), body.length());
-		client.setStatus(201);
+		client.uploadedOutFile = file;
+		client.setState(MOVING_FILE);
 	}
 	//? location doesn't support upload
-	else if (req.getURI().length() > 0)
+	else
 	{
 		if (get_resource_type((loc.getRoot() + '/' + req.getURI()).c_str(), client) == "FILE") // * is file
 		{
 			if (loc.isCgi())
 			{
-				client.setStatus(201); // ? run cgi
+				client.setState(WAITING_CGI);
 				run_cgi(client, loc.getRoot() + '/' + req.getURI());
-				cout << "*************** CGI EXECUTED ***************\n\n";
+				cout << GREEN "*************** CGI EXECUTED ***************\n\n" RESET;
 			}
 			else
 			{
@@ -125,10 +136,5 @@ void Post(Request& req, location& loc, Client &client)
 			cout << "404 Not Found\n";
 			client.setStatus(404);
 		}
-	}
-	else
-	{
-		cout << "404 Not Found\n";
-		client.setStatus(404);
 	}
 }

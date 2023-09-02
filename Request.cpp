@@ -6,7 +6,7 @@
 /*   By: abouhaga <abouhaga@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/08 16:57:48 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/09/01 02:05:52 by abouhaga         ###   ########.fr       */
+/*   Updated: 2023/09/02 19:04:45 by abouhaga         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,6 +32,37 @@ Request::Request()
     
 }
 
+void Request::parseCookies(const std::string& cookieHeader)
+{
+    size_t i = 0;
+    while (i < cookieHeader.length())
+    {
+        size_t j = cookieHeader.find(';', i);
+        if (j == std::string::npos)
+            j = cookieHeader.length();
+        std::string cookiePair = cookieHeader.substr(i, j - i); 
+        size_t equals = cookiePair.find('=');
+        if (equals != std::string::npos)
+        {
+            std::string cookieName = cookiePair.substr(0, equals);
+            std::string cookieValue = cookiePair.substr(equals + 1);
+            // leading and trailing whitespace
+            size_t firstNonSpace = cookieName.find_first_not_of(" \t"); //first character that is not a space or a tab
+            size_t lastNonSpace = cookieName.find_last_not_of(" \t");
+            if (firstNonSpace != std::string::npos && lastNonSpace != std::string::npos) {
+                cookieName = cookieName.substr(firstNonSpace, lastNonSpace - firstNonSpace + 1); 
+            }
+            firstNonSpace = cookieValue.find_first_not_of(" \t");
+            lastNonSpace = cookieValue.find_last_not_of(" \t");
+            if (firstNonSpace != std::string::npos && lastNonSpace != std::string::npos) {
+                cookieValue = cookieValue.substr(firstNonSpace, lastNonSpace - firstNonSpace + 1);
+            }
+            cookies[cookieName] = cookieValue;
+        }
+        i = j + 1;
+    }
+}
+
 void Request::initRequest(const std::string& httpRequestHeader)
 {
     size_t pos = httpRequestHeader.find(" ");
@@ -51,14 +82,23 @@ void Request::initRequest(const std::string& httpRequestHeader)
     std::string headersBlock = remainingRequest.substr(pos);
     
     parseHeaders(headersBlock);
+    std::string cookieHeader = getHeader("Cookie");
+    if (!cookieHeader.empty()) {
+        parseCookies(cookieHeader); // Parse cookies from the "Cookie" header
+    }
     // std::cout << "method: " << method << std::endl;
     // std::cout << "uri: " << uri << std::endl;
     // std::cout << "query: " << query << std::endl;
     // std::cout << "version: " << version << std::endl;
-    // std::cout << "headers: " << std::endl;
-    // for (std::map<std::string, std::string>::const_iterator it = headers.begin(); it != headers.end(); ++it) {
-    //     std::cout << it->first << ": " << it->second << std::endl;
-    // }
+    std::cout << "headers: " << std::endl;
+    for (std::map<std::string, std::string>::const_iterator it = headers.begin(); it != headers.end(); ++it) {
+        std::cout << it->first << ": " << it->second << std::endl;
+    }
+    std::cout << "cookies: " << std::endl;
+    for (std::map<std::string, std::string>::const_iterator it = cookies.begin(); it != cookies.end(); ++it) {
+        std::cout << it->first << ": " << it->second << std::endl;
+    }
+    
 }
 
 
@@ -79,10 +119,11 @@ std::string& Request::getVersion()  {
     return version;
 }
 
+
 std::string& Request::getHeader(const std::string& key) {
     std::map<std::string, std::string>::iterator it = headers.find(key);
     if (it != headers.end()) {
-        return it->second; //returns the associated value
+        return it->second;
     }
     static std::string emptyHeader = ""; // there's no need to create a new instance of it every time the function is called
     return emptyHeader; //empty string 
@@ -90,20 +131,16 @@ std::string& Request::getHeader(const std::string& key) {
 
 void Request::parseHeaders(const std::string& headersBlock)
 {
-    size_t pos = 0;
-    while (pos < headersBlock.size())
+    string    headersBlock2 = headersBlock;
+
+    headersBlock2.append("\r\n\r\n");
+    while (headersBlock2.find("\r\n\r\n") != string::npos)
     {
-        size_t lineEnd = headersBlock.find("\r\n", pos);
-        if (lineEnd == std::string::npos) //no more \r\n sequences are found
-            break;
-        std::string headerLine = headersBlock.substr(pos, lineEnd - pos); //Extract the current header
-        size_t colonPos = headerLine.find(": ");
-        if (colonPos != std::string::npos) { //colon separator is found
-            std::string key = headerLine.substr(0, colonPos);
-            std::string value = headerLine.substr(colonPos + 2); // +2 skip the colon and space
-            headers[key] = value; //store key-value pair
-        }
-        pos = lineEnd + 2; //move nextLine + skip \r\n
+        string line = headersBlock2.substr(0, headersBlock2.find("\r\n"));
+        headersBlock2.erase(0, headersBlock2.find("\r\n") + 2);
+        string key = line.substr(0, line.find(":"));
+        string value = line.substr(line.find(":") + 2);
+        headers[key] = value;
     }
 }
 
@@ -131,6 +168,11 @@ bool RequestErrors(Request &request, Client &client)
     std::string transferEncoding = request.getHeader("Transfer-Encoding");
     std::string contentLengthStr = request.getHeader("Content-Length");
   
+    if (method != "GET" && method != "POST" && method != "DELETE")
+    {
+        client.setStatus(501);
+        return 0;
+    }
     if (!transferEncoding.empty() && transferEncoding != "chunked")
     {
         client.setStatus(501);
@@ -159,8 +201,7 @@ bool RequestErrors(Request &request, Client &client)
         client.setStatus(505);
         return 0;
     }
-    if (!contentLengthStr.empty() && request.getMethod() != "POST")
-    {
+    if (!contentLengthStr.empty() && request.getMethod() == "POST") {
         size_t contentLength = atoi(contentLengthStr.c_str());
         size_t maxBodySize = atoi(client.getServer().getclient_max_body_size().c_str());
         if (contentLength > maxBodySize) {
@@ -311,7 +352,8 @@ void HTTPServer::handleRequest(Client &client, fd_set &writeSet, fd_set &readSet
         if (request.getMethod() == "POST")
         {
             client.currentState = BODY_READING;
-            client.file = open(client.file_name.c_str(), O_CREAT | O_RDWR | O_APPEND, 0644);
+			client.file = open(client.file_name.c_str(), O_CREAT | O_RDWR | O_APPEND, 0644);
+			client.uploadedInFile = open(client.file_name.c_str(), O_CREAT | O_RDWR | O_APPEND, 0644);
         }
         else
         {
@@ -329,16 +371,16 @@ void HTTPServer::handleRequest(Client &client, fd_set &writeSet, fd_set &readSet
 
             if ((getFileSize(client.file_name) < (size_t)std::atoi(request.getHeader("Content-Length").c_str())) && holder != NULL && std::atoi(request.getHeader("Content-Length").c_str()) != 0)
             {
-                std::cout << "content lenght : " << std::atoi(request.getHeader("Content-Length").c_str()) << std::endl;
-                std::cout << "readBytes: " << rd - client.bodyPos << std::endl;
-                std::cout << "getFileSize: " << getFileSize(client.file_name) << std::endl;
+                // std::cout << "content lenght : " << std::atoi(request.getHeader("Content-Length").c_str()) << std::endl;
+                // std::cout << "readBytes: " << rd - client.bodyPos << std::endl;
+                // std::cout << "getFileSize: " << getFileSize(client.file_name) << std::endl;
                 if ((size_t)std::atoi(request.getHeader("Content-Length").c_str()) < rd - client.bodyPos)
                     write(client.file, holder, std::atoi(request.getHeader("Content-Length").c_str()));
                 else
                     write(client.file, holder, rd - client.bodyPos);
                 // write(client.file, holder, rd - client.bodyPos);
-                std::cout << "getFileSize: " << getFileSize(client.file_name) << std::endl;
-                std::cout << "holder: " << holder << std::endl;
+                //std::cout << "getFileSize: " << getFileSize(client.file_name) << std::endl;
+                //std::cout << "holder: " << holder << std::endl;
                 if (getFileSize(client.file_name) == (size_t)std::atoi(request.getHeader("Content-Length").c_str())) {
                     close(client.file);
                     client.isBodyReady = true;

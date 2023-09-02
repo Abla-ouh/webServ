@@ -17,9 +17,8 @@ server::server()
 	this->setErrorPage("204", "error_pages/204.html");
 	_port = "8080";
 	_host = "127.0.0.1";
-	//_client_max_body_size;
+	_client_max_body_size = "1000000";
 	_root = "./";
-	//_index_page;
 	//_server_name;
 	//_virtual_servers;
 	//_err;
@@ -29,7 +28,7 @@ server::server()
 }
 
 
-void	server::getLocationContext(ifstream &in, string line)
+void	server::getLocationContext(ifstream &in, string line, int *err)
 {
 	location	loc;
 	string		key = "", value = "";
@@ -48,6 +47,7 @@ void	server::getLocationContext(ifstream &in, string line)
 	loc.setRoot(_root);
 	while (getline(in, line))
 	{
+		(*err)++;
 		int	returnValue = clean_line(line, key, value);
 		if (returnValue == 1)
 			continue;
@@ -87,8 +87,6 @@ void	server::getLocationContext(ifstream &in, string line)
 		else
 			throw(unvalidDirective());
 	}
-	if (loc.isCgi() && loc.getCgiPath().empty())
-		throw (unvalidConfigFile());
 	this->_locations.push_back(loc);
 }
 
@@ -139,19 +137,19 @@ void server::print()
 	}
 }
 
-void	server::checkHostPort()
-{
-	memset(&hint, 0, sizeof(hint));
+// void	server::checkHostPort()
+// {
+// 	memset(&hint, 0, sizeof(hint));
     
-    hint.ai_family = AF_INET;
-    hint.ai_socktype = SOCK_STREAM;
-    if (getaddrinfo(this->getServerName().c_str(), this->getPort().c_str(), &hint, &res))
-    {
-        // freeaddrinfo(res); // sigfault when free res
-		throw runtime_error("ERROR : Can't resolve hostname\n");
-    }
-	freeaddrinfo(res);
-}
+//     hint.ai_family = AF_INET;
+//     hint.ai_socktype = SOCK_STREAM;
+//     if (getaddrinfo(this->getHost().c_str(), this->getPort().c_str(), &hint, &res))
+//     {
+//         // freeaddrinfo(res); // sigfault when free res
+// 		throw runtime_error("ERROR : Can't resolve hostname\n");
+//     }
+// 	freeaddrinfo(res);
+// }
 
 void server::CreateSocket(server servers)
 {
@@ -161,7 +159,7 @@ void server::CreateSocket(server servers)
     hint.ai_socktype = SOCK_STREAM;
     int yes = 1;
 
-    if (getaddrinfo(servers.getServerName().c_str(), servers.getPort().c_str(), &hint, &res))
+    if (getaddrinfo(servers.getHost().c_str(), servers.getPort().c_str(), &hint, &res))
     {
 		//cout << getaddrinfo(servers.getServerName().c_str(), servers.getPort().c_str(), &hint, &res) << std::endl;
 		//throw runtime_error("ERROR : Can't resolve hostname");
@@ -171,7 +169,6 @@ void server::CreateSocket(server servers)
         return;
     }
 
-	//cout<< "test" << endl;
     server_socket = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
     if (server_socket == -1) {
         perror("socket");
@@ -192,17 +189,17 @@ void server::CreateSocket(server servers)
         return;
     }
 
-	if (setsockopt(server_socket, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof yes) == -1)
+    if (bind(server_socket, res->ai_addr, res->ai_addrlen) == -1)
     {
-        std::cout << "setsocket failed" << std::endl;
+        perror("bind");
         close(server_socket);
         freeaddrinfo(res);
         return;
     }
-
-    if (bind(server_socket, res->ai_addr, res->ai_addrlen) == -1)
+	
+	if (setsockopt(server_socket, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof yes) == -1)
     {
-        perror("bind");
+        std::cout << "setsocket failed" << std::endl;
         close(server_socket);
         freeaddrinfo(res);
         return;
