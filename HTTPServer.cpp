@@ -6,7 +6,7 @@
 /*   By: ebelkhei <ebelkhei@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/02 18:20:47 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/09/03 12:52:07 by ebelkhei         ###   ########.fr       */
+/*   Updated: 2023/09/03 15:15:01 by ebelkhei         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -101,7 +101,6 @@ void acceptNewClient(std::vector<server> &servers, std::vector<Client> &clients,
 void HTTPServer::start()
 {
     fd_set readSet, writeSet, tmp_readSet, tmp_writeSet;
-	int		err = 0;
     std::vector<Client>::iterator client_it;
     std::vector<server>::iterator server_it = this->servers.begin();
     int maxSocket = -1;
@@ -134,13 +133,11 @@ void HTTPServer::start()
         tmp_readSet = readSet;
         tmp_writeSet = writeSet;
 
-        //std::cout << "maxSocket: " << maxSocket << std::endl;
-		err = select(maxSocket + 1, &tmp_readSet, &tmp_writeSet, NULL, NULL);
-        if (err < 0)
+        if (select(maxSocket + 1, &tmp_readSet, &tmp_writeSet, NULL, NULL) < 0)
         {
-            std::cout << "=========>Err: " << err << std::endl;
-            std::perror("select() Error ");
-            exit(1);
+            std::cout << "Select error: " << strerror(errno) << std::endl;
+            reselect(readSet, writeSet, maxSocket, servers, clients);
+            continue;
         }
         else
         {

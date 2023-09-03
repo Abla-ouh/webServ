@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: abouhaga <abouhaga@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ybel-hac <ybel-hac@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/08 16:57:48 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/09/03 15:56:13 by abouhaga         ###   ########.fr       */
+/*   Updated: 2023/09/03 12:06:12 by ybel-hac         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -179,8 +179,7 @@ bool RequestErrors(Request &request, Client &client)
         return  0;
     }
 
-    if (method == "POST" && contentLengthStr.empty() && transferEncoding.empty())
-    {
+    if (method == "POST" && contentLengthStr.empty() && transferEncoding.empty()) {
         client.setStatus(400);
         return 0;
     }

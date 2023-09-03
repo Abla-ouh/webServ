@@ -1,25 +1,27 @@
-#!/usr/bin/env python3
-
-#  generate an HTTP header that prints the argumnets passed to the script
+#!/usr/bin/python
 
 import sys
-import time
+import os
 
-def main():
-    # Get all command-line arguments except the script name itself
-    print("Content-Type: text/plain\r\n")
-    print("\r\n")
-    arguments = sys.argv[1:]
+print("HTTP/1.1 200 OK")
+print("Content-type: text/html\r\n")
 
-    # sleep for 10 seconds to simulate a long-running process
-    time.sleep(10)
+# Read data from stdin
+data = sys.stdin.read()
 
-    if arguments:
-        print("Arguments passed:")
-        for arg in arguments:
-            print(arg)
-    else:
-        print("No arguments passed.")
+# Print the received data to stdout
 
-if __name__ == "__main__":
-    main()
+html_response = f"""
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Form Data</title>
+</head>
+<body>
+    <h1>Form Data Received</h1>
+    <p>data: {data}</p>
+</body>
+</html>
+"""
+print("Received data:")
+print(html_response)

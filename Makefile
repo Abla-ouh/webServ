@@ -47,10 +47,6 @@ fclean: clean
 	@echo "$(RED)$(BOLD)Cleaning $(NAME) executable...$(RESET)"
 	rm -rf $(NAME)
 
-clean_files:
-	@echo "$(RED)$(BOLD)Cleaning files starting with 'file_'...$(RESET)"
-	rm -f ./tmp/file_*
-
 re: fclean all
 
 .PHONY: clean fclean clean_files re
