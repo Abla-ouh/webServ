@@ -116,7 +116,6 @@ void handleDeleteRequest(Client &client, std::string src)
             client.setStatus(409);
             return ;
         }
-        std::cout << "CGI " << client.getlocation().isCgi() << std::endl;
         if (client.getlocation().isCgi())
         {
             std::cout << "Has CGI\n";

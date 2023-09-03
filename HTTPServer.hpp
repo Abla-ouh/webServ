@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HTTPServer.hpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: abouhaga <abouhaga@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ybel-hac <ybel-hac@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/02 17:55:47 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/09/02 19:05:29 by abouhaga         ###   ########.fr       */
+/*   Updated: 2023/09/03 12:04:22 by ybel-hac         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -86,82 +86,81 @@ class Request
 
 class Response
 {
-    std::string body;
-    std::string location;
-    std::string redirection_url;
-    std::string response;
-    std::string old_url;
-    int         file_fd;
-    unsigned long long      body_size;
-    std::map<int, std::string>  status_code;
+    std::string					body;
+    std::string					location;
+    std::string					redirection_url;
+    std::string					response;
+    std::string					old_url;
+    int							file_fd;
+    unsigned long long			body_size;
+    std::map<int, std::string>	status_code;
 
-    public:
-        Response() ;
-        // ~Response() { if (file_fd) close(file_fd);};
-        
-        std::string &getBody();
-        std::string getStatusLine(int status_code);
-        std::string getDate();
-        std::string getServer();
-        std::string getContentType();
-        std::string getContentLength();
-        std::string &getResponse() { return response;};
-        std::string getLocation() { return location; };
-        std::string getLocationUrl() { return redirection_url; };
-        int         getFileFd() { return file_fd; };
-        unsigned long long      &getBodySize() { return body_size; };
-        std::string &getOldUrl() { return old_url;};
+public:
+    Response();
+	~Response(){};
+    // ~Response() { if (file_fd) close(file_fd);};
 
-        void        setLocation(std::string other) {location = other;};
-        void        setBody(std::string body) { this->body = body;};
-        void        setResponse(std::string response) { this->response = response; };
-        void        setLocationUrl(std::string other) { this->redirection_url = other; };
-        void        setFileFd(int other) { this->file_fd = other; };
-        void        setBodySize(size_t other) { this->body_size = other; };
-        void        setOldUrl(std::string other) { this->old_url = other; };
+    std::string 		&getBody();
+    std::string 		getStatusLine(int status_code);
+    std::string 		getDate();
+    std::string 		getServer();
+    std::string 		getContentType();
+    std::string 		getContentLength();
+    std::string 		&getResponse() { return response; };
+    std::string 		getLocation() { return location; };
+    std::string 		getLocationUrl() { return redirection_url; };
+    int					getFileFd() { return file_fd; };
+    unsigned long long&	getBodySize() { return body_size; };
+    std::string			&getOldUrl() { return old_url; };
+
+    void 				setLocation(std::string other) { location = other; };
+    void 				setBody(std::string body) { this->body = body; };
+    void 				setResponse(std::string response) { this->response = response; };
+    void 				setLocationUrl(std::string other) { this->redirection_url = other; };
+    void 				setFileFd(int other) { this->file_fd = other; };
+    void 				setBodySize(size_t other) { this->body_size = other; };
+    void 				setOldUrl(std::string other) { this->old_url = other; };
 };
 class Client
 {
 
-    std::vector<location>   locations;
-    Request                 request;
-    Response                response;
-    location                _location;
-    int                     status;
-    int                     client_socket;
-    server                  _server;
-    STATE                   state;
-	int						cgiFd;
-    pid_t                   child_pid;
-    time_t                  start_time;
-	std::string             BodyFilename;
+    std::vector<location>	locations;
+    Request					request;
+    Response				response;
+    location				_location;
+    int						status;
+    int						client_socket;
+    server					_server;
+    STATE					state;
+    int						cgiFd;
+    pid_t					child_pid;
+    time_t					start_time;
+    std::string				BodyFilename;
 
-    public:
-
-        Client();
-        ~Client();
-		int						err;
-        size_t                  hex_len;
-        char                    hexBuff[20];
-        char                    hexTempBuff[10];
-        size_t                  chunk_size;
-        bool                    waiting_for_chunk_size;
-        bool                    ready;
-        int                     firstTime;
-        bool                    isBodyReady;
-	    size_t                  _return;
-        bool                    already_checked;
-        int                     file;
-	    bool                    readyToParse;
-        std::string             file_name;
-        std::string             header;
-        size_t                  bodyPos;
-        bool                    bodyChunked;
-        RequestState            currentState;
-        char                    data[8000];
-        int						uploadedOutFile;
-        int						uploadedInFile;
-        bool                    hostMatched;
+public:
+    Client();
+    ~Client();
+    int				err;
+    size_t			hex_len;
+    char			hexBuff[20];
+    char			hexTempBuff[10];
+    size_t			chunk_size;
+    bool			waiting_for_chunk_size;
+    bool			ready;
+    int				firstTime;
+    bool			isBodyReady;
+    size_t			_return;
+    bool			already_checked;
+    int				file;
+    bool			readyToParse;
+    std::string		file_name;
+    std::string		header;
+    size_t			bodyPos;
+    bool			bodyChunked;
+    RequestState	currentState;
+    char			data[8000];
+    int				uploadedOutFile;
+    int				uploadedInFile;
 
         Request&                getRequest() { return request;};
         Response&               getResponse() { return response;};
@@ -203,11 +202,10 @@ class HTTPServer {
         std::vector<server> servers;
         std::vector<Client> clients;
 
-    //private:
-        void removeClient(int clientSocket);
-        void handleRequest(Client &client, fd_set &writeSet, fd_set &readSet);
-        //void handleDeleteRequest(int clientSocket, const std::string& uri, std::vector<server>& servers);
-
+    // private:
+    int handleRequest(std::vector<Client>::iterator &client_it, fd_set &writeSet, fd_set &readSet, int &maxSocket);
+    void removeClient(std::vector<Client>::iterator &client_it, int &maxSocket);
+    // void handleDeleteRequest(int clientSocket, const std::string& uri, std::vector<server>& servers);
 };
 
 void        response(Client &client);
@@ -224,11 +222,10 @@ size_t      is_carriage(std::string str, Client &client);
 void		Post(Request& req, location& loc, Client &client);
 string		generateName();
 string		getIndexFromDirectory(Client& client, string directory);
-std::string intToString(int number);
 void	    run_cgi(Client &client, string requestFile);
 std::string	createAutoindexPage(string root_dir);
 void		writeToNewFile(Client &client);
-void check_errors(Client &client, int code);
-void getFile(Client &client, int s);
+void		check_errors(Client &client, int code);
+void		getFile(Client &client, int s);
 
 #endif

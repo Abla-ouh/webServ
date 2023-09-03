@@ -15,11 +15,13 @@ server::server()
 	this->setErrorPage("500", "error_pages/500.html");
 	this->setErrorPage("505", "error_pages/505.html");
 	this->setErrorPage("204", "error_pages/204.html");
+	this->setErrorPage("504", "error_pages/504.html");
 	_port = "8080";
 	_host = "127.0.0.1";
 	_client_max_body_size = "1000000";
 	_root = "./";
-	//_server_name;
+	//_index_page;
+	_server_name = "server1";
 	//_virtual_servers;
 	//_err;
 	//_locations;
@@ -137,19 +139,19 @@ void server::print()
 	}
 }
 
-// void	server::checkHostPort()
-// {
-// 	memset(&hint, 0, sizeof(hint));
+void	server::checkHostPort()
+{
+	memset(&hint, 0, sizeof(hint));
     
-//     hint.ai_family = AF_INET;
-//     hint.ai_socktype = SOCK_STREAM;
-//     if (getaddrinfo(this->getHost().c_str(), this->getPort().c_str(), &hint, &res))
-//     {
-//         // freeaddrinfo(res); // sigfault when free res
-// 		throw runtime_error("ERROR : Can't resolve hostname\n");
-//     }
-// 	freeaddrinfo(res);
-// }
+    hint.ai_family = AF_INET;
+    hint.ai_socktype = SOCK_STREAM;
+    if (getaddrinfo(this->getHost().c_str(), this->getPort().c_str(), &hint, &res))
+    {
+        // freeaddrinfo(res); // sigfault when free res
+		throw runtime_error("ERROR : Can't resolve hostname\n");
+    }
+	freeaddrinfo(res);
+}
 
 void server::CreateSocket(server servers)
 {
@@ -169,8 +171,8 @@ void server::CreateSocket(server servers)
         return;
     }
 
+	//cout<< "test" << endl;
     server_socket = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
-	std::cout << "server_socket: " << server_socket << std::endl;
     if (server_socket == -1) {
         perror("socket");
         freeaddrinfo(res);
@@ -197,6 +199,7 @@ void server::CreateSocket(server servers)
         freeaddrinfo(res);
         return;
     }
+
     if (bind(server_socket, res->ai_addr, res->ai_addrlen) == -1)
     {
         perror("bind");
@@ -204,7 +207,6 @@ void server::CreateSocket(server servers)
         freeaddrinfo(res);
         return;
     }
-	
     freeaddrinfo(res);
     
     if (listen(server_socket, 400) == -1)

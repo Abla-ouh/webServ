@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: abouhaga <abouhaga@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ybel-hac <ybel-hac@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/08 16:57:48 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/09/02 22:36:39 by abouhaga         ###   ########.fr       */
+/*   Updated: 2023/09/03 12:06:12 by ybel-hac         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -309,21 +309,31 @@ bool isChuncked(std::string request)
 	return false;
 }
 
-void HTTPServer::handleRequest(Client &client, fd_set &writeSet, fd_set &readSet)
+int HTTPServer::handleRequest(std::vector<Client>::iterator &client_it, fd_set &writeSet, fd_set &readSet, int &maxSocket)
 {
+    Client &client = *client_it;
     Request &request = client.getRequest();
     char data[20240];
-	memset(data,'\0', 20240);
-    int rd  = recv(client.getClientSocket(), data, 20240, 0);
+    memset(data, '\0', 20240);
+    int rd = recv(client.getClientSocket(), data, 20240, 0);
+
+    if (!rd)
+    {
+        std::cout << "Client has closed the connection" << std::endl;
+        FD_CLR(client.getClientSocket(), &readSet);
+        removeClient(client_it, maxSocket);
+        return 0;
+    }
+    if (rd < 0)
+    {
+        client_it->setStatus(501);
+        FD_CLR(client.getClientSocket(), &readSet);
+        FD_SET(client.getClientSocket(), &writeSet);
+        return 1;
+    }
+
     if (client.currentState == HEADER_READING)
     {
-        if (rd <= 0)
-        {
-            std::cout << "Client has closed the connection" << std::endl;
-            FD_CLR(client.getClientSocket(), &readSet);
-            removeClient(client.getClientSocket());
-
-        }
 
         if (!client.already_checked)
         {
@@ -345,24 +355,23 @@ void HTTPServer::handleRequest(Client &client, fd_set &writeSet, fd_set &readSet
             }
             else
             {
+                std::cout << "Client has closed the connection" << std::endl;
                 FD_CLR(client.getClientSocket(), &readSet);
-                removeClient(client.getClientSocket());
-                // close(client.fd_client);
-                //FD_CLR(client.getClientSocket(), &readSet);
-                return;
+                removeClient(client_it, maxSocket);
+                return 0;
             }
-	    }
+        }
         if (request.getMethod() == "POST")
         {
             client.currentState = BODY_READING;
-			client.file = open(client.file_name.c_str(), O_CREAT | O_RDWR | O_APPEND, 0644);
-			client.uploadedInFile = open(client.file_name.c_str(), O_CREAT | O_RDWR | O_APPEND, 0644);
+            client.file = open(client.file_name.c_str(), O_CREAT | O_RDWR | O_APPEND, 0644);
+            client.uploadedInFile = open(client.file_name.c_str(), O_CREAT | O_RDWR | O_APPEND, 0644);
         }
         else
         {
             FD_CLR(client.getClientSocket(), &readSet);  
             FD_SET(client.getClientSocket(), &writeSet);
-            return ;
+            return 1;
         }
     }
     if (!client.bodyChunked && client.getCurrentState() == BODY_READING)
@@ -442,4 +451,5 @@ void HTTPServer::handleRequest(Client &client, fd_set &writeSet, fd_set &readSet
         else
             ft_chunked(client, data, rd, writeSet, readSet);
     }
+    return 1;
 }

@@ -94,8 +94,8 @@ void Post(Request& req, location& loc, Client &client)
 			return (client.setStatus(403));
 		}
 		string	random = generateName();
-		cout << YELLOW << req.getHeader("Content-Type") << RESET <<"\n";
-		int file = open((uploadDir + "/" + random).c_str(), O_CREAT | O_WRONLY, 0644);
+		string	extension = "." + req.getHeader("Content-Type").substr(req.getHeader("Content-Type").find('/') + 1);
+		int file = open((uploadDir + "/" + random + extension).c_str(), O_CREAT | O_WRONLY, 0644);
 		if (!file)
 		{
 			perror((uploadDir + "/" + random).c_str());

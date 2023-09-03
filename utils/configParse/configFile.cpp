@@ -33,6 +33,7 @@ void	configFile::getServerContext(ifstream &in, string &line)
 			count_argument(value, 2);
 			string key = value.substr(0, value.find_first_of(" 	"));
 			check_number(key);
+			atoi(key.c_str()) < 100 || atoi(key.c_str()) > 599 ? throw(unvalidErrorPages()): "";
 			value.erase(0, value.find_first_of(" 	"));
 			value.erase(0, value.find_first_not_of(" 	"));
 			string val = value.substr(0, value.find_first_of(" 	"));
@@ -45,7 +46,7 @@ void	configFile::getServerContext(ifstream &in, string &line)
 	}
 	if (serv.getServerName().empty())
 		throw(unvalidConfigFile());
-	//serv.checkHostPort();
+	serv.checkHostPort();
 	serv.setEnv(_env);
 	_server.push_back(serv);
 }
@@ -58,6 +59,11 @@ void	configFile::getServerContext(ifstream &in, string &line)
 
 configFile::configFile(const string file, char **env, int *err) : _full_file(""), _env(env), _err(err)
 {
+	if (file.empty())
+	{
+		defaultPath();
+		return ;
+	}
 	check_file(file, "read");
 	check_braces(file);
 	ifstream	in(file.c_str());

@@ -17,41 +17,55 @@ std::string	createAutoindexPage(string root_dir)
 \t<head>\n\
 	\t<meta charset=\"UTF-8\">\n\
 	\t<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n\
-	\t<title>Autoindex</title>\n\
+	\t<title>الفهرس</title>\n\
 	\t<style>\n\
-	\t\t@import url('https://fonts.googleapis.com/css2?family=Roboto&display=swap');\n\
+\t\t\t@import url('https://fonts.googleapis.com/css2?family=Roboto&display=swap');\n\
 \t\t\t* {\n\
-	\t\t\tmargin: 0;\n\
-	\t\t\tpadding: 0;\n\
-	\t\t\ttext-decoration: none;\n\
+\t\t\t\tmargin: 0;\n\
+\t\t\t\tpadding: 0;\n\
+\t\t\t\ttext-decoration: none;\n\
 \t\t\t}\n\
-\n\
+\t\t\n\
 \t\t\tbody {\n\
-	\t\t\tfont-family: 'Roboto', sans-serif;\n\
-	\t\t\tbackground-color: #000000;\n\
+\t\t\t\tfont-family: 'Roboto', sans-serif;\n\
+\t\t\t\tbackground-color: #2b2d42;\n\
 \t\t\t}\n\
+\t\t\n\
 \t\t\t.container {\n\
-	\t\t\tdisplay: flex;\n\
-	\t\t\tflex-direction: column;\n\
-	\t\t\tjustify-content: center;\n\
-	\t\t\talign-items: center;\n\
+\t\t\t\tdisplay: flex;\n\
+\t\t\t\tflex-direction: column;\n\
+\t\t\t\tjustify-content: center;\n\
+\t\t\t\talign-items: center;\n\
+\t\t\t\tborder: #edf2f4 2px solid;\n\
+\t\t\t\tborder-radius: 20px;\n\
+\t\t\t\twidth: fit-content;\n\
+\t\t\t\tposition: absolute;\n\
+\t\t\t\ttop: 2%;\n\
+\t\t\t\tleft: 50%;\n\
+\t\t\t\ttransform: translate(-50%, 0%);\n\
+\t\t\t\tpadding: 30px 50px;\n\
 \t\t\t}\n\
-\n\
+\t\t\n\
 \t\t\t.container a {\n\
-	\t\t\tmargin: 20px 0;\n\
-	\t\t\tpadding: 5px;\n\
-	\t\t\tcolor: #f72585;\n\
-	\t\t\tfont-size: 20px;\n\
-	\t\t\ttransition: color ease-in-out .2s;\n\
+\t\t\t\tmargin: 20px 0;\n\
+\t\t\t\tpadding: 5px;\n\
+\t\t\t\tcolor: #6096ba;\n\
+\t\t\t\tfont-size: 20px;\n\
+\t\t\t\ttransition: color ease-in-out .2s;\n\
 \t\t\t}\n\
-\n\
+\t\t\n\
 \t\t\t.container a:hover {\n\
-	\t\t\tcolor: rgb(241, 108, 168);\n\
+\t\t\t\tcolor: #274c77;\n\
 \t\t\t}\n\
-	\t</style>\n\
+\t\t\t.container h1 {\n\
+\t\t\t\tcolor: #edf2f4;\n\
+\t\t\t\tmargin: 20px 0;\n\
+\t\t\t}\n\
+\t\t</style>\n\
 \t</head>\n\
 \t<body>\n\
-\t\t<div class=\"container\">\n";
+\t\t<div class=\"container\">\n\
+\t\t\t<h1>الفهرس</h1>\n";
 	while ((de = readdir(dir)))
 	{
 		string link = "";

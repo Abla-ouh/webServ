@@ -59,13 +59,9 @@ class server {
 		void			setHost(string host){_host = host;};
 		void			setServerName(string serverName){_server_name = serverName;};
 		void			setclient_max_body_size(string client_max){_client_max_body_size = client_max;};
-		void			setErrorPage(string key, string value){
-							pair<map<string, string>::iterator, bool> ret;
-							ret = _error_pages.insert(std::pair<string, string>(key, value));
-							if (!ret.second)
-								ret.first->second = value;
-						};
+		void			setErrorPage(string key, string value){_error_pages[key] = value;};
 		void			setEnv(char **env){_env = env;};
+		void			setLocation(location loc){_locations.push_back(loc);};
 		//void			setLocations();
 		//?
 		// ? geter's
