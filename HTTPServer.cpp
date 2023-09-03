@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HTTPServer.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ebelkhei <ebelkhei@student.42.fr>          +#+  +:+       +#+        */
+/*   By: abouhaga <abouhaga@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/02 18:20:47 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/09/03 12:52:07 by ebelkhei         ###   ########.fr       */
+/*   Updated: 2023/09/03 16:42:42 by abouhaga         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,8 +50,6 @@ void HTTPServer::createConnections()
     //  initializing the socket for each server
     for (size_t i = 0; i < servers.size(); i++)
     {
-        std::cout << "*******ana hna********" << std::endl;
-        //match_server_block(servers[i]);
         servers[i].CreateSocket(servers[i]);
         std:: cout << "Listening on port: " << RED << servers[i].getPort() << WHITE <<std::endl;
     }
