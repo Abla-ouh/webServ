@@ -6,14 +6,14 @@
 /*   By: ybel-hac <ybel-hac@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/02 18:20:47 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/09/02 23:35:45 by ybel-hac         ###   ########.fr       */
+/*   Updated: 2023/09/03 12:02:43 by ybel-hac         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
+
 #include "HTTPServer.hpp"
 
-HTTPServer::HTTPServer(configFile &obj)
-{
+HTTPServer::HTTPServer(configFile& obj) {
     std::vector<server> vec = obj.getServers();
     for (size_t i = 0; i < vec.size(); i++)
         servers.push_back(vec[i]);
@@ -21,15 +21,39 @@ HTTPServer::HTTPServer(configFile &obj)
 
 HTTPServer::~HTTPServer()
 {
+    
 }
+
+// void match_server_block(Client &client)
+// {
+//     std::vector<server>::iterator it = servers.begin();
+//     std::string hostHeader = client.getRequest().getHeader("Host");
+
+//     while (it != servers.end())
+//     {
+//         if ((*it).getServerName() == hostHeader)
+//         {
+//             client.setServer(*it);
+//             client.hostMatched = true;
+//             break;
+//         }
+//         it++;
+//     }
+//     if (!client.hostMatched && !servers.empty())
+//     {
+//         client.setServer(servers.front());
+//     }
+// }
 
 void HTTPServer::createConnections()
 {
     //  initializing the socket for each server
     for (size_t i = 0; i < servers.size(); i++)
     {
+        std::cout << "*******ana hna********" << std::endl;
+        //match_server_block(servers[i]);
         servers[i].CreateSocket(servers[i]);
-        std::cout << "Listening on port: " << RED << servers[i].getPort() << WHITE << std::endl;
+        std:: cout << "Listening on port: " << RED << servers[i].getPort() << WHITE <<std::endl;
     }
 }
 
@@ -46,6 +70,7 @@ void HTTPServer::removeClient(std::vector<Client>::iterator &client_it, int &max
 
 void acceptNewClient(std::vector<server> &servers, std::vector<Client> &clients, fd_set &rd, fd_set &tmp_rd, int &maxSocket)
 {
+    //std::cout << "test" << std::endl;
     std::vector<server>::iterator it = servers.begin();
 
     while (it != servers.end())
@@ -54,10 +79,10 @@ void acceptNewClient(std::vector<server> &servers, std::vector<Client> &clients,
         {
             Client newClient;
             newClient.setClientSocket(accept((*it).getServerSocket(), NULL, NULL));
-
+            
             if (newClient.getClientSocket() == -1)
             {
-                std::cerr << "Failed to accept client connection" << std::endl;
+                std::cerr << "Failed to accept client connection: " << strerror(errno) << std::endl;
                 continue;
             }
             if (newClient.getClientSocket() > maxSocket)
@@ -72,18 +97,20 @@ void acceptNewClient(std::vector<server> &servers, std::vector<Client> &clients,
     }
 }
 
+
 void HTTPServer::start()
 {
     fd_set readSet, writeSet, tmp_readSet, tmp_writeSet;
-    int err = 0;
+	int		err = 0;
     std::vector<Client>::iterator client_it;
     std::vector<server>::iterator server_it = this->servers.begin();
     int maxSocket = -1;
 
-    signal(SIGPIPE, SIG_IGN);
+    // signal(SIGINT, SIG_IGN);
+	signal(SIGPIPE, SIG_IGN);
     FD_ZERO(&readSet);
     FD_ZERO(&writeSet);
-
+    
     createConnections();
     while (server_it != servers.end())
     {
@@ -92,8 +119,8 @@ void HTTPServer::start()
             maxSocket = (*server_it).getServerSocket();
         server_it++;
     }
-
-    while (true)
+    
+    while(true)
     {
         FD_ZERO(&tmp_readSet);
         FD_ZERO(&tmp_writeSet);
@@ -101,9 +128,11 @@ void HTTPServer::start()
         tmp_readSet = readSet;
         tmp_writeSet = writeSet;
 
-        err = select(maxSocket + 1, &tmp_readSet, &tmp_writeSet, NULL, NULL);
+        //std::cout << "maxSocket: " << maxSocket << std::endl;
+		err = select(maxSocket + 1, &tmp_readSet, &tmp_writeSet, NULL, NULL);
         if (err < 0)
         {
+            std::cout << "=========>Err: " << err << std::endl;
             std::perror("select() Error ");
             exit(1);
         }

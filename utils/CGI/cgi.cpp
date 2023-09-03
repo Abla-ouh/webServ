@@ -6,7 +6,7 @@ using namespace std;
 void	CGI::setCgiEnv(Request req, Client &client, string interpreter, string scritpPath)
 {
 	_client = client;
-	_env["Cookie"] = req.getHeader("Cookie");
+	_env["HTTP_COOKIE"] = req.getHeader("Cookie");
 	_env["HTTP_HOST"] = req.getHeader("Host"); // ! check
 	_env["PATH"] = client.getServer().getRoot();
 	_env["CONTENT_LENGTH"] = req.getHeader("Content-Length");
@@ -23,7 +23,6 @@ void	CGI::setCgiEnv(Request req, Client &client, string interpreter, string scri
 	_env["REQUEST_URI"] = req.getURI();
 	_env["SCRIPT_NAME"] = interpreter;
 	_env["SCRIPT_FILENAME"] = scritpPath;
-	// cout << RED + itt->lang << "\n";
 	_env["SERVER_NAME"] = _env["REMOTE_ADDR"];
 	_env["SERVER_PORT"] = client.getServer().getPort();
 	_env["SERVER_PROTOCOL"] = ("HTTP/1.1");

@@ -21,7 +21,7 @@ server::server()
 	_client_max_body_size = "1000000";
 	_root = "./";
 	//_index_page;
-	//_server_name;
+	_server_name = "server1";
 	//_virtual_servers;
 	//_err;
 	//_locations;

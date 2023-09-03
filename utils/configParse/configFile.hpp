@@ -26,6 +26,7 @@ class configFile {
 		vector<server>&	getServers(){return (_server);};
 		void	getServerContext(ifstream &in, string &line);
 		void	check_braces(string file);
+		void	defaultPath();
 		void	lastCheck();
 		void	print();
 };

@@ -155,7 +155,28 @@ void	configFile::lastCheck()
 			if (itt1 != itt2 && itt1->getServerName() == itt2->getServerName())
 					throw (unvalidConfigFile());
 		for (map<string, string>::iterator errorItt = itt1->getErrorPage().begin(); errorItt != itt1->getErrorPage().end(); errorItt++)
+		{
+			if (errorItt->second[0] != '/')
+				itt1->getErrorPage()[errorItt->first].insert(0, itt1->getRoot() + "/" );
 			if (access(errorItt->second.c_str(), R_OK) == -1)
+			{
+				cerr << RED + errorItt->first << " " << errorItt->second << "\n";
 				throw (unvalidErrorPages());
+			}
+		}
 	}
+}
+
+
+void	configFile::defaultPath()
+{
+	server		serv;
+	location	loc;
+
+	loc.setPath("/");
+	loc.setRoot("./www/default");
+	loc.setAllowMethodes("GET");
+	loc.setIndex("index.html");
+	serv.setLocation(loc);
+	_server.push_back(serv);
 }
