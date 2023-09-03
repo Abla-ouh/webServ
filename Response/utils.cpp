@@ -64,3 +64,36 @@ std::string &Response::getBody()
 {
     return body;
 }
+
+void reselect(fd_set &readSet, fd_set &writeSet, int &maxSocket, std::vector<server> &servers, std::vector<Client> &clients)
+{
+    std::vector<Client>::iterator client_it = clients.begin();
+    std::vector<server>::iterator server_it = servers.begin();
+
+    for (; clients.size() && client_it < clients.end(); client_it++)
+    {
+        if (client_it->getChildPid() != 0)
+        {
+            kill(client_it->getChildPid(), SIGKILL);
+            client_it->setChildPid(0);
+        }
+        close(client_it->getClientSocket());
+        close(client_it->getCgiFd());
+        close(client_it->getResponse().getFileFd());
+    }
+
+    clients.clear();
+
+    FD_ZERO(&readSet);
+    FD_ZERO(&writeSet);
+
+    maxSocket = -1;
+
+    while (server_it != servers.end())
+    {
+        FD_SET((*server_it).getServerSocket(), &readSet);
+        if ((*server_it).getServerSocket() > maxSocket)
+            maxSocket = (*server_it).getServerSocket();
+        server_it++;
+    }
+}

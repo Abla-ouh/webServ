@@ -6,7 +6,7 @@
 /*   By: abouhaga <abouhaga@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/08 16:57:48 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/09/03 18:48:48 by abouhaga         ###   ########.fr       */
+/*   Updated: 2023/09/03 22:28:27 by abouhaga         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -179,8 +179,7 @@ bool RequestErrors(Request &request, Client &client)
         return  0;
     }
 
-    if (method == "POST" && contentLengthStr.empty() && transferEncoding.empty())
-    {
+    if (method == "POST" && contentLengthStr.empty() && transferEncoding.empty()) {
         client.setStatus(400);
         return 0;
     }

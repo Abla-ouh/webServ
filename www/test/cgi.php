@@ -1,10 +1,9 @@
 <?php
-$variableName = "HTTP_COOKIE"; // Change this to the name of your environment variable
+$f = fopen( 'php://stdin', 'r' );
 
-if (isset($_SERVER[$variableName])) {
-    $variableValue = $_SERVER[$variableName];
-    echo "Value of $variableName: $variableValue";
-} else {
-    echo "Environment variable $variableName not set.";
+while( $line = fgets( $f ) ) {
+  echo $line;
 }
+
+fclose( $f );
 ?>

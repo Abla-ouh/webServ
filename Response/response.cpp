@@ -358,6 +358,13 @@ void sendCgi(Client &client)
                 status = "HTTP/1.1 " + status_line.substr(status_line.find_first_of("0123456789"));
                 content.erase(content.find("Status: "), status_line.length());
             }
+            else if (content.find("HTTP/1.1 ") != string::npos && content.find("HTTP/1.1 ") < content.find("\r\n\r\n"))
+            {
+                string status_line = content.substr(content.find("HTTP/1.1 "));
+                status_line.erase(status_line.find("\r\n") + 2);
+                status = status_line;
+                content.erase(content.find("HTTP/1.1 "), status_line.length());
+            }
             header += content;
             readed += rd;
             if (header.find("\r\n\r\n") != string::npos)
@@ -401,7 +408,10 @@ void sendCgi(Client &client)
     if (r && !client.getResponse().getBodySize())
         client.getResponse().getBodySize()++;
     if (!r || !client.getResponse().getBodySize())
+    {
+        close(client.uploadedOutFile);
         client.setState(DONE);
+    }
 }
 
 void sendResponse(Client &client)

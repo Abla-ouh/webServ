@@ -174,7 +174,7 @@ void	configFile::defaultPath()
 	location	loc;
 
 	loc.setPath("/");
-	loc.setRoot("./www/default");
+	loc.setRoot("./www");
 	loc.setAllowMethodes("GET");
 	loc.setIndex("index.html");
 	serv.setLocation(loc);
