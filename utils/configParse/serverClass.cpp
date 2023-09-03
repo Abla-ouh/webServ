@@ -170,6 +170,7 @@ void server::CreateSocket(server servers)
     }
 
     server_socket = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
+	std::cout << "server_socket: " << server_socket << std::endl;
     if (server_socket == -1) {
         perror("socket");
         freeaddrinfo(res);
@@ -189,6 +190,13 @@ void server::CreateSocket(server servers)
         return;
     }
 
+	if (setsockopt(server_socket, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof yes) == -1)
+    {
+        std::cout << "setsocket failed" << std::endl;
+        close(server_socket);
+        freeaddrinfo(res);
+        return;
+    }
     if (bind(server_socket, res->ai_addr, res->ai_addrlen) == -1)
     {
         perror("bind");
@@ -197,13 +205,6 @@ void server::CreateSocket(server servers)
         return;
     }
 	
-	if (setsockopt(server_socket, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof yes) == -1)
-    {
-        std::cout << "setsocket failed" << std::endl;
-        close(server_socket);
-        freeaddrinfo(res);
-        return;
-    }
     freeaddrinfo(res);
     
     if (listen(server_socket, 400) == -1)

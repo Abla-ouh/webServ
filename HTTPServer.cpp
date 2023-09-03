@@ -6,7 +6,7 @@
 /*   By: abouhaga <abouhaga@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/02 18:20:47 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/09/02 18:48:49 by abouhaga         ###   ########.fr       */
+/*   Updated: 2023/09/02 22:41:35 by abouhaga         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,6 +50,7 @@ void HTTPServer::createConnections()
     //  initializing the socket for each server
     for (size_t i = 0; i < servers.size(); i++)
     {
+        std::cout << "*******ana hna********" << std::endl;
         //match_server_block(servers[i]);
         servers[i].CreateSocket(servers[i]);
         std:: cout << "Listening on port: " << RED << servers[i].getPort() << WHITE <<std::endl;
@@ -171,6 +172,8 @@ void HTTPServer::start()
     
     while(true)
     {
+        // FD_ZERO(&tmp_readSet);
+        // FD_ZERO(&tmp_writeSet);
         tmp_readSet = readSet;
         tmp_writeSet = writeSet;
 
@@ -178,6 +181,7 @@ void HTTPServer::start()
 		err = select(maxSocket + 1, &tmp_readSet, &tmp_writeSet, NULL, NULL);
         if (err < 0)
         {
+            std::cout << "=========>Err: " << err << std::endl;
             std::perror("select() Error ");
             exit(1);
         }

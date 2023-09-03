@@ -6,7 +6,7 @@
 /*   By: abouhaga <abouhaga@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/08 16:57:48 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/09/02 19:04:45 by abouhaga         ###   ########.fr       */
+/*   Updated: 2023/09/02 22:36:39 by abouhaga         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -320,7 +320,9 @@ void HTTPServer::handleRequest(Client &client, fd_set &writeSet, fd_set &readSet
         if (rd <= 0)
         {
             std::cout << "Client has closed the connection" << std::endl;
+            FD_CLR(client.getClientSocket(), &readSet);
             removeClient(client.getClientSocket());
+
         }
 
         if (!client.already_checked)
@@ -343,6 +345,7 @@ void HTTPServer::handleRequest(Client &client, fd_set &writeSet, fd_set &readSet
             }
             else
             {
+                FD_CLR(client.getClientSocket(), &readSet);
                 removeClient(client.getClientSocket());
                 // close(client.fd_client);
                 //FD_CLR(client.getClientSocket(), &readSet);
