@@ -82,7 +82,7 @@ void handleDeleteRequest(Client &client, std::string src)
     std::string indexFile;
     std::vector<std::string> allowed_methods = client.getlocation().getAllowMethodes();
 
-    if (find(allowed_methods.begin(), allowed_methods.end(), "GET") == allowed_methods.end())
+    if (find(allowed_methods.begin(), allowed_methods.end(), "DELETE") == allowed_methods.end())
     {
         client.setStatus(405);
         return;

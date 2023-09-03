@@ -48,6 +48,7 @@ class server {
         struct addrinfo 	*res;
 		int             	server_socket;
 		char**				_env;
+		int					internalErrPage;
 	public:
 		server();
 		~server(){};
@@ -62,6 +63,7 @@ class server {
 		void			setErrorPage(string key, string value){_error_pages[key] = value;};
 		void			setEnv(char **env){_env = env;};
 		void			setLocation(location loc){_locations.push_back(loc);};
+		void			setInternalErrPage(int err){internalErrPage = err;};
 		//void			setLocations();
 		//?
 		// ? geter's
@@ -79,6 +81,7 @@ class server {
         void    				CreateSocket(server servers);
 		char**					getEnv(){return (_env);}
 		void					checkHostPort();
+		int					getInternalErrPage() { return internalErrPage;};
 };
 
 

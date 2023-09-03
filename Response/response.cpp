@@ -7,14 +7,17 @@ void check_errors(Client &client, int code)
 
     ss << code;
     std::map<std::string, std::string> errors = client.getServer().getErrorPage();
-    fd = open(errors[ss.str()].c_str(), O_RDONLY);
-
+    if (code == 500)
+        fd = client.getServer().getInternalErrPage();
+    else
+        fd = open(errors[ss.str()].c_str(), O_RDONLY);
+    
     if (fd < 0)
     {
-        check_errors(client, 500);
-        return;
+        client.setStatus(500);
+        fd = client.getServer().getInternalErrPage();
     }
-    
+
     if (client.getResponse().getFileFd())
         close(client.getResponse().getFileFd());
     client.getResponse().setFileFd(fd);
@@ -62,7 +65,7 @@ void getFile(Client &client, int s)
     int a;
     int fd;
     int max = 2048;
-    char buff[max];
+    char *buff = new char[max + 1];
 
     if (client.getResponse().getFileFd() < 0)
     {
@@ -74,6 +77,8 @@ void getFile(Client &client, int s)
 
     if ((a = read(fd, buff, max)) > 0)
         client.getResponse().getBodySize() += a;
+
+    delete[] buff;
 
     if (!a)
     {
@@ -310,7 +315,7 @@ void response(Client &client)
 void sendCgi(Client &client)
 {
     size_t size = 2048;
-    char buff[size];
+    char *buff = new char[size + 1];
     int sent;
     int a;
     int r;
@@ -330,6 +335,7 @@ void sendCgi(Client &client)
             {
                 check_errors(client, 500);
                 client.setStatus(500);
+                delete[] buff;
                 return;
             }
             content += buff;
@@ -368,6 +374,7 @@ void sendCgi(Client &client)
         {
             std::cout << "Client Closed the connection: " << std::endl;
             client.setState(DONE);
+            delete[] buff;
             return;
         }
     }
@@ -375,8 +382,10 @@ void sendCgi(Client &client)
     {
         check_errors(client, 500);
         client.setStatus(500);
+        delete[] buff;
         return;
     }
+    delete[] buff;
     if (r && !client.getResponse().getBodySize())
         client.getResponse().getBodySize()++;
     if (!r || !client.getResponse().getBodySize())
@@ -387,7 +396,7 @@ void sendResponse(Client &client)
 {
     std::string response;
     size_t size = 2048;
-    char buff[size];
+    char *buff = new char[size + 1];
     size_t i = 0;
     int a = 0;
     int r;
@@ -401,6 +410,7 @@ void sendResponse(Client &client)
         {
             std::cout << "Client Closed the connection: " << std::endl;
             client.setState(DONE);
+            delete[] buff;
             return;
         }
         i = response.size();
@@ -420,6 +430,7 @@ void sendResponse(Client &client)
             {
                 std::cout << "Client Closed the connection: " << std::endl;
                 client.setState(DONE);
+                delete[] buff;
                 return;
             }
             i += a;
@@ -430,12 +441,10 @@ void sendResponse(Client &client)
     {
         check_errors(client, 500);
         client.setStatus(500);
+        delete[] buff;
         return;
     }
-    // if (r && !client.getResponse().getBodySize())
-    //     client.getResponse().getBodySize()++;
+    delete[] buff;
     if (!r || !client.getResponse().getBodySize())
         client.setState(DONE);
 }
-
-// Fix the Status in CGI timeout

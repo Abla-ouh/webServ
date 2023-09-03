@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HTTPServer.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ybel-hac <ybel-hac@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ebelkhei <ebelkhei@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/02 18:20:47 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/09/03 12:02:43 by ybel-hac         ###   ########.fr       */
+/*   Updated: 2023/09/03 12:52:07 by ebelkhei         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -114,6 +114,12 @@ void HTTPServer::start()
     createConnections();
     while (server_it != servers.end())
     {
+        server_it->setInternalErrPage(open(server_it->getErrorPage()["500"].c_str(), O_RDONLY));
+        if (server_it->getInternalErrPage() == -1)
+        {
+            std::cerr << "Failed to open internal error page: " << strerror(errno) << std::endl;
+            exit(1);
+        }
         FD_SET((*server_it).getServerSocket(), &readSet);
         if ((*server_it).getServerSocket() > maxSocket)
             maxSocket = (*server_it).getServerSocket();
