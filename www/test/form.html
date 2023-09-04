@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Form</title>
+
+	<style>
+		@import url('https://fonts.googleapis.com/css2?family=Noto+Sans:wght@600;800&family=Open+Sans&display=swap');
+		body {
+			margin: 0;
+			padding: 0;
+			background-color: #22223b;
+			box-sizing: border-box;
+			font-family: 'Noto Sans', sans-serif;
+			font-family: 'Open Sans', sans-serif;
+		}
+		.container input {
+			width: 50%;
+			margin: 10px 0;
+			font-size: 17px;
+			background-color: #f2e9e4;
+			border: none;
+			border-radius: 5px;
+			padding: 0 5px;
+		}
+
+		.container label {
+			color: #f2e9e4;
+			font-size: 20px;
+		}
+		.container {
+			position: absolute;
+			top: 50%;
+			left: 50%;
+			transform: translate(-50%, -50%);
+			background-color: #4a4e69;
+			display: flex;
+			flex-direction: column;
+			justify-content: center;
+			align-items: center;
+			text-align: center;
+			padding: 20px 0;
+			border-radius: 20px;
+		}
+		.container button {
+			background-color: #f2e9e4;
+			border: 2px solid #f2e9e4;
+			color: #22223b;
+			border-radius: 5px;
+			margin-top: 20px;
+		}
+	</style>
+</head>
+<body>
+	<div class="container">
+		<form action="/upload" method="post">
+			<div>
+				<label for="say">What greeting do you want to say?</label>
+				<input name="say" id="say" value="Hi" />
+			</div>
+			<div>
+				<label for="to">Who do you want to say it to?</label>
+				<input name="to" id="to" value="Mom" />
+			</div>
+			<button>Send my greetings</button>
+		</form>
+	</div>
+</body>
+</html>
