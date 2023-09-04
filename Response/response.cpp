@@ -7,14 +7,17 @@ void check_errors(Client &client, int code)
 
     ss << code;
     std::map<std::string, std::string> errors = client.getServer().getErrorPage();
-    fd = open(errors[ss.str()].c_str(), O_RDONLY);
-
+    if (code == 500)
+        fd = client.getServer().getInternalErrPage();
+    else
+        fd = open(errors[ss.str()].c_str(), O_RDONLY);
+    
     if (fd < 0)
     {
-        check_errors(client, 500);
-        return;
+        client.setStatus(500);
+        fd = client.getServer().getInternalErrPage();
     }
-    
+
     if (client.getResponse().getFileFd())
         close(client.getResponse().getFileFd());
     client.getResponse().setFileFd(fd);
@@ -62,7 +65,7 @@ void getFile(Client &client, int s)
     int a;
     int fd;
     int max = 2048;
-    char buff[max];
+    char *buff = new char[max + 1];
 
     if (client.getResponse().getFileFd() < 0)
     {
@@ -74,6 +77,8 @@ void getFile(Client &client, int s)
 
     if ((a = read(fd, buff, max)) > 0)
         client.getResponse().getBodySize() += a;
+
+    delete[] buff;
 
     if (!a)
     {
@@ -166,6 +171,18 @@ void get(Client &client, std::string src)
         getDir(client, src);
 }
 
+void addCookies(Client client, std::string &response)
+{
+    std::map<std::string, std::string> cookies = client.getRequest().getCookies();
+    std::map<std::string, std::string>::iterator it = cookies.begin();
+
+    for (; it != cookies.end(); it++)
+    {
+        response += "Set-Cookie: " + it->first + "=" + it->second + "\r\n";
+        std::cout << "Set-Cookie: " + it->first + "=" + it->second + "\r\n";
+    }
+}
+
 void buildResponse(Client &client, std::string &response)
 {
     std::stringstream ss;
@@ -176,8 +193,8 @@ void buildResponse(Client &client, std::string &response)
     ss << client.getResponse().getBodySize();
     response = client.getResponse().getStatusLine(client.getStatus()) + crlf;
     response += "Server: " + client.getResponse().getServer() + crlf;
-	// response += ; // ! cookies
-	// response += ;
+    // add cookies
+    addCookies(client, response);
     if (client.getResponse().getLocationUrl().length())
         response += "Location: " + client.getResponse().getLocationUrl() + crlf;
     response += "Content-Length: " + ss.str() + crlf;
@@ -246,7 +263,7 @@ void response(Client &client)
                 get(client, src);
             else if (client.getRequest().getMethod() == "POST")
                 Post(client.getRequest(), client.getlocation(), client);
-            else if (client.getRequest().getMethod() == "DELETE") //==> check if delete is allowed.
+            else if (client.getRequest().getMethod() == "DELETE")
                 handleDeleteRequest(client, src);
         }
         if (client.getStatus() != 200 && client.getStatus())
@@ -305,19 +322,17 @@ void response(Client &client)
         sendResponse(client);
 }
 
-// Check if the client close the connection before sending
-
 void sendCgi(Client &client)
 {
-    size_t size = 2048;
-    char buff[size];
-    int sent;
-    int a;
-    int r;
     std::string status = "HTTP/1.1 200 OK\r\n";
-    string header = "";
-    int rd = 1;
-    int readed = 0;
+    std::string header = "";
+    char        *buff = new char[2049];
+    int         size = 2048;
+    int         sent;
+    int         a;
+    int         r;
+    int         rd = 1;
+    int         readed = 0;
 
     while (rd > 0)
     {
@@ -330,6 +345,7 @@ void sendCgi(Client &client)
             {
                 check_errors(client, 500);
                 client.setStatus(500);
+                delete[] buff;
                 return;
             }
             content += buff;
@@ -339,6 +355,13 @@ void sendCgi(Client &client)
                 status_line.erase(status_line.find("\r\n") + 2);
                 status = "HTTP/1.1 " + status_line.substr(status_line.find_first_of("0123456789"));
                 content.erase(content.find("Status: "), status_line.length());
+            }
+            else if (content.find("HTTP/1.1 ") != string::npos && content.find("HTTP/1.1 ") < content.find("\r\n\r\n"))
+            {
+                string status_line = content.substr(content.find("HTTP/1.1 "));
+                status_line.erase(status_line.find("\r\n") + 2);
+                status = status_line;
+                content.erase(content.find("HTTP/1.1 "), status_line.length());
             }
             header += content;
             readed += rd;
@@ -357,7 +380,7 @@ void sendCgi(Client &client)
         return;
     }
     size -= sent;
-    while (size--)
+    while (--size > 0)
     {
         memset(buff, 0, size);
         r = read(client.getCgiFd(), buff, 2048);
@@ -368,6 +391,7 @@ void sendCgi(Client &client)
         {
             std::cout << "Client Closed the connection: " << std::endl;
             client.setState(DONE);
+            delete[] buff;
             return;
         }
     }
@@ -375,36 +399,51 @@ void sendCgi(Client &client)
     {
         check_errors(client, 500);
         client.setStatus(500);
+        delete[] buff;
         return;
     }
-    if (r && !client.getResponse().getBodySize())
-        client.getResponse().getBodySize()++;
+    delete[] buff;
+    if (r < 0)
+    {
+        check_errors(client, 500);
+        client.setStatus(500);
+        delete[] buff;
+        return;
+    }
     if (!r || !client.getResponse().getBodySize())
+    {
+        close(client.uploadedOutFile);
         client.setState(DONE);
+    }
 }
 
 void sendResponse(Client &client)
 {
-    std::string response;
-    size_t size = 2048;
-    char buff[size];
-    size_t i = 0;
-    int a = 0;
-    int r;
+    std::string     response;
+    size_t          size = 2048;
+    char            *buff = new char[size + 1];
+    size_t          i = 0;
+    int             a = 0;
+    int             r;
+    int             sent;
 
     if (client.getResponse().getResponse().length())
     {
         response = client.getResponse().getResponse();
-        std::cout << "\n"
-                  << response << std::endl;
-        if (send(client.getClientSocket(), response.c_str(), response.size(), 0) < 0)
+        // std::cout << "\n" << response << std::endl;
+        sent = send(client.getClientSocket(), response.c_str(), response.size(), 0);
+        if (sent < 0)
         {
             std::cout << "Client Closed the connection: " << std::endl;
             client.setState(DONE);
+            delete[] buff;
             return;
         }
-        i = response.size();
-        client.getResponse().setResponse("");
+        if (sent)
+        {
+            i = response.size();
+            client.getResponse().setResponse("");
+        }
     }
 
     if (client.getResponse().getBodySize())
@@ -420,22 +459,24 @@ void sendResponse(Client &client)
             {
                 std::cout << "Client Closed the connection: " << std::endl;
                 client.setState(DONE);
+                delete[] buff;
                 return;
             }
-            i += a;
-            client.getResponse().getBodySize() -= a;
+            if (a)
+            {
+                i += a;
+                client.getResponse().getBodySize() -= a;
+            }
         }
     }
     if (r < 0)
     {
         check_errors(client, 500);
         client.setStatus(500);
+        delete[] buff;
         return;
     }
-    // if (r && !client.getResponse().getBodySize())
-    //     client.getResponse().getBodySize()++;
+    delete[] buff;
     if (!r || !client.getResponse().getBodySize())
         client.setState(DONE);
 }
-
-// Fix the Status in CGI timeout

@@ -2,8 +2,7 @@
 
 using namespace std;
 
-
-void	CGI::setCgiEnv(Request req, Client &client, string interpreter, string scritpPath)
+void CGI::setCgiEnv(Request req, Client &client, string interpreter, string scritpPath)
 {
 	_client = client;
 	_env["HTTP_COOKIE"] = req.getHeader("Cookie");
@@ -32,15 +31,15 @@ void	CGI::setCgiEnv(Request req, Client &client, string interpreter, string scri
 	_env["REDIRECT_STATUS"] = "200";
 }
 
-char	**CGI::getCgiEnv()
+char **CGI::getCgiEnv()
 {
-	size_t	len = 0;
-	char	**old_env = _client.getServer().getEnv();
-	size_t	i = 0;
+	size_t len = 0;
+	char **old_env = _client.getServer().getEnv();
+	size_t i = 0;
 
 	while (old_env[len])
 		len++;
-	char	**env = new char*[len + _env.size() + 2];
+	char **env = new char *[len + _env.size() + 2];
 
 	for (; i < len; i++)
 		env[i] = strdup(old_env[i]);
@@ -50,10 +49,10 @@ char	**CGI::getCgiEnv()
 	return (env);
 }
 
-void CGI::cgi_executor(Client& client, string scritpPath, string requestFile, string interpreter)
+void CGI::cgi_executor(Client &client, string scritpPath, string requestFile, string interpreter)
 {
-	FILE*							outfd = tmpfile();
-	char							**env;
+	FILE *outfd = tmpfile();
+	char **env;
 
 	if (interpreter[0] != '/')
 		interpreter = client.getlocation().getRoot() + '/' + interpreter;
@@ -66,8 +65,8 @@ void CGI::cgi_executor(Client& client, string scritpPath, string requestFile, st
 		return (client.setStatus(500), perror("fork"));
 	if (!client.getChildPid())
 	{
-		char	*tab[4] = {strdup(interpreter.c_str()), strdup(scritpPath.c_str()), strdup(requestFile.c_str()), 0};
-		dup2(client.file, STDIN_FILENO);
+		char *tab[4] = {strdup(interpreter.c_str()), strdup(scritpPath.c_str()), strdup(requestFile.c_str()), 0};
+		dup2(client.uploadedInFile, STDIN_FILENO);
 		dup2(fileno(outfd), STDOUT_FILENO);
 		dup2(fileno(outfd), STDERR_FILENO);
 		execve(tab[0], tab, env);
@@ -77,13 +76,13 @@ void CGI::cgi_executor(Client& client, string scritpPath, string requestFile, st
 	}
 }
 
-void	run_cgi(Client &client, string requestFile)
+void run_cgi(Client &client, string requestFile)
 {
 	cout << "**************** run_cgi ****************\n";
-	CGI		cgi;
-	string	scriptPath;
-	map<string, string>				obj = client.getlocation().getCgiPass();
-	map<string, string>::iterator	interpreter = obj.find(requestFile.substr(requestFile.find_last_of(".") + 1));
+	CGI cgi;
+	string scriptPath;
+	map<string, string> obj = client.getlocation().getCgiPass();
+	map<string, string>::iterator interpreter = obj.find(requestFile.substr(requestFile.find_last_of(".") + 1));
 
 	if (client.getlocation().getCgiPath()[0] != '/')
 		client.getlocation().setCgiPath(client.getlocation().getRoot() + "/" + client.getlocation().getCgiPath());
@@ -99,7 +98,7 @@ void	run_cgi(Client &client, string requestFile)
 			if (access(interpreter->second.c_str(), X_OK))
 				return (client.setStatus(500), perror(interpreter->second.c_str()));
 			cgi.cgi_executor(client, client.getlocation().getCgiPath(), requestFile, interpreter->second);
-			return ;
+			return;
 		}
 	}
 	if (interpreter != obj.end() && access(interpreter->second.c_str(), X_OK))

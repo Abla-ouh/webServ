@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LinkedIn Profile Badge</title>
+    <!-- LinkedIn Profile Badge Script -->
+    <script src="https://platform.linkedin.com/badges/js/profile.js" async defer type="text/javascript"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(45deg, #7ea6b8, #fbf6d1);
+
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .badge-container {
+            background-color: #d8e1e6;
+            color: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            font-family: 'Modern Font', sans-serif; /* Replace 'Modern Font' with your desired modern font */
+        }
+
+        .badge-container a {
+            text-decoration: none;
+            color: #ffffff;
+            font-size: 18px;
+            margin-top: 10px; /* Add space between the name and the badge */
+        }
+    </style>
+</head>
+<body>
+    <!-- LinkedIn Profile Badge Container -->
+    <div class="badge-container">
+        <!-- LinkedIn Profile Badge -->
+        <div class="badge-base LI-profile-badge"
+             data-locale="fr_FR"
+             data-size="large"
+             data-theme="dark"
+             data-type="HORIZONTAL"
+             data-vanity="abla-ouhaga"
+             data-version="v1">
+            <a href="https://ma.linkedin.com/in/abla-ouhaga?trk=profile-badge"></a>
+        </div>
+    </div>
+</body>
+</html>

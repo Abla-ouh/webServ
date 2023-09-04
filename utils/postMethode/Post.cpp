@@ -102,7 +102,21 @@ void Post(Request& req, location& loc, Client &client)
 			return (client.setStatus(403));
 		}
 		client.uploadedOutFile = file;
-		client.setState(MOVING_FILE);
+		// ? check for empty file
+		lseek(client.uploadedInFile, 0, SEEK_SET);
+		char buffer[5];
+		int rd = read(client.uploadedInFile, buffer, 5);
+		if (!rd)
+		{
+			close(client.uploadedOutFile);
+			close(client.uploadedInFile);
+			rename((uploadDir + "/" + random + extension).c_str(), ("/tmp/file_" + random).c_str());
+			client.setStatus(400);
+		}
+		else {
+			lseek(client.uploadedInFile, 0, SEEK_SET);
+			client.setState(MOVING_FILE);
+		}
 	}
 	//? location doesn't support upload
 	else

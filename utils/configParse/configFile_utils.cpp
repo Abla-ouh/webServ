@@ -74,13 +74,13 @@ void check_file(const string file, string method)
 
 int	check_host(string value)
 {
-	if (value == "localhost")
-		return (1);
 	int		countOctect = 0;
 	string	tmp;
 	value.erase(0, value.find_first_not_of(" 	"));
 	value.erase(value.find_last_not_of(" 	") + 1);
-	if (value.find_first_not_of(".0123456789") < value.length() || count(value.begin(), value.end(), '.') != 3)
+	if (value.find_first_not_of(".0123456789") < value.length())
+		return (1);
+	if (count(value.begin(), value.end(), '.') != 3)
 		throw(unvalidHost());
 	while (value.length() > 0)
 	{
@@ -174,7 +174,7 @@ void	configFile::defaultPath()
 	location	loc;
 
 	loc.setPath("/");
-	loc.setRoot("./www/default");
+	loc.setRoot("./www");
 	loc.setAllowMethodes("GET");
 	loc.setIndex("index.html");
 	serv.setLocation(loc);

@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   delete.cpp                                         :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: abouhaga <abouhaga@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2023/09/03 18:49:16 by abouhaga          #+#    #+#             */
+/*   Updated: 2023/09/03 18:49:19 by abouhaga         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "../HTTPServer.hpp"
 
 std::string get_resource_type(const char *res, Client &client)
@@ -82,7 +94,7 @@ void handleDeleteRequest(Client &client, std::string src)
     std::string indexFile;
     std::vector<std::string> allowed_methods = client.getlocation().getAllowMethodes();
 
-    if (find(allowed_methods.begin(), allowed_methods.end(), "GET") == allowed_methods.end())
+    if (find(allowed_methods.begin(), allowed_methods.end(), "DELETE") == allowed_methods.end())
     {
         client.setStatus(405);
         return;

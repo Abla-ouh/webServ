@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HTTPServer.hpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ybel-hac <ybel-hac@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ebelkhei <ebelkhei@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/02 17:55:47 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/09/03 12:04:22 by ybel-hac         ###   ########.fr       */
+/*   Updated: 2023/09/03 15:10:23 by ebelkhei         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -227,5 +227,7 @@ std::string	createAutoindexPage(string root_dir);
 void		writeToNewFile(Client &client);
 void		check_errors(Client &client, int code);
 void		getFile(Client &client, int s);
+
+void reselect(fd_set &readSet, fd_set &writeSet, int &maxSocket, std::vector<server> &servers, std::vector<Client> &clients);
 
 #endif

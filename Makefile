@@ -14,8 +14,8 @@ SRCS = main.cpp Client.cpp HTTPServer.cpp Request.cpp RequestUtils.cpp\
 	   $(CONFIG_PARSE)../CGI/cgi.cpp\
 	   ./delete/delete.cpp
 NAME = webserv
-CC = g++
-CXX = g++
+CC = c++
+CXX = c++
 
 # Color codes
 RED = \033[0;31m
@@ -46,10 +46,6 @@ clean:
 fclean: clean
 	@echo "$(RED)$(BOLD)Cleaning $(NAME) executable...$(RESET)"
 	rm -rf $(NAME)
-
-clean_files:
-	@echo "$(RED)$(BOLD)Cleaning files starting with 'file_'...$(RESET)"
-	rm -f ./tmp/file_*
 
 re: fclean all
 
