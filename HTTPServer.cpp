@@ -6,7 +6,7 @@
 /*   By: abouhaga <abouhaga@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/02 18:20:47 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/09/03 22:29:11 by abouhaga         ###   ########.fr       */
+/*   Updated: 2023/09/04 13:22:13 by abouhaga         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -103,7 +103,6 @@ void HTTPServer::start()
     std::vector<server>::iterator server_it = this->servers.begin();
     int maxSocket = -1;
 
-    // signal(SIGINT, SIG_IGN);
 	signal(SIGPIPE, SIG_IGN);
     FD_ZERO(&readSet);
     FD_ZERO(&writeSet);

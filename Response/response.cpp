@@ -6,7 +6,7 @@
 /*   By: abouhaga <abouhaga@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/03 18:48:27 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/09/03 18:48:29 by abouhaga         ###   ########.fr       */
+/*   Updated: 2023/09/04 13:25:58 by abouhaga         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -326,7 +326,7 @@ void response(Client &client)
 
 void sendCgi(Client &client)
 {
-    size_t size = 2048;
+    int size = 2048;
     char *buff = new char[size + 1];
     int sent;
     int a;
@@ -382,9 +382,9 @@ void sendCgi(Client &client)
         return;
     }
     size -= sent;
-    while (size--)
+    while (--size > 0)
     {
-        memset(buff, 0, size);
+        memset(buff, 0, 2048);
         r = read(client.getCgiFd(), buff, 2048);
         if (r <= 0)
             break;
@@ -426,8 +426,8 @@ void sendResponse(Client &client)
     if (client.getResponse().getResponse().length())
     {
         response = client.getResponse().getResponse();
-        std::cout << "\n"
-                  << response << std::endl;
+        // std::cout << "\n"
+                //   << response << std::endl;
         if (send(client.getClientSocket(), response.c_str(), response.size(), 0) < 0)
         {
             std::cout << "Client Closed the connection: " << std::endl;

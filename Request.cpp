@@ -6,7 +6,7 @@
 /*   By: abouhaga <abouhaga@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/08 16:57:48 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/09/03 22:28:27 by abouhaga         ###   ########.fr       */
+/*   Updated: 2023/09/04 13:25:29 by abouhaga         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -90,14 +90,14 @@ void Request::initRequest(const std::string& httpRequestHeader)
     // std::cout << "uri: " << uri << std::endl;
     // std::cout << "query: " << query << std::endl;
     // std::cout << "version: " << version << std::endl;
-    std::cout << "headers: " << std::endl;
-    for (std::map<std::string, std::string>::const_iterator it = headers.begin(); it != headers.end(); ++it) {
-        std::cout << it->first << ": " << it->second << std::endl;
-    }
-    std::cout << "cookies: " << std::endl;
-    for (std::map<std::string, std::string>::const_iterator it = cookies.begin(); it != cookies.end(); ++it) {
-        std::cout << it->first << ": " << it->second << std::endl;
-    }
+    // std::cout << "headers: " << std::endl;
+    // for (std::map<std::string, std::string>::const_iterator it = headers.begin(); it != headers.end(); ++it) {
+    //     std::cout << it->first << ": " << it->second << std::endl;
+    // }
+    // std::cout << "cookies: " << std::endl;
+    // for (std::map<std::string, std::string>::const_iterator it = cookies.begin(); it != cookies.end(); ++it) {
+    //     std::cout << it->first << ": " << it->second << std::endl;
+    // }
     
 }
 

@@ -209,7 +209,7 @@ void server::CreateSocket(server servers)
     }
     freeaddrinfo(res);
     
-    if (listen(server_socket, 400) == -1)
+    if (listen(server_socket, 200) == -1)
     {
         std::cerr << "listen() failed" << std::endl;
         close(server_socket);
