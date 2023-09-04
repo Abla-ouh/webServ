@@ -14,6 +14,7 @@ SRCS = main.cpp Client.cpp HTTPServer.cpp Request.cpp RequestUtils.cpp\
 	   $(CONFIG_PARSE)../CGI/cgi.cpp\
 	   ./delete/delete.cpp
 NAME = webserv
+
 CC = c++
 CXX = c++
 

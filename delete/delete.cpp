@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   delete.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: abouhaga <abouhaga@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ebelkhei <ebelkhei@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/03 18:49:16 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/09/03 18:49:19 by abouhaga         ###   ########.fr       */
+/*   Updated: 2023/09/04 16:06:00 by ebelkhei         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -76,7 +76,6 @@ void getIndexFile(Client &client, std::string &index, std::string src)
         for (size_t i = 0; i < indexes.size(); i++)
         {
             file = src + indexes[i];
-            std::cout << "FILE: " << file << std::endl;
             if (!access(file.c_str(), F_OK))
             {
                 index = file;
