@@ -74,6 +74,8 @@ void check_file(const string file, string method)
 
 int	check_host(string value)
 {
+	if (value == "localhost")
+		return (1);
 	int		countOctect = 0;
 	string	tmp;
 	value.erase(0, value.find_first_not_of(" 	"));
