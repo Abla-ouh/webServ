@@ -80,7 +80,9 @@ int	check_host(string value)
 	string	tmp;
 	value.erase(0, value.find_first_not_of(" 	"));
 	value.erase(value.find_last_not_of(" 	") + 1);
-	if (value.find_first_not_of(".0123456789") < value.length() || count(value.begin(), value.end(), '.') != 3)
+	if (value.find_first_not_of(".0123456789") < value.length())
+		return (1);
+	if (count(value.begin(), value.end(), '.') != 3)
 		throw(unvalidHost());
 	while (value.length() > 0)
 	{
