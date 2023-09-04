@@ -246,10 +246,8 @@ void response(Client &client)
             tmp.erase(0, 1);
 
         src = root + tmp;
-
         if (!client.getStatus())
             check_redirections(client);
-
         if (!client.getStatus())
         {
             if (client.getRequest().getMethod() == "GET")
@@ -363,7 +361,6 @@ void sendCgi(Client &client)
     }
     header.insert(0, status);
     lseek(client.getCgiFd(), readed, SEEK_SET);
-
     if ((sent = send(client.getClientSocket(), header.c_str(), header.size(), 0)) <= 0)
     {
         std::cout << "Client Closed the connection: " << std::endl;
@@ -421,7 +418,7 @@ void sendResponse(Client &client)
             delete[] buff;
             return;
         }
-                    i = response.size();
+            i = response.size();
             client.getResponse().setResponse("");
     }
 
