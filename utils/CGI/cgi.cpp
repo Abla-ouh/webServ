@@ -78,7 +78,6 @@ void CGI::cgi_executor(Client &client, string scritpPath, string requestFile, st
 
 void run_cgi(Client &client, string requestFile)
 {
-	cout << "**************** run_cgi ****************\n";
 	CGI cgi;
 	string scriptPath;
 	map<string, string> obj = client.getlocation().getCgiPass();
@@ -97,6 +96,8 @@ void run_cgi(Client &client, string requestFile)
 				return (client.setStatus(404));
 			if (access(interpreter->second.c_str(), X_OK))
 				return (client.setStatus(500), perror(interpreter->second.c_str()));
+			if (access(client.getlocation().getCgiPath().c_str(), R_OK))
+				return (client.setStatus(500), perror(client.getlocation().getCgiPath().c_str()));
 			cgi.cgi_executor(client, client.getlocation().getCgiPath(), requestFile, interpreter->second);
 			return;
 		}

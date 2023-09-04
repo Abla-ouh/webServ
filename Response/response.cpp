@@ -449,5 +449,9 @@ void sendResponse(Client &client)
         return;
     }
     if (!r || !client.getResponse().getBodySize())
+    {
+        if (client.getStatus() == 500)
+            lseek(client.getResponse().getFileFd(), 0, SEEK_SET);
         client.setState(DONE);
+    }
 }

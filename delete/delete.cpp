@@ -6,7 +6,7 @@
 /*   By: ebelkhei <ebelkhei@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/09/03 18:49:16 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/09/04 16:06:00 by ebelkhei         ###   ########.fr       */
+/*   Updated: 2023/09/04 18:24:53 by ebelkhei         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -121,7 +121,6 @@ void handleDeleteRequest(Client &client, std::string src)
     }
     else if (rcs_type == "DIRE")
     {
-        std::cout << "Tmp: " + tmp << std::endl;
         if (tmp[tmp.length() - 1] != '/')
         {
             client.setStatus(409);

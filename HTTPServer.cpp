@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HTTPServer.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: abouhaga <abouhaga@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ebelkhei <ebelkhei@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/02 18:20:47 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/09/04 13:22:13 by abouhaga         ###   ########.fr       */
+/*   Updated: 2023/09/04 18:29:19 by ebelkhei         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,7 +61,8 @@ void HTTPServer::removeClient(std::vector<Client>::iterator &client_it, int &max
 
     if (client_it->getClientSocket() == maxSocket)
         maxSocket--;
-    close(client_it->getResponse().getFileFd());
+    if (client_it->getStatus() != 500)
+        close(client_it->getResponse().getFileFd());
     close(client_it->getClientSocket());
     client_it = clients.erase(client_it);
 }

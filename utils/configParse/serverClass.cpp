@@ -16,6 +16,7 @@ server::server()
 	this->setErrorPage("505", "error_pages/505.html");
 	this->setErrorPage("204", "error_pages/204.html");
 	this->setErrorPage("504", "error_pages/504.html");
+	this->setErrorPage("409", "error_pages/409.html");
 	_port = "8080";
 	_host = "127.0.0.1";
 	_client_max_body_size = "1000000";
