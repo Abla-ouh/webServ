@@ -6,7 +6,7 @@
 /*   By: ybel-hac <ybel-hac@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/08 16:57:48 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/09/04 21:12:39 by ybel-hac         ###   ########.fr       */
+/*   Updated: 2023/09/04 21:58:32 by ybel-hac         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -286,13 +286,13 @@ void ft_chunked(Client &client, const char *data, int b_length, fd_set &writeSet
         write_size = custom_min<size_t>(client.chunk_size, b_length - rd_times);
         write(client.file, data + rd_times, write_size);
 		client.bodyReaded += write_size;
-		if (client.bodyReaded >= atoi(client.getServer().getclient_max_body_size().c_str()))
+		if (client.bodyReaded >= atoll(client.getServer().getclient_max_body_size().c_str()))
 		{
 			client.setStatus(413);
 			close(client.file);
-			client.isBodyReady = true;
+            client.isBodyReady = true;
             client.ready = true;
-            FD_CLR(client.getClientSocket(), &readSet);
+			FD_CLR(client.getClientSocket(), &readSet);
             FD_SET(client.getClientSocket(), &writeSet);
 			return;
 		}
