@@ -115,7 +115,6 @@ void getDir(Client &client, std::string src)
         for (size_t i = 0; i < indexes.size(); i++)
         {
             file = src + indexes[i];
-            std::cout << "FILE: " << file << std::endl;
             if ((fd = open(file.c_str(), O_RDONLY)) > 0)
             {
                 if (client.getlocation().isCgi())
@@ -177,10 +176,7 @@ void addCookies(Client client, std::string &response)
     std::map<std::string, std::string>::iterator it = cookies.begin();
 
     for (; it != cookies.end(); it++)
-    {
         response += "Set-Cookie: " + it->first + "=" + it->second + "\r\n";
-        std::cout << "Set-Cookie: " + it->first + "=" + it->second + "\r\n";
-    }
 }
 
 void buildResponse(Client &client, std::string &response)
@@ -251,11 +247,8 @@ void response(Client &client)
 
         src = root + tmp;
 
-        std::cout << "SRC: " << src << std::endl;
         if (!client.getStatus())
             check_redirections(client);
-
-        std::cout << "Method: " << client.getRequest().getMethod() << std::endl;
 
         if (!client.getStatus())
         {
@@ -268,7 +261,6 @@ void response(Client &client)
         }
         if (client.getStatus() != 200 && client.getStatus())
         {
-            std::cout << "ERROR: " << client.getStatus() << std::endl;
             client.setState(FILE_READING);
             check_errors(client, client.getStatus());
             client.err = 0;
@@ -371,8 +363,7 @@ void sendCgi(Client &client)
     }
     header.insert(0, status);
     lseek(client.getCgiFd(), readed, SEEK_SET);
-    std::cout << "*******\n"
-              << header << std::endl;
+
     if ((sent = send(client.getClientSocket(), header.c_str(), header.size(), 0)) <= 0)
     {
         std::cout << "Client Closed the connection: " << std::endl;
@@ -395,19 +386,11 @@ void sendCgi(Client &client)
             return;
         }
     }
-    if (r < 0)
-    {
-        check_errors(client, 500);
-        client.setStatus(500);
-        delete[] buff;
-        return;
-    }
     delete[] buff;
     if (r < 0)
     {
         check_errors(client, 500);
         client.setStatus(500);
-        delete[] buff;
         return;
     }
     if (!r || !client.getResponse().getBodySize())
@@ -430,53 +413,44 @@ void sendResponse(Client &client)
     if (client.getResponse().getResponse().length())
     {
         response = client.getResponse().getResponse();
-        // std::cout << "\n" << response << std::endl;
         sent = send(client.getClientSocket(), response.c_str(), response.size(), 0);
-        if (sent < 0)
+        if (sent <= 0)
         {
             std::cout << "Client Closed the connection: " << std::endl;
             client.setState(DONE);
             delete[] buff;
             return;
         }
-        if (sent)
-        {
-            i = response.size();
+                    i = response.size();
             client.getResponse().setResponse("");
-        }
     }
 
     if (client.getResponse().getBodySize())
     {
-        while (i++ < size && client.getResponse().getBodySize())
+        while (i < size && client.getResponse().getBodySize())
         {
             memset(buff, 0, size);
             if ((r = read(client.getResponse().getFileFd(), buff, size)) <= 0)
                 break;
-            // std::cout << c;
             a = send(client.getClientSocket(), buff, r, 0);
-            if (a < 0)
+            if (a <= 0)
             {
                 std::cout << "Client Closed the connection: " << std::endl;
                 client.setState(DONE);
                 delete[] buff;
                 return;
             }
-            if (a)
-            {
-                i += a;
-                client.getResponse().getBodySize() -= a;
-            }
+            i += a;
+            client.getResponse().getBodySize() -= a;
         }
     }
+    delete[] buff;
     if (r < 0)
     {
         check_errors(client, 500);
         client.setStatus(500);
-        delete[] buff;
         return;
     }
-    delete[] buff;
     if (!r || !client.getResponse().getBodySize())
         client.setState(DONE);
 }
