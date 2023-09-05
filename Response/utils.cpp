@@ -19,7 +19,7 @@ Response::Response()
     this->status_code[504] = "Gateway Timeout";
 
     this->body_size = 0;
-    this->file_fd = 0;
+    this->file_fd = -1;
 }
 
 std::string Response::getStatusLine(int code)
@@ -78,8 +78,16 @@ void reselect(fd_set &readSet, fd_set &writeSet, int &maxSocket, std::vector<ser
             client_it->setChildPid(0);
         }
         close(client_it->getClientSocket());
-        close(client_it->getCgiFd());
-        close(client_it->getResponse().getFileFd());
+		if (client_it->getCgiFd() != -1)
+			close(client_it->getCgiFd());
+		if (client_it->getResponse().getFileFd() != -1)
+			close(client_it->getResponse().getFileFd());
+		if (client_it->uploadedOutFile != -1)
+			close(client_it->uploadedOutFile);
+		if (client_it->uploadedInFile != -1)
+			close(client_it->uploadedInFile);
+		if (client_it->file != -1)
+			close(client_it->file);
     }
 
     clients.clear();

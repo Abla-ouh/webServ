@@ -6,7 +6,7 @@
 /*   By: ybel-hac <ybel-hac@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/08 16:57:48 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/09/04 22:28:54 by ybel-hac         ###   ########.fr       */
+/*   Updated: 2023/09/05 15:13:28 by ybel-hac         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -274,7 +274,8 @@ void ft_chunked(Client &client, const char *data, int b_length, fd_set &writeSet
 
             if (!client.chunk_size)
             {
-                close(client.file);
+				if (client.file != -1)
+					close(client.file);
                 client.isBodyReady = true;
                 client.ready = true;
 				FD_CLR(client.getClientSocket(), &readSet);
@@ -289,7 +290,8 @@ void ft_chunked(Client &client, const char *data, int b_length, fd_set &writeSet
 		if (client.bodyReaded >= atoll(client.getServer().getclient_max_body_size().c_str()))
 		{
 			client.setStatus(413);
-			close(client.file);
+			if (client.file != -1)
+				close(client.file);
             client.isBodyReady = true;
             client.ready = true;
 			FD_CLR(client.getClientSocket(), &readSet);
@@ -329,13 +331,18 @@ int HTTPServer::handleRequest(std::vector<Client>::iterator &client_it, fd_set &
 
     if (rd < 0)
     {
+		if (client.file != -1)
+			close(client.file);
         std::cout << "Client has closed the connection" << std::endl;
         FD_CLR(client.getClientSocket(), &readSet);
         removeClient(client_it, maxSocket);
+		cout << PURPLE << "handleRequest CLIENT Dropped: " << client_it->getClientSocket() << WHITE "\n";
         return 0;
     }
     if (!rd)
     {
+		if (client.file != -1)
+			close(client.file);
         FD_CLR(client.getClientSocket(), &readSet);
         FD_SET(client.getClientSocket(), &writeSet);
         return 1;
@@ -354,7 +361,8 @@ int HTTPServer::handleRequest(std::vector<Client>::iterator &client_it, fd_set &
                 request.initRequest(client.header);
                 if (!RequestErrors(request, client))
                 {
-                    close(client.file);
+					if (client.file != -1)
+						close(client.file);
                     FD_CLR(client.getClientSocket(), &readSet);
                     FD_SET(client.getClientSocket(), &writeSet);
 					return (1);
@@ -369,6 +377,7 @@ int HTTPServer::handleRequest(std::vector<Client>::iterator &client_it, fd_set &
                 std::cout << "Client has closed the connection" << std::endl;
                 FD_CLR(client.getClientSocket(), &readSet);
                 removeClient(client_it, maxSocket);
+				cout << PURPLE << "CLIENT Dropped: " << client.getClientSocket() << WHITE "\n";
                 return 0;
             }
         }
@@ -409,7 +418,8 @@ int HTTPServer::handleRequest(std::vector<Client>::iterator &client_it, fd_set &
             }
             else
             {
-                close(client.file);
+				if (client.file != -1)
+					close(client.file);
                 client.isBodyReady = true;
                 client.ready = true;
 				FD_CLR(client.getClientSocket(), &readSet);
@@ -425,7 +435,8 @@ int HTTPServer::handleRequest(std::vector<Client>::iterator &client_it, fd_set &
                 write(client.file, data, rd);
                 if (getFileSize(client.file_name) == (size_t)std::atoi(request.getHeader("Content-Length").c_str()))
                 {
-                    close(client.file);
+					if (client.file != -1)
+						close(client.file);
                     client.isBodyReady = true;
                     client.ready = true;
                     FD_CLR(client.getClientSocket(), &readSet);
@@ -435,7 +446,8 @@ int HTTPServer::handleRequest(std::vector<Client>::iterator &client_it, fd_set &
             }
             else
             {
-                close(client.file);
+				if (client.file != -1)
+					close(client.file);
                 client.isBodyReady = true;
                 client.ready = true;
                 FD_CLR(client.getClientSocket(), &readSet);
@@ -445,7 +457,7 @@ int HTTPServer::handleRequest(std::vector<Client>::iterator &client_it, fd_set &
         }
         
 	}
-  
+
     else if (client.bodyChunked && client.getCurrentState() == BODY_READING)
     {
         if (client.firstTime)

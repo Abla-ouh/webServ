@@ -6,7 +6,7 @@
 /*   By: ybel-hac <ybel-hac@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/02 18:20:47 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/09/04 22:57:12 by ybel-hac         ###   ########.fr       */
+/*   Updated: 2023/09/05 15:30:16 by ybel-hac         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,8 +61,8 @@ void HTTPServer::removeClient(std::vector<Client>::iterator &client_it, int &max
 
     if (client_it->getClientSocket() == maxSocket)
         maxSocket--;
-    if (client_it->getStatus() != 500)
-        close(client_it->getResponse().getFileFd());
+    if (client_it->getStatus() != 500 && client_it->getResponse().getFileFd() != -1)
+		close(client_it->getResponse().getFileFd());
     close(client_it->getClientSocket());
     client_it = clients.erase(client_it);
 }
@@ -145,14 +145,12 @@ void HTTPServer::start()
             {
                 if (FD_ISSET((*client_it).getClientSocket(), &tmp_readSet))
 				{
-					std::cout << "Request\n";
                     if (!handleRequest(client_it, writeSet, readSet, maxSocket))
 						continue;
 				}
 
                 if (FD_ISSET((*client_it).getClientSocket(), &tmp_writeSet))
                 {
-					std::cout << "Response\n";
                     response(*client_it);
                     if (client_it->getState() == DONE)
                     {
@@ -162,6 +160,7 @@ void HTTPServer::start()
                             client_it->setChildPid(0);
                         }
                         FD_CLR((*client_it).getClientSocket(), &writeSet);
+						cout << PURPLE << "start CLIENT Dropped: " << client_it->getClientSocket() << WHITE "\n";
                         removeClient(client_it, maxSocket);
                         continue;
                     }

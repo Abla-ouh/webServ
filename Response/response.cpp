@@ -137,6 +137,7 @@ void getDir(Client &client, std::string src)
         client.setStatus(403);
     else
     {
+		// cout << YELLOW "SRC: " << src << WHITE << "\n";
         client.getResponse().setBody(createAutoindexPage(src));
         client.setState(BUILDING_2);
         client.setStatus(200);
@@ -392,7 +393,8 @@ void sendCgi(Client &client)
     }
     if (!r || !client.getResponse().getBodySize())
     {
-        close(client.uploadedOutFile);
+		if (client.uploadedOutFile != -1)
+			close(client.uploadedOutFile);
         client.setState(DONE);
     }
 }
@@ -411,6 +413,7 @@ void sendResponse(Client &client)
     {
         response = client.getResponse().getResponse();
         sent = send(client.getClientSocket(), response.c_str(), response.size(), 0);
+		cout << GREEN "SEND To " << client.getClientSocket() << WHITE "\n";
         if (sent <= 0)
         {
             std::cout << "Client Closed the connection: " << std::endl;
@@ -430,6 +433,7 @@ void sendResponse(Client &client)
             if ((r = read(client.getResponse().getFileFd(), buff, size)) <= 0)
                 break;
             a = send(client.getClientSocket(), buff, r, 0);
+			cout << GREEN "SEND To " << client.getClientSocket() << WHITE "\n";
             if (a <= 0)
             {
                 std::cout << "Client Closed the connection: " << std::endl;

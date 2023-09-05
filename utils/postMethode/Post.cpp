@@ -63,12 +63,28 @@ void	writeToNewFile(Client &client)
 	memset(buffer, 0, 2048);
 	rd = read(client.uploadedInFile, buffer, 2047);
 	if (rd > 0)
+	{
 		write(client.uploadedOutFile, buffer, rd);
-	if (rd <= 0)
+		cout << "writing to file 2047 byte \n";
+	}
+	if (!rd)
+	{
+		if (client.uploadedOutFile != -1)
+			close(client.uploadedOutFile);
+		if (client.uploadedInFile != -1)
+			close(client.uploadedInFile);
+		client.setStatus(201);
+		client.err = 0;
+		client.setState(FILE_READING);
+		check_errors(client, client.getStatus());
+	}
+	if (rd < 0)
 	{
 		perror("");
-		close(client.uploadedOutFile);
-		close(client.uploadedInFile);
+		if (client.uploadedOutFile != -1)
+			close(client.uploadedOutFile);
+		if (client.uploadedInFile != -1)
+			close(client.uploadedInFile);
 		client.setStatus(201);
 		client.err = 0;
 		client.setState(FILE_READING);
@@ -82,6 +98,8 @@ void Post(Request& req, location& loc, Client &client)
 		return (client.setStatus(405));
 	cout << RED "**************** POST ****************\n" WHITE;
 
+	// while (1)
+		// cout << "haineg up\n";
 	if (loc.getUploadPath()[0] == '/')
 		loc.getUploadPath().erase(0, 1);
 	//? location support upload
@@ -108,8 +126,10 @@ void Post(Request& req, location& loc, Client &client)
 		int rd = read(client.uploadedInFile, buffer, 5);
 		if (!rd)
 		{
-			close(client.uploadedOutFile);
-			close(client.uploadedInFile);
+			if (client.uploadedOutFile != -1)
+				close(client.uploadedOutFile);
+			if (client.uploadedInFile != -1)
+				close(client.uploadedInFile);
 			rename((uploadDir + "/" + random + extension).c_str(), ("/tmp/file_" + random).c_str());
 			client.setStatus(400);
 		}

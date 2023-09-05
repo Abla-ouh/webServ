@@ -6,7 +6,7 @@
 /*   By: ybel-hac <ybel-hac@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/02 18:35:35 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/09/04 21:02:13 by ybel-hac         ###   ########.fr       */
+/*   Updated: 2023/09/05 15:18:08 by ybel-hac         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,7 +40,7 @@ Client::Client() : currentState(HEADER_READING)
     this->state = BUILDING;
     memset(data, 0, 8000);
     std::string p = "/tmp/file_";
-
+	child_pid = 0;
 	// if (access("./tmp", F_OK))
 		// p = "file_";
 	file_name = p.append(RandomString(6));
@@ -53,7 +53,12 @@ Client::Client() : currentState(HEADER_READING)
 	isBodyReady = false;
     firstTime = 0;
     bodyChunked = false;
+	file = -1;
+	cgiFd = -1;
+	uploadedOutFile = -1;
+	uploadedInFile = -1;
     ready = false;
+	memset(hexBuff, 0, 20);
 	hex_len = 0;
 	chunk_size = 0;
 }

@@ -7,11 +7,8 @@ std::string	createAutoindexPage(string root_dir)
 {
 	struct dirent *de;
 	std::string page;
-	// ofstream page((root_dir + '/' + "autoindex.html").c_str());
 	DIR *dir = opendir(root_dir.c_str());
 
-	if (!dir)
-		return ("");
 	page += "<!DOCTYPE html>\n\
 <html lang=\"en\">\n\
 \t<head>\n\
@@ -66,15 +63,17 @@ std::string	createAutoindexPage(string root_dir)
 \t<body>\n\
 \t\t<div class=\"container\">\n\
 \t\t\t<h1>الفهرس</h1>\n";
-	while ((de = readdir(dir)))
-	{
-		string link = "";
-		link = ("\t\t\t<a href=\"" + string(de->d_name) + "\"" + ">" + string(de->d_name) + "</a>\n");
-		page += link + "\n";
+	if (dir) {
+		while ((de = readdir(dir)))
+		{
+			string link = "";
+			link = ("\t\t\t<a href=\"" + string(de->d_name) + "\"" + ">" + string(de->d_name) + "</a>\n");
+			page += link + "\n";
+		}
+		closedir(dir);
 	}
 	page += "\t\t</div>\n";
 	page += "\t</body>\n";
 	page += "</html>\n";
-	closedir(dir);
 	return (page);
 }
