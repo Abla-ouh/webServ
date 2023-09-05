@@ -175,10 +175,20 @@ void	configFile::defaultPath()
 	server		serv;
 	location	loc;
 
+	serv.setRoot("./www");
 	loc.setPath("/");
 	loc.setRoot("./www");
 	loc.setAllowMethodes("GET");
 	loc.setIndex("index.html");
 	serv.setLocation(loc);
+	for (map<string, string>::iterator errorItt = serv.getErrorPage().begin(); errorItt != serv.getErrorPage().end(); errorItt++)
+	{
+		serv.getErrorPage()[errorItt->first].insert(0, serv.getRoot() + "/" );
+		if (access(errorItt->second.c_str(), R_OK) == -1)
+		{
+			cerr << RED + errorItt->first << " " << errorItt->second << "\n";
+			throw (unvalidErrorPages());
+		}
+	}
 	_server.push_back(serv);
 }

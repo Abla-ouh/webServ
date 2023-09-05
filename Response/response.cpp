@@ -92,6 +92,7 @@ void getFile(Client &client, int s)
     {
         check_errors(client, 500);
         client.setStatus(500);
+        client.err = 0;
     }
 }
 
@@ -132,7 +133,7 @@ void getDir(Client &client, std::string src)
         }
         client.setStatus(404);
     }
-    std::cout << "AUTOINDEX: " << client.getlocation().getAutoIndex() << std::endl;
+    // std::cout << "AUTOINDEX: " << client.getlocation().getAutoIndex() << std::endl;
     if (client.getlocation().getAutoIndex().empty())
         client.setStatus(403);
     else
@@ -330,15 +331,17 @@ void sendCgi(Client &client)
         string content = "", left = "";
         memset(buff, 0, size);
         rd = read(client.getCgiFd(), buff, size - 1);
+        if (rd <= 0)
+        {
+            client.setStatus(500);
+            client.setState(FILE_READING);
+            check_errors(client, 500);
+            client.err = 0;
+            delete[] buff;
+            return;
+        }
         if (rd)
         {
-            if (rd < 0)
-            {
-                check_errors(client, 500);
-                client.setStatus(500);
-                delete[] buff;
-                return;
-            }
             content += buff;
             if (content.find("Status: ") != string::npos && content.find("Status: ") < content.find("\r\n\r\n"))
             {
@@ -366,6 +369,7 @@ void sendCgi(Client &client)
     {
         std::cout << "Client Closed the connection: " << std::endl;
         client.setState(DONE);
+        delete[] buff;
         return;
     }
     size -= sent;
@@ -387,6 +391,8 @@ void sendCgi(Client &client)
     delete[] buff;
     if (r < 0)
     {
+        client.setState(FILE_READING);
+        client.err = 0;
         check_errors(client, 500);
         client.setStatus(500);
         return;
@@ -413,7 +419,7 @@ void sendResponse(Client &client)
     {
         response = client.getResponse().getResponse();
         sent = send(client.getClientSocket(), response.c_str(), response.size(), 0);
-		cout << GREEN "SEND To " << client.getClientSocket() << WHITE "\n";
+		// cout << GREEN "SEND To " << client.getClientSocket() << WHITE "\n";
         if (sent <= 0)
         {
             std::cout << "Client Closed the connection: " << std::endl;
@@ -433,7 +439,7 @@ void sendResponse(Client &client)
             if ((r = read(client.getResponse().getFileFd(), buff, size)) <= 0)
                 break;
             a = send(client.getClientSocket(), buff, r, 0);
-			cout << GREEN "SEND To " << client.getClientSocket() << WHITE "\n";
+			// cout << GREEN "SEND To " << client.getClientSocket() << WHITE "\n";
             if (a <= 0)
             {
                 std::cout << "Client Closed the connection: " << std::endl;
@@ -448,6 +454,8 @@ void sendResponse(Client &client)
     delete[] buff;
     if (r < 0)
     {
+        client.setState(FILE_READING);
+        client.err = 0;
         check_errors(client, 500);
         client.setStatus(500);
         return;

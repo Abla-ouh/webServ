@@ -177,7 +177,7 @@ void server::CreateSocket(server servers)
     if (server_socket == -1) {
         perror("socket");
         freeaddrinfo(res);
-        return;
+		exit(1);
     }
 
     // if ((server_socket = socket(res->ai_family, res->ai_socktype, res->ai_protocol)) == -1)
@@ -206,7 +206,7 @@ void server::CreateSocket(server servers)
         perror("bind");
         close(server_socket);
         freeaddrinfo(res);
-        return;
+		exit(1);
     }
     freeaddrinfo(res);
     

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ybel-hac <ybel-hac@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ebelkhei <ebelkhei@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/08 16:57:48 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/09/05 16:18:16 by ybel-hac         ###   ########.fr       */
+/*   Updated: 2023/09/05 20:00:13 by ebelkhei         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -410,7 +410,8 @@ int HTTPServer::handleRequest(std::vector<Client>::iterator &client_it, fd_set &
                 else
                     write(client.file, holder, rd - client.bodyPos);
                 if (getFileSize(client.file_name) == (size_t)std::atoi(request.getHeader("Content-Length").c_str())) {
-                    close(client.file);
+				    if (client.file != -1)
+                        close(client.file);
                     client.isBodyReady = true;
                     client.ready = true;
                     FD_CLR(client.getClientSocket(), &readSet);

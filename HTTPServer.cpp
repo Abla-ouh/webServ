@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HTTPServer.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ybel-hac <ybel-hac@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ebelkhei <ebelkhei@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/02 18:20:47 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/09/05 16:28:37 by ybel-hac         ###   ########.fr       */
+/*   Updated: 2023/09/05 19:58:11 by ebelkhei         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -168,7 +168,6 @@ void HTTPServer::start()
                             client_it->setChildPid(0);
                         }
                         FD_CLR((*client_it).getClientSocket(), &writeSet);
-						cout << PURPLE << "start CLIENT Dropped: " << client_it->getClientSocket() << WHITE "\n";
                         removeClient(client_it, maxSocket);
                         continue;
                     }
