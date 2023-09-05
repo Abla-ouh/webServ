@@ -6,7 +6,7 @@
 /*   By: ybel-hac <ybel-hac@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/02 17:55:47 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/09/04 21:01:51 by ybel-hac         ###   ########.fr       */
+/*   Updated: 2023/09/05 01:14:26 by ybel-hac         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -161,7 +161,7 @@ public:
     char			data[8000];
     int				uploadedOutFile;
     int				uploadedInFile;
-	int				bodyReaded;
+	long long		bodyReaded;
         Request&                getRequest() { return request;};
         Response&               getResponse() { return response;};
         int                     getStatus() { return status;};

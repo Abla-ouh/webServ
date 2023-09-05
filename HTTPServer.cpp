@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HTTPServer.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ebelkhei <ebelkhei@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ybel-hac <ybel-hac@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/02 18:20:47 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/09/04 18:29:19 by ebelkhei         ###   ########.fr       */
+/*   Updated: 2023/09/04 22:57:12 by ybel-hac         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -144,11 +144,15 @@ void HTTPServer::start()
             while (this->clients.size() && client_it != clients.end())
             {
                 if (FD_ISSET((*client_it).getClientSocket(), &tmp_readSet))
+				{
+					std::cout << "Request\n";
                     if (!handleRequest(client_it, writeSet, readSet, maxSocket))
 						continue;
+				}
 
                 if (FD_ISSET((*client_it).getClientSocket(), &tmp_writeSet))
                 {
+					std::cout << "Response\n";
                     response(*client_it);
                     if (client_it->getState() == DONE)
                     {
