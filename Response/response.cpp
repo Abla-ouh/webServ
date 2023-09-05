@@ -331,7 +331,7 @@ void sendCgi(Client &client)
         string content = "", left = "";
         memset(buff, 0, size);
         rd = read(client.getCgiFd(), buff, size - 1);
-        if (rd <= 0)
+        if (rd < 0)
         {
             client.setStatus(500);
             client.setState(FILE_READING);

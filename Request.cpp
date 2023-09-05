@@ -3,16 +3,14 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ebelkhei <ebelkhei@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ybel-hac <ybel-hac@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/08 16:57:48 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/09/05 22:41:30 by ebelkhei         ###   ########.fr       */
+/*   Updated: 2023/09/05 23:35:50 by ybel-hac         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "Request.hpp"
 #include "HTTPServer.hpp"
-
 
 std::string getQuerySting(std::string &URI)
 {

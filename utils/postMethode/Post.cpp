@@ -77,7 +77,6 @@ void	writeToNewFile(Client &client)
 	}
 	if (rd < 0)
 	{
-		perror("");
 		if (client.uploadedOutFile != -1)
 			close(client.uploadedOutFile);
 		if (client.uploadedInFile != -1)
