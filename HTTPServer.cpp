@@ -6,7 +6,7 @@
 /*   By: ebelkhei <ebelkhei@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/02 18:20:47 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/09/05 19:58:11 by ebelkhei         ###   ########.fr       */
+/*   Updated: 2023/09/05 22:55:55 by ebelkhei         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,27 +23,6 @@ HTTPServer::~HTTPServer()
 {
     
 }
-
-// void match_server_block(Client &client)
-// {
-//     std::vector<server>::iterator it = servers.begin();
-//     std::string hostHeader = client.getRequest().getHeader("Host");
-
-//     while (it != servers.end())
-//     {
-//         if ((*it).getServerName() == hostHeader)
-//         {
-//             client.setServer(*it);
-//             client.hostMatched = true;
-//             break;
-//         }
-//         it++;
-//     }
-//     if (!client.hostMatched && !servers.empty())
-//     {
-//         client.setServer(servers.front());
-//     }
-// }
 
 void HTTPServer::createConnections()
 {
@@ -77,7 +56,6 @@ void HTTPServer::removeClient(std::vector<Client>::iterator &client_it, int &max
 
 void acceptNewClient(std::vector<server> &servers, std::vector<Client> &clients, fd_set &rd, fd_set &tmp_rd, int &maxSocket)
 {
-    //std::cout << "test" << std::endl;
     std::vector<server>::iterator it = servers.begin();
 
     while (it != servers.end())
@@ -97,7 +75,7 @@ void acceptNewClient(std::vector<server> &servers, std::vector<Client> &clients,
             fcntl(newClient.getClientSocket(), F_SETFL, O_NONBLOCK);
             newClient.setServer(*it);
             FD_SET(newClient.getClientSocket(), &rd);
-            clients.push_back(newClient); // New client will be destoyed but its client_socket will keep the return from accept
+            clients.push_back(newClient);
             std::cout << YELLOW << "New Client request !" << WHITE << std::endl;
         }
         it++;

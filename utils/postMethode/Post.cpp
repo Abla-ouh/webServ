@@ -63,10 +63,7 @@ void	writeToNewFile(Client &client)
 	memset(buffer, 0, 2048);
 	rd = read(client.uploadedInFile, buffer, 2047);
 	if (rd > 0)
-	{
 		write(client.uploadedOutFile, buffer, rd);
-		cout << "writing to file 2047 byte \n";
-	}
 	if (!rd)
 	{
 		if (client.uploadedOutFile != -1)

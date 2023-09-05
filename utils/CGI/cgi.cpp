@@ -74,6 +74,8 @@ void CGI::cgi_executor(Client &client, string scritpPath, string requestFile, st
 		perror("execve");
 		exit(1);
 	}
+	else
+		delete[] env;
 }
 
 void run_cgi(Client &client, string requestFile)

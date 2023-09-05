@@ -15,8 +15,8 @@ SRCS = main.cpp Client.cpp HTTPServer.cpp Request.cpp RequestUtils.cpp\
 	   ./delete/delete.cpp
 NAME = webserv
 
-CC = g++
-CXX = g++
+CC = c++
+CXX = c++
 
 # Color codes
 RED = \033[0;31m

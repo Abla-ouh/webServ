@@ -6,7 +6,7 @@
 /*   By: ebelkhei <ebelkhei@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/08 16:57:48 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/09/05 20:00:13 by ebelkhei         ###   ########.fr       */
+/*   Updated: 2023/09/05 22:41:30 by ebelkhei         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -416,6 +416,7 @@ int HTTPServer::handleRequest(std::vector<Client>::iterator &client_it, fd_set &
                     client.ready = true;
                     FD_CLR(client.getClientSocket(), &readSet);
                     FD_SET(client.getClientSocket(), &writeSet);
+                    delete []holder;
 					return 1;
                 }
             }
@@ -427,8 +428,8 @@ int HTTPServer::handleRequest(std::vector<Client>::iterator &client_it, fd_set &
                 client.ready = true;
 				FD_CLR(client.getClientSocket(), &readSet);
                 FD_SET(client.getClientSocket(), &writeSet);
-				return 1;
             }
+            delete []holder;
             client.firstTime = 0;
         }
         else
