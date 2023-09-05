@@ -317,7 +317,7 @@ void sendCgi(Client &client)
 {
     std::string status = "HTTP/1.1 200 OK\r\n";
     std::string header = "";
-    char        *buff = new char[2049];
+    char        *buff = new char[2048];
     int         size = 2048;
     int         sent;
     int         a;

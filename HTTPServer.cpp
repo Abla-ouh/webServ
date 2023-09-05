@@ -6,7 +6,7 @@
 /*   By: ybel-hac <ybel-hac@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/02 18:20:47 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/09/05 15:30:16 by ybel-hac         ###   ########.fr       */
+/*   Updated: 2023/09/05 16:28:37 by ybel-hac         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,6 +64,14 @@ void HTTPServer::removeClient(std::vector<Client>::iterator &client_it, int &max
     if (client_it->getStatus() != 500 && client_it->getResponse().getFileFd() != -1)
 		close(client_it->getResponse().getFileFd());
     close(client_it->getClientSocket());
+	if (client_it->getCgiFd() != -1)
+		close(client_it->getCgiFd());
+	if (client_it->file != -1)
+		close(client_it->file);
+	if (client_it->uploadedOutFile != -1)
+		close(client_it->uploadedOutFile);
+	if (client_it->uploadedInFile != -1)
+		close(client_it->uploadedInFile);
     client_it = clients.erase(client_it);
 }
 

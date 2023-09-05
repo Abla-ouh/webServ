@@ -6,7 +6,7 @@
 /*   By: ybel-hac <ybel-hac@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/08 16:57:48 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/09/05 15:13:28 by ybel-hac         ###   ########.fr       */
+/*   Updated: 2023/09/05 16:18:16 by ybel-hac         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -374,6 +374,8 @@ int HTTPServer::handleRequest(std::vector<Client>::iterator &client_it, fd_set &
             }
             else
             {
+				if (client.file != -1)
+					close(client.file);
                 std::cout << "Client has closed the connection" << std::endl;
                 FD_CLR(client.getClientSocket(), &readSet);
                 removeClient(client_it, maxSocket);
