@@ -1,7 +1,9 @@
-CONFIG_PARSE = ./utils/configParse/
-RESPONSE = ./Response/
+SRC = ./src/
+CONFIG_PARSE = $(SRC)utils/configParse/
+RESPONSE = $(SRC)Response/
 
-SRCS = main.cpp Client.cpp HTTPServer.cpp Request.cpp RequestUtils.cpp\
+SRCS = main.cpp \
+	   $(SRC)Client.cpp $(SRC)HTTPServer.cpp $(SRC)Request.cpp $(SRC)RequestUtils.cpp\
        $(CONFIG_PARSE)configFile.cpp\
        $(CONFIG_PARSE)serverClass.cpp\
 	   $(CONFIG_PARSE)locationClass.cpp\
@@ -12,7 +14,7 @@ SRCS = main.cpp Client.cpp HTTPServer.cpp Request.cpp RequestUtils.cpp\
        $(RESPONSE)response.cpp\
        $(RESPONSE)utils.cpp\
 	   $(CONFIG_PARSE)../CGI/cgi.cpp\
-	   ./delete/delete.cpp
+	   $(SRC)delete/delete.cpp
 NAME = webserv
 
 CC = c++

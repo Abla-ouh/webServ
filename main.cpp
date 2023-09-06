@@ -6,12 +6,12 @@
 /*   By: ybel-hac <ybel-hac@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/08/03 18:48:07 by abouhaga          #+#    #+#             */
-/*   Updated: 2023/09/03 12:06:46 by ybel-hac         ###   ########.fr       */
+/*   Updated: 2023/09/06 16:39:00 by ybel-hac         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "utils/configParse/configFile.hpp"
-#include "HTTPServer.hpp"
+#include "src/utils/configParse/configFile.hpp"
+#include "src/HTTPServer.hpp"
 #include <stdio.h>
 
 void printHeader() {
